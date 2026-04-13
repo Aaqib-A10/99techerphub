@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00C853;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00E676;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect x="10" y="10" width="180" height="180" rx="36" ry="36" fill="url(#bgGrad)"/>
+  <!-- Infinity shape / double 9 -->
+  <g transform="translate(100,95)" fill="none" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left loop (first 9) -->
+    <ellipse cx="-30" cy="0" rx="28" ry="26"/>
+    <!-- Right loop (second 9) -->
+    <ellipse cx="30" cy="0" rx="28" ry="26"/>
+    <!-- Connecting cross strokes for infinity effect -->
+    <path d="M-2,-26 C10,-10 20,10 58,26" />
+    <path d="M2,26 C-10,10 -20,-10 -58,-26" />
+  </g>
+  <!-- "99" text overlay -->
+  <text x="100" y="115" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="72" fill="white" opacity="0.95">99</text>
+</svg>

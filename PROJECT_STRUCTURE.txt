@@ -1,0 +1,278 @@
+99 TECHNOLOGIES ERP - COMPLETE FILE STRUCTURE
+===============================================
+
+PROJECT ROOT
+├── Configuration Files
+│   ├── package.json                 - Dependencies & scripts
+│   ├── tsconfig.json                - TypeScript configuration
+│   ├── next.config.js               - Next.js configuration
+│   ├── tailwind.config.ts           - Tailwind CSS configuration
+│   ├── postcss.config.js            - PostCSS configuration
+│   ├── .env                         - Environment variables
+│   ├── .env.local                   - Local environment (same as .env)
+│   ├── .gitignore                   - Git ignore rules
+
+├── Documentation
+│   ├── README.md                    - Full documentation
+│   ├── QUICKSTART.md                - Quick start for zero-dev users
+│   └── PROJECT_STRUCTURE.txt        - This file
+
+├── Database
+│   └── prisma/
+│       ├── schema.prisma            - Database schema definition
+│       └── seed.ts                  - Sample data seeding script
+
+├── Library Utilities
+│   └── lib/
+│       └── prisma.ts                - Prisma client singleton
+
+└── Application Code
+    └── app/
+        ├── layout.tsx               - Root layout with sidebar
+        ├── globals.css              - Global styles & Tailwind
+        ├── page.tsx                 - Dashboard page
+        │
+        ├── components/              - Reusable UI components
+        │   ├── Sidebar.tsx          - Navigation sidebar
+        │   ├── StatusBadge.tsx      - Condition status badges
+        │   ├── StatCard.tsx         - Statistics display cards
+        │   ├── DataTable.tsx        - Generic table component
+        │   └── Modal.tsx            - Dialog/modal component
+        │
+        ├── assets/                  - Asset management pages
+        │   ├── page.tsx             - Asset list with filters
+        │   ├── new/
+        │   │   └── page.tsx         - Create new asset form
+        │   └── [id]/
+        │       ├── page.tsx         - Asset detail view
+        │       └── client.tsx       - Asset actions (assign/return/transfer)
+        │
+        └── api/                     - REST API endpoints
+            ├── assets/
+            │   ├── route.ts         - GET: list, POST: create assets
+            │   └── [id]/
+            │       ├── route.ts     - GET: details, PUT: update
+            │       ├── assign/
+            │       │   └── route.ts - Assign asset to employee
+            │       ├── return/
+            │       │   └── route.ts - Return asset from employee
+            │       ├── transfer/
+            │       │   └── route.ts - Transfer between companies
+            │       └── retire/
+            │           └── route.ts - Retire asset
+            ├── employees/
+            │   └── route.ts         - GET: list employees
+            ├── companies/
+            │   └── route.ts         - GET: list companies
+            ├── categories/
+            │   └── route.ts         - GET: list categories
+            ├── locations/
+            │   └── route.ts         - GET: list locations
+            └── dashboard/
+                └── stats/
+                    └── route.ts     - GET: dashboard statistics
+
+DATABASE MODELS (Prisma)
+========================
+
+1. Company
+   - id, code, name, country, isActive, createdAt, updatedAt
+   - Relations: employees, assets, transfers
+
+2. Department
+   - id, name, isActive, createdAt, updatedAt
+   - Relations: employees
+
+3. Location
+   - id, name, address, country, createdAt, updatedAt
+   - Relations: assets
+
+4. AssetCategory
+   - id, name, code, description, createdAt, updatedAt
+   - Relations: assets
+
+5. Employee
+   - id, empCode, firstName, lastName, fatherName, departmentId
+   - designation, employmentStatus, dateOfJoining, isActive
+   - createdAt, updatedAt
+   - Relations: department, assignments, transfers
+
+6. Asset
+   - id, assetTag, serialNumber, categoryId, manufacturer, model
+   - purchaseDate, purchasePrice, currency, warrantyExpiry, condition
+   - companyId, locationId, isAssigned, isRetired, retiredDate
+   - notes, createdAt, updatedAt
+   - Relations: category, company, location, assignments, transfers
+
+7. AssetAssignment
+   - id, assetId, employeeId, assignedById, assignedDate
+   - returnedDate, conditionAtAssignment, conditionAtReturn, notes
+   - createdAt, updatedAt
+   - Relations: asset, employee, assignedBy
+
+8. AssetTransfer
+   - id, assetId, fromCompanyId, toCompanyId, transferredBy
+   - transferDate, reason, createdAt
+   - Relations: asset, companies, transferredBy
+
+9. AuditLog
+   - id, tableName, recordId, action, changedBy, oldValues, newValues, createdAt
+   - Tracks all changes to all assets
+
+API ENDPOINTS SUMMARY
+====================
+
+Assets
+------
+GET    /api/assets                    - List all assets (with filters)
+POST   /api/assets                    - Create new asset
+GET    /api/assets/[id]               - Get asset details
+PUT    /api/assets/[id]               - Update asset
+POST   /api/assets/[id]/assign        - Assign to employee
+POST   /api/assets/[id]/return        - Return from employee
+POST   /api/assets/[id]/transfer      - Transfer to company
+POST   /api/assets/[id]/retire        - Retire asset
+
+Lookups
+-------
+GET    /api/employees                 - List active employees
+GET    /api/companies                 - List active companies
+GET    /api/categories                - List asset categories
+GET    /api/locations                 - List locations
+GET    /api/dashboard/stats           - Dashboard statistics
+
+UI PAGES
+========
+
+Public Routes
+-------------
+/ (GET)                  - Dashboard with statistics
+/assets (GET)            - Assets list with filters
+/assets/new (GET)        - Create new asset form
+/assets/[id] (GET)       - Asset details & management
+
+SAMPLE DATA INCLUDED
+====================
+
+Companies (6)
+- MNC (Minnesota Computers, USA)
+- SJ (SJ Computers, USA)
+- PCMART (PC Mart, USA)
+- RTI (Recycle Technologies, USA)
+- LRI (Lighting Resources Inc, USA)
+- GL (Green Loop, Pakistan)
+
+Departments (11)
+- Sales, Customer Support, Development, Marketing
+- Admin/HR, Finance, ITAD, E-Commerce
+- QA, Medical Billing, Digital Marketing
+
+Locations (5)
+- Eagan Office (USA)
+- Dubai Office (UAE)
+- Islamabad HQ Floor 3, 4, 5 (Pakistan)
+
+Asset Categories (10)
+- Laptop, Desktop PC, Monitor, Mobile Phone
+- iPad/Tablet, Headset, Mouse/Keyboard
+- Network Equipment, Furniture, Software License
+
+Employees (5) - All active
+- Ahmed Hassan (Sales Manager)
+- Fatima Khan (Support Specialist)
+- Ali Mirza (Senior Developer)
+- Sarah Williams (Marketing Manager)
+- Muhammad Iqbal (HR Specialist - Probation)
+
+Assets (10) - Mixed conditions
+- 2 Laptops, 1 Desktop PC, 1 Monitor
+- 1 Mobile Phone, 1 Tablet, 1 Headset
+- 1 Mouse, 1 Network Equipment, 1 Furniture
+
+TECHNOLOGY STACK
+=================
+
+Frontend
+- Next.js 14 (App Router)
+- React 18
+- TypeScript 5.3
+- Tailwind CSS 3.4
+
+Backend
+- Node.js runtime
+- Next.js API Routes
+- Prisma ORM 5.7
+
+Database
+- PostgreSQL 18
+- Local development connection: postgresql://aqib@localhost:5432/ninety9tech_erp
+
+Styling
+- Tailwind CSS (utility-first)
+- Custom globals.css with brand colors
+- Responsive design (mobile, tablet, desktop)
+
+Brand Colors
+- Primary Green: #1B5E20
+- Secondary Green: #2E7D32
+- Light Green: #E8F5E9
+- Sidebar: Slate gray gradient
+
+SETUP COMMANDS
+===============
+
+npm install                  - Install all dependencies
+npm run prisma:generate      - Generate Prisma client
+npm run prisma:push          - Create/sync database
+npm run prisma:seed          - Load sample data
+npm run dev                  - Start development server
+npm run build                - Build for production
+npm start                    - Start production server
+npm run prisma:studio        - Open Prisma Studio (GUI)
+
+QUICK START EXECUTION
+=====================
+
+1. npm install
+2. npm run prisma:generate
+3. npm run prisma:push
+4. npm run prisma:seed
+5. npm run dev
+6. Open http://localhost:3000
+
+FEATURES IMPLEMENTED
+====================
+
+Dashboard
+✓ Total assets count
+✓ Assigned/unassigned breakdown
+✓ Assets by company chart/list
+✓ Assets by condition breakdown
+✓ Quick action buttons
+
+Asset Management
+✓ List all assets
+✓ Filter by company, category, condition
+✓ Add new assets with auto-generated tags
+✓ Track serial numbers
+✓ Purchase information (date, price, currency)
+✓ Warranty tracking
+✓ Detailed notes
+
+Asset Operations
+✓ Assign assets to employees
+✓ Return assets with condition updates
+✓ Transfer between companies
+✓ Retire from inventory
+
+Asset Details
+✓ Full asset information
+✓ Assignment history
+✓ Transfer history
+✓ Complete audit trail
+
+Future Modules (Placeholder)
+- Employee Management
+- Expense Tracking
+- Reports & Analytics
+
