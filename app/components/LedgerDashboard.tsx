@@ -166,7 +166,7 @@ export default async function LedgerDashboard({
   }));
   // If there are assets with no company, show them under a virtual entry
   if (unassignedCount > 0) {
-    assetsCompanyList.push({ id: 0, name: 'Unassigned', code: null, count: unassignedCount });
+    assetsCompanyList.push({ id: 0, name: 'Unassigned', code: 'N/A', count: unassignedCount } as any);
   }
   const assetsCompanyTotal = assetsCompanyList.reduce((a, c) => a + c.count, 0) || 1;
 
