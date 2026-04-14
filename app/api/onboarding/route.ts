@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 import { randomBytes } from 'crypto';
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
 
@@ -26,6 +32,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { candidateName, candidateEmail, position, companyName, expiryDays = 7 } = body;
 
@@ -97,7 +108,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating onboarding submission:', error);
     return NextResponse.json(
-      { error: 'Failed to create onboarding submission', details: error?.message },
+      { error: 'Failed to create onboarding submission' },
       { status: 500 }
     );
   }

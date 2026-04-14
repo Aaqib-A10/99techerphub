@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const assetId = parseInt(params.id);
 
     const asset = await prisma.asset.findUnique({
@@ -54,6 +60,11 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const assetId = parseInt(params.id);
     const data = await request.json();
 
@@ -120,7 +131,7 @@ export async function PUT(
   } catch (error: any) {
     console.error('Error updating asset:', error);
     return NextResponse.json(
-      { error: 'Failed to update asset', details: error?.message },
+      { error: 'Failed to update asset' },
       { status: 500 }
     );
   }

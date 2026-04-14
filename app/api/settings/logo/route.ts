@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir, unlink, readdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { getSessionUser } from '@/lib/auth';
 
 // Allowed file types for the branding logo
 const ALLOWED_TYPES = [
@@ -43,8 +44,21 @@ const findCurrentLogo = async (): Promise<{
 // GET — return the current logo URL (or null)
 // --------------------------------------------------------------
 export async function GET() {
-  const current = await findCurrentLogo();
-  return NextResponse.json({ logo: current });
+  try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const current = await findCurrentLogo();
+    return NextResponse.json({ logo: current });
+  } catch (error: any) {
+    console.error('Error fetching logo:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch logo' },
+      { status: 500 }
+    );
+  }
 }
 
 // --------------------------------------------------------------
@@ -52,6 +66,11 @@ export async function GET() {
 // --------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
@@ -122,7 +141,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error uploading logo:', error);
     return NextResponse.json(
-      { error: 'Failed to upload logo', details: error?.message },
+      { error: 'Failed to upload logo' },
       { status: 500 }
     );
   }
@@ -133,6 +152,11 @@ export async function POST(request: NextRequest) {
 // --------------------------------------------------------------
 export async function DELETE() {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     if (!existsSync(LOGO_DIR)) {
       return NextResponse.json({ success: true, removed: false });
     }
@@ -148,7 +172,7 @@ export async function DELETE() {
   } catch (error: any) {
     console.error('Error removing logo:', error);
     return NextResponse.json(
-      { error: 'Failed to remove logo', details: error?.message },
+      { error: 'Failed to remove logo' },
       { status: 500 }
     );
   }

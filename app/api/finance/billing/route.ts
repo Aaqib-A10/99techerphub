@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const billingSplits = await prisma.billingSplit.findMany({
       include: {
         employee: true,
@@ -14,7 +20,7 @@ export async function GET() {
     return NextResponse.json(billingSplits);
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to fetch billing splits', details: error?.message },
+      { error: 'Failed to fetch billing splits' },
       { status: 500 }
     );
   }
@@ -22,6 +28,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
     const { employeeId, splits } = data;
 
@@ -88,7 +99,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating billing splits:', error);
     return NextResponse.json(
-      { error: 'Failed to create billing splits', details: error?.message },
+      { error: 'Failed to create billing splits' },
       { status: 500 }
     );
   }

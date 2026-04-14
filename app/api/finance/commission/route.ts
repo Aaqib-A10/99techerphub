@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const commissions = await prisma.commission.findMany({
       include: { employee: { select: { firstName: true, lastName: true, empCode: true } } },
       orderBy: { createdAt: 'desc' },
@@ -16,6 +22,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
 
     const commission = await prisma.commission.create({
@@ -41,6 +52,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(commission, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to create commission', details: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create commission' }, { status: 500 });
   }
 }

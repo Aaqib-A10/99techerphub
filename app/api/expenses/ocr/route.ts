@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { getSessionUser } from '@/lib/auth';
 
 /**
  * Receipt OCR endpoint — reads an uploaded receipt image and asks Claude's
@@ -49,6 +50,11 @@ Rules:
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { receiptUrl } = await request.json();
 
     if (!receiptUrl || typeof receiptUrl !== 'string') {

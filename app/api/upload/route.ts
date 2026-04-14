@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { getSessionUser } from '@/lib/auth';
 
 // Allowed file types for receipt uploads
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
@@ -9,6 +10,11 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -46,10 +52,16 @@ export async function POST(request: NextRequest) {
       await mkdir(uploadDir, { recursive: true });
     }
 
-    // Generate unique filename: timestamp-random.ext
+    // Generate unique filename with sanitized extension (allowlist only)
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 10);
-    const ext = file.name.split('.').pop() || 'bin';
+    const ALLOWED_EXTENSIONS: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/jpg': 'jpg',
+      'image/png': 'png',
+      'application/pdf': 'pdf',
+    };
+    const ext = ALLOWED_EXTENSIONS[file.type] || 'bin';
     const filename = `${timestamp}-${random}.${ext}`;
 
     // Save file to public/uploads/receipts/
@@ -66,7 +78,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error uploading file:', error);
     return NextResponse.json(
-      { error: 'Failed to upload file', details: error?.message },
+      { error: 'Failed to upload file' },
       { status: 500 }
     );
   }

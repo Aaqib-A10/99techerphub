@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 const getTemplateBody = (letter: any): string => {
   const formatDate = (date: any) => {
@@ -30,6 +31,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
 
     const offerLetter = await prisma.offerLetter.findUnique({
@@ -155,7 +161,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error generating PDF:', error);
     return NextResponse.json(
-      { error: 'Failed to generate PDF', details: error?.message },
+      { error: 'Failed to generate PDF' },
       { status: 500 }
     );
   }

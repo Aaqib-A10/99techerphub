@@ -1,9 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword, createSession, setSessionCookie } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
+
+// 5 login attempts per IP per 60-second window
+const LOGIN_RATE_LIMIT = { maxAttempts: 5, windowMs: 60_000 };
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate-limit by IP address
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || req.headers.get('x-real-ip')
+      || 'unknown';
+    const rateLimitResult = checkRateLimit(`login:${ip}`, LOGIN_RATE_LIMIT);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil(rateLimitResult.retryAfterMs / 1000)) },
+        }
+      );
+    }
+
     const { email, password } = await req.json();
 
     if (!email || !password) {
@@ -78,7 +97,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create session (persisted to DB via lib/auth)
-    const token = createSession(user.id);
+    const token = await createSession(user.id);
 
     // Update last login time
     await prisma.user.update({
@@ -114,6 +133,7 @@ export async function POST(req: NextRequest) {
     // Set the session cookie
     response.cookies.set('99tech_session', token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',

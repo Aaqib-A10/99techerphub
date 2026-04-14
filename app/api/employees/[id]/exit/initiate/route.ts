@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 import { createNotificationsForRole } from '@/lib/services/notificationService';
 
 export async function POST(
@@ -7,6 +8,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const employeeId = parseInt(params.id);
     const data = await request.json();
 
@@ -25,43 +31,47 @@ export async function POST(
       where: { employeeId },
     });
 
-    let exitRecord;
-    if (existingExit) {
-      exitRecord = await prisma.employeeExit.update({
-        where: { employeeId },
+    const exitRecord = await prisma.$transaction(async (tx) => {
+      let record;
+      if (existingExit) {
+        record = await tx.employeeExit.update({
+          where: { employeeId },
+          data: {
+            exitDate: new Date(data.exitDate),
+            reason: data.reason || null,
+            exitType: data.exitType || 'RESIGNATION',
+          },
+        });
+      } else {
+        record = await tx.employeeExit.create({
+          data: {
+            employeeId,
+            exitDate: new Date(data.exitDate),
+            reason: data.reason || null,
+            exitType: data.exitType || 'RESIGNATION',
+            clearanceStatus: {},
+          },
+        });
+      }
+
+      await tx.employee.update({
+        where: { id: employeeId },
         data: {
-          exitDate: new Date(data.exitDate),
-          reason: data.reason || null,
-          exitType: data.exitType || 'RESIGNATION',
+          lifecycleStage: 'EXIT_INITIATED',
         },
       });
-    } else {
-      exitRecord = await prisma.employeeExit.create({
+
+      await tx.auditLog.create({
         data: {
-          employeeId,
-          exitDate: new Date(data.exitDate),
-          reason: data.reason || null,
-          exitType: data.exitType || 'RESIGNATION',
-          clearanceStatus: {},
+          tableName: 'employee_exits',
+          recordId: record.id,
+          action: 'CREATE',
+          module: 'EMPLOYEE',
+          newValues: record,
         },
       });
-    }
 
-    await prisma.employee.update({
-      where: { id: employeeId },
-      data: {
-        lifecycleStage: 'EXIT_INITIATED',
-      },
-    });
-
-    await prisma.auditLog.create({
-      data: {
-        tableName: 'employee_exits',
-        recordId: exitRecord.id,
-        action: 'CREATE',
-        module: 'EMPLOYEE',
-        newValues: exitRecord,
-      },
+      return record;
     });
 
     // Notify IT, Finance, and Super Admins about the exit so clearance tasks
@@ -110,7 +120,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error initiating exit:', error);
     return NextResponse.json(
-      { error: 'Failed to initiate exit', details: error?.message },
+      { error: 'Failed to initiate exit' },
       { status: 500 }
     );
   }

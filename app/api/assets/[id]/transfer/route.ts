@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const assetId = parseInt(params.id);
     const data = await request.json();
 
@@ -20,31 +26,36 @@ export async function POST(
       );
     }
 
-    // Create transfer record
-    const transfer = await prisma.assetTransfer.create({
-      data: {
-        assetId,
-        fromCompanyId: asset.companyId,
-        toCompanyId: data.toCompanyId,
-        transferredBy: data.transferredBy || null,
-        reason: data.reason,
-      },
-    });
+    // Wrap core mutations in a transaction
+    const transfer = await prisma.$transaction(async (tx) => {
+      // Create transfer record
+      const transfer = await tx.assetTransfer.create({
+        data: {
+          assetId,
+          fromCompanyId: asset.companyId ?? undefined,
+          toCompanyId: data.toCompanyId,
+          transferredBy: data.transferredBy || null,
+          reason: data.reason,
+        },
+      });
 
-    // Update asset
-    const updatedAsset = await prisma.asset.update({
-      where: { id: assetId },
-      data: { companyId: data.toCompanyId },
-    });
+      // Update asset
+      await tx.asset.update({
+        where: { id: assetId },
+        data: { companyId: data.toCompanyId },
+      });
 
-    // Create audit log
-    await prisma.auditLog.create({
-      data: {
-        tableName: 'asset_transfers',
-        recordId: transfer.id,
-        action: 'CREATE',
-        newValues: transfer,
-      },
+      // Create audit log
+      await tx.auditLog.create({
+        data: {
+          tableName: 'asset_transfers',
+          recordId: transfer.id,
+          action: 'CREATE',
+          newValues: transfer,
+        },
+      });
+
+      return transfer;
     });
 
     return NextResponse.json(transfer, { status: 201 });

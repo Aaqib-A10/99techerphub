@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 interface TimelineEntry {
   id: string;
@@ -18,6 +19,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const employeeId = parseInt(params.id);
     if (isNaN(employeeId)) {
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 });
@@ -74,7 +80,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching timeline:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch timeline', details: error?.message },
+      { error: 'Failed to fetch timeline' },
       { status: 500 }
     );
   }

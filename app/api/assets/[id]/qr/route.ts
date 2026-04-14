@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import QRCode from 'qrcode';
+import { getSessionUser } from '@/lib/auth';
 
 /**
  * Generates a real, scannable QR code (SVG) for an asset.
@@ -17,6 +18,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
     const asset = await prisma.asset.findUnique({
       where: { id },

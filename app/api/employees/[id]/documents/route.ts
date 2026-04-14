@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -9,6 +10,11 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const employeeId = parseInt(params.id);
     const documents = await prisma.employeeDocument.findMany({
       where: { employeeId },
@@ -16,12 +22,17 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     });
     return NextResponse.json(documents, { status: 200 });
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to fetch documents', details: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const employeeId = parseInt(params.id);
     const employee = await prisma.employee.findUnique({ where: { id: employeeId } });
     if (!employee) return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
@@ -58,6 +69,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json(document, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to upload document', details: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to upload document' }, { status: 500 });
   }
 }

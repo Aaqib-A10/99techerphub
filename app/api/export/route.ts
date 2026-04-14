@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 // Helper function to escape CSV fields
 function escapeCSV(field: string | number | boolean | null | undefined): string {
@@ -278,6 +279,11 @@ async function exportExpenses(
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const mod = searchParams.get('module');
     const format = (searchParams.get('format') || 'csv').toLowerCase();

@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const empId = parseInt(params.id);
     if (isNaN(empId)) {
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 });
@@ -57,7 +63,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error updating exit clearance:', error);
     return NextResponse.json(
-      { error: 'Failed to update exit clearance', details: error?.message },
+      { error: 'Failed to update exit clearance' },
       { status: 500 }
     );
   }
@@ -68,6 +74,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const empId = parseInt(params.id);
     if (isNaN(empId)) {
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 });
@@ -143,7 +154,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error completing exit:', error);
     return NextResponse.json(
-      { error: 'Failed to complete exit', details: error?.message },
+      { error: 'Failed to complete exit' },
       { status: 500 }
     );
   }

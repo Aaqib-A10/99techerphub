@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
 
     const offerLetter = await prisma.offerLetter.findUnique({
@@ -37,6 +43,11 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
     const data = await request.json();
 
@@ -83,7 +94,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error updating offer letter:', error);
     return NextResponse.json(
-      { error: 'Failed to update offer letter', details: error?.message },
+      { error: 'Failed to update offer letter' },
       { status: 500 }
     );
   }
@@ -94,6 +105,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
 
     const offerLetter = await prisma.offerLetter.findUnique({
@@ -132,7 +148,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting offer letter:', error);
     return NextResponse.json(
-      { error: 'Failed to delete offer letter', details: error?.message },
+      { error: 'Failed to delete offer letter' },
       { status: 500 }
     );
   }

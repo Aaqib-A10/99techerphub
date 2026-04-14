@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const [companies, departments, locations, assetCategories, expenseCategories] = await Promise.all([
       prisma.company.findMany({ orderBy: { name: 'asc' } }),
       prisma.department.findMany({ orderBy: { name: 'asc' } }),
@@ -18,6 +24,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
     const { type, ...fields } = data;
 
@@ -65,6 +76,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to create record', details: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create record' }, { status: 500 });
   }
 }

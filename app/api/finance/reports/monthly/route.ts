@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -28,7 +34,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to fetch reports', details: error?.message },
+      { error: 'Failed to fetch reports' },
       { status: 500 }
     );
   }
@@ -36,6 +42,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
     const period = data.period; // YYYY-MM
     const companyId = data.companyId ? parseInt(data.companyId) : null;
@@ -142,7 +153,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error generating report:', error);
     return NextResponse.json(
-      { error: 'Failed to generate report', details: error?.message },
+      { error: 'Failed to generate report' },
       { status: 500 }
     );
   }
@@ -150,6 +161,11 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
     const { reportId, action, notes } = data;
 
@@ -188,7 +204,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(report);
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to update report', details: error?.message },
+      { error: 'Failed to update report' },
       { status: 500 }
     );
   }

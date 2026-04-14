@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateOnboardingTaskStatus } from '@/lib/services/onboardingService';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 /**
  * PATCH — update a single onboarding task's status or notes.
@@ -11,6 +12,11 @@ export async function PATCH(
   { params }: { params: { taskId: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const taskId = parseInt(params.taskId);
     const body = await request.json();
 
@@ -43,7 +49,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('[PATCH /api/onboarding-tasks/:taskId]', error);
     return NextResponse.json(
-      { error: 'Failed to update task', details: error?.message },
+      { error: 'Failed to update task' },
       { status: 500 }
     );
   }

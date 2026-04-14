@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 interface GenerationSummary {
   birthdays: number;
@@ -13,6 +14,11 @@ interface GenerationSummary {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const summary: GenerationSummary = {
       birthdays: 0,
       anniversaries: 0,

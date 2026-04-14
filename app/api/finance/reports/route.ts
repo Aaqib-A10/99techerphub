@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET() {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const reports = await prisma.monthlyReport.findMany({
       orderBy: { createdAt: 'desc' },
       take: 20,
@@ -15,6 +21,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
     const period = data.period; // YYYY-MM
     const companyId = data.companyId ? parseInt(data.companyId) : null;
@@ -96,6 +107,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(report, { status: 201 });
   } catch (error: any) {
     console.error('Error generating report:', error);
-    return NextResponse.json({ error: 'Failed to generate report', details: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate report' }, { status: 500 });
   }
 }

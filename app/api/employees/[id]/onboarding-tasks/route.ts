@@ -4,19 +4,25 @@ import {
   seedOnboardingTasksForEmployee,
 } from '@/lib/services/onboardingService';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const employeeId = parseInt(params.id);
     const tasks = await getOnboardingTasksForEmployee(employeeId);
     return NextResponse.json(tasks);
   } catch (error: any) {
     console.error('[GET /api/employees/:id/onboarding-tasks]', error);
     return NextResponse.json(
-      { error: 'Failed to fetch onboarding tasks', details: error?.message },
+      { error: 'Failed to fetch onboarding tasks' },
       { status: 500 }
     );
   }
@@ -32,6 +38,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const employeeId = parseInt(params.id);
 
     // Skip if tasks already exist for this employee.
@@ -59,7 +70,7 @@ export async function POST(
   } catch (error: any) {
     console.error('[POST /api/employees/:id/onboarding-tasks]', error);
     return NextResponse.json(
-      { error: 'Failed to seed onboarding tasks', details: error?.message },
+      { error: 'Failed to seed onboarding tasks' },
       { status: 500 }
     );
   }

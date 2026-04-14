@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createNotificationsForRole } from '@/lib/services/notificationService';
+import { getSessionUser } from '@/lib/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const assetId = parseInt(params.id);
     const data = await request.json();
 
@@ -25,23 +31,38 @@ export async function POST(
       );
     }
 
-    // Update assignment with return info
-    const updatedAssignment = await prisma.assetAssignment.update({
-      where: { id: activeAssignment.id },
-      data: {
-        returnedDate: new Date(),
-        conditionAtReturn: data.conditionAtReturn,
-        notes: data.notes,
-      },
-    });
+    // Wrap core mutations in a transaction
+    const updatedAssignment = await prisma.$transaction(async (tx) => {
+      // Update assignment with return info
+      const updatedAssignment = await tx.assetAssignment.update({
+        where: { id: activeAssignment.id },
+        data: {
+          returnedDate: new Date(),
+          conditionAtReturn: data.conditionAtReturn,
+          notes: data.notes,
+        },
+      });
 
-    // Update asset
-    const updatedAsset = await prisma.asset.update({
-      where: { id: assetId },
-      data: {
-        isAssigned: false,
-        condition: data.conditionAtReturn,
-      },
+      // Update asset
+      await tx.asset.update({
+        where: { id: assetId },
+        data: {
+          isAssigned: false,
+          condition: data.conditionAtReturn,
+        },
+      });
+
+      // Create audit log
+      await tx.auditLog.create({
+        data: {
+          tableName: 'asset_assignments',
+          recordId: activeAssignment.id,
+          action: 'UPDATE',
+          newValues: updatedAssignment,
+        },
+      });
+
+      return updatedAssignment;
     });
 
     // Notify IT admins that an asset was returned and needs processing
@@ -62,16 +83,6 @@ export async function POST(
     } catch (err) {
       console.warn('[assets/return] failed to notify IT:', err);
     }
-
-    // Create audit log
-    await prisma.auditLog.create({
-      data: {
-        tableName: 'asset_assignments',
-        recordId: activeAssignment.id,
-        action: 'UPDATE',
-        newValues: updatedAssignment,
-      },
-    });
 
     return NextResponse.json(updatedAssignment);
   } catch (error) {

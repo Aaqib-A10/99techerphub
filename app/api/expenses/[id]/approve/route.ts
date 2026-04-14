@@ -2,29 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createNotification } from '@/lib/services/notificationService';
 import { NotificationType } from '@prisma/client';
+import { getSessionUser } from '@/lib/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const expenseId = parseInt(params.id);
     const data = await request.json();
     const action = data.action; // APPROVED, REJECTED, NEEDS_REVISION
 
-    // For now, use approvedById = 1 (admin user placeholder)
-    // In production, this would come from the auth session
-    const approvedById = 1;
-
-    // Create approval record
-    const approval = await prisma.expenseApproval.create({
-      data: {
-        expenseId,
-        approvedById,
-        action,
-        comments: data.comments || null,
-      },
-    });
+    const approvedById = currentUser.id;
 
     // Update expense status
     const updateData: any = {
@@ -38,17 +32,41 @@ export async function POST(
       updateData.revisionNotes = data.comments || null;
     }
 
-    const updatedExpense = await prisma.expense.update({
-      where: { id: expenseId },
-      data: updateData,
-      include: {
-        submittedBy: {
-          include: { user: true },
+    // Wrap approval creation, expense update, and audit log in a transaction
+    const { approval, updatedExpense } = await prisma.$transaction(async (tx) => {
+      const approvalRecord = await tx.expenseApproval.create({
+        data: {
+          expenseId,
+          approvedById,
+          action,
+          comments: data.comments || null,
         },
-      },
+      });
+
+      const expense = await tx.expense.update({
+        where: { id: expenseId },
+        data: updateData,
+        include: {
+          submittedBy: {
+            include: { user: true },
+          },
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          tableName: 'expense_approvals',
+          recordId: approvalRecord.id,
+          action: 'CREATE',
+          module: 'EXPENSE',
+          newValues: { expenseId, action, comments: data.comments },
+        },
+      });
+
+      return { approval: approvalRecord, updatedExpense: expense };
     });
 
-    // Notify the submitter via their linked User account
+    // Notify the submitter via their linked User account (outside transaction)
     try {
       const submitterUserId = updatedExpense.submittedBy.user?.id;
       if (submitterUserId) {
@@ -84,21 +102,11 @@ export async function POST(
       console.warn('[expenses/approve] failed to notify submitter:', err);
     }
 
-    await prisma.auditLog.create({
-      data: {
-        tableName: 'expense_approvals',
-        recordId: approval.id,
-        action: 'CREATE',
-        module: 'EXPENSE',
-        newValues: { expenseId, action, comments: data.comments },
-      },
-    });
-
     return NextResponse.json(approval, { status: 201 });
   } catch (error: any) {
     console.error('Error approving expense:', error);
     return NextResponse.json(
-      { error: 'Failed to process approval', details: error?.message },
+      { error: 'Failed to process approval' },
       { status: 500 }
     );
   }

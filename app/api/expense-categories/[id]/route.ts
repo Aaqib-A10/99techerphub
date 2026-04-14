@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
     const data = await request.json();
 
@@ -45,7 +51,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error updating expense category:', error);
     return NextResponse.json(
-      { error: 'Failed to update expense category', details: error?.message },
+      { error: 'Failed to update expense category' },
       { status: 500 }
     );
   }
@@ -56,6 +62,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
 
     const category = await prisma.expenseCategory.findUnique({
@@ -86,7 +97,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting expense category:', error);
     return NextResponse.json(
-      { error: 'Failed to delete expense category', details: error?.message },
+      { error: 'Failed to delete expense category' },
       { status: 500 }
     );
   }

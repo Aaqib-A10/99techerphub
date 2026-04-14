@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
 
     const template = await prisma.emailTemplate.findUnique({
@@ -22,7 +28,7 @@ export async function GET(
     return NextResponse.json(template);
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to fetch template', details: error?.message },
+      { error: 'Failed to fetch template' },
       { status: 500 }
     );
   }
@@ -33,6 +39,11 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
     const data = await request.json();
 
@@ -96,7 +107,6 @@ export async function PATCH(
     return NextResponse.json(
       {
         error: 'Failed to update email template',
-        details: error?.message,
       },
       { status: 500 }
     );
@@ -108,6 +118,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
 
     // Fetch template before deletion
@@ -143,7 +158,6 @@ export async function DELETE(
     return NextResponse.json(
       {
         error: 'Failed to delete email template',
-        details: error?.message,
       },
       { status: 500 }
     );

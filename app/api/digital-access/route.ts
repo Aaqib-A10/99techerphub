@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const employeeId = searchParams.get('employeeId');
     const activeOnly = searchParams.get('activeOnly') === 'true';
@@ -20,7 +26,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(records);
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to fetch digital access records', details: error?.message },
+      { error: 'Failed to fetch digital access records' },
       { status: 500 }
     );
   }
@@ -28,6 +34,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
 
     const access = await prisma.digitalAccess.create({
@@ -52,7 +63,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(access, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to grant access', details: error?.message },
+      { error: 'Failed to grant access' },
       { status: 500 }
     );
   }
@@ -60,6 +71,11 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = parseInt(searchParams.get('id') || '0');
 
@@ -81,7 +97,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(access);
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to revoke access', details: error?.message },
+      { error: 'Failed to revoke access' },
       { status: 500 }
     );
   }

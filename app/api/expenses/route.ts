@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createNotificationsForRole } from '@/lib/services/notificationService';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const meta = searchParams.get('meta');
 
@@ -39,14 +45,36 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
 
-    // Generate expense number: EXP-YYYY-MM-XXXX
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const count = await prisma.expense.count();
-    const expenseNumber = `EXP-${year}-${month}-${String(count + 1).padStart(4, '0')}`;
+    // Generate expense number with advisory lock to prevent race conditions
+    const expenseNumber = await prisma.$transaction(async (tx) => {
+      // Advisory lock to serialize expense number generation
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(99001)`;
+
+      const now = new Date();
+      const prefix = `EXP-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+      const latest = await tx.expense.findFirst({
+        where: { expenseNumber: { startsWith: prefix } },
+        orderBy: { expenseNumber: 'desc' },
+        select: { expenseNumber: true },
+      });
+
+      let nextSeq = 1;
+      if (latest?.expenseNumber) {
+        const parts = latest.expenseNumber.split('-');
+        const lastNum = parseInt(parts[parts.length - 1], 10);
+        if (!isNaN(lastNum)) nextSeq = lastNum + 1;
+      }
+
+      return `${prefix}-${String(nextSeq).padStart(4, '0')}`;
+    });
 
     const expense = await prisma.expense.create({
       data: {
@@ -110,7 +138,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating expense:', error);
     return NextResponse.json(
-      { error: 'Failed to create expense', details: error?.message },
+      { error: 'Failed to create expense' },
       { status: 500 }
     );
   }

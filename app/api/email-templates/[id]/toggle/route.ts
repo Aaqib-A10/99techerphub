@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
 
     // Fetch current template
@@ -45,7 +51,6 @@ export async function POST(
     return NextResponse.json(
       {
         error: 'Failed to toggle email template status',
-        details: error?.message,
       },
       { status: 500 }
     );

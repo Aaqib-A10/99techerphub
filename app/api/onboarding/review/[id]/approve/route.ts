@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generateEmployeeId } from '@/lib/services/employeeIdService';
+import { hashPassword, getSessionUser } from '@/lib/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const submissionId = parseInt(params.id);
 
     // Fetch the onboarding submission
@@ -67,93 +73,90 @@ export async function POST(
     // Generate employee ID
     const empCode = await generateEmployeeId(department.code);
 
-    // Create the employee record
-    const employee = await prisma.employee.create({
-      data: {
-        firstName: firstName || 'Unknown',
-        lastName: lastName,
-        email: submission.candidateEmail || '',
-        phone: personalDetails.phone || '',
-        designation: submission.position || '',
-        departmentId: department.id,
-        companyId: company.id,
-        empCode: empCode,
-        joinDate: new Date(),
-        cnic: personalDetails.cnic || '',
-        dateOfBirth: personalDetails.dateOfBirth
-          ? new Date(personalDetails.dateOfBirth)
-          : undefined,
-        gender: personalDetails.gender || '',
-        nationality: personalDetails.nationality || '',
-        maritalStatus: personalDetails.maritalStatus || '',
-        bloodGroup: personalDetails.bloodGroup || '',
-        passportNumber: personalDetails.passportNumber || '',
-        passportExpiry: personalDetails.passportExpiry
-          ? new Date(personalDetails.passportExpiry)
-          : undefined,
-        fatherName: personalDetails.fatherName || '',
-        address: personalDetails.address || '',
-        city: personalDetails.city || '',
-        country: personalDetails.country || '',
-        emergencyContactName: emergencyContact.name || '',
-        emergencyContactPhone: emergencyContact.phone || '',
-        emergencyContactRelation: emergencyContact.relationship || '',
-        bankName: bankDetails.bankName || '',
-        bankAccountNumber: bankDetails.accountNumber || '',
-        bankBranch: bankDetails.branch || '',
-        bankAccountTitle: bankDetails.accountTitle || '',
-        employmentStatus: 'PROBATION',
-        lifecycleStage: 'ONBOARDING',
-        isActive: true,
-      },
-    });
-
-    // Create user account with temporary credentials
+    // Create user account with temporary credentials (bcrypt hashed)
     const tempPassword = 'TempPass@' + Math.random().toString(36).substr(2, 9);
-    const passwordHash = require('crypto')
-      .createHash('sha256')
-      .update(tempPassword)
-      .digest('hex');
+    const passwordHash = await hashPassword(tempPassword);
 
-    await prisma.user.create({
-      data: {
-        email: submission.candidateEmail || employee.email,
-        passwordHash: passwordHash,
-        role: 'EMPLOYEE',
-        employeeId: employee.id,
-      },
-    });
+    // Wrap employee creation, user creation, submission update, and audit log in a transaction
+    const employee = await prisma.$transaction(async (tx) => {
+      const emp = await tx.employee.create({
+        data: {
+          firstName: firstName || 'Unknown',
+          lastName: lastName,
+          email: submission.candidateEmail || '',
+          phone: personalDetails.phone || '',
+          designation: submission.position || '',
+          departmentId: department.id,
+          companyId: company.id,
+          empCode: empCode,
+          joinDate: new Date(),
+          cnic: personalDetails.cnic || '',
+          dateOfBirth: personalDetails.dateOfBirth
+            ? new Date(personalDetails.dateOfBirth)
+            : undefined,
+          gender: personalDetails.gender || '',
+          nationality: personalDetails.nationality || '',
+          maritalStatus: personalDetails.maritalStatus || '',
+          bloodGroup: personalDetails.bloodGroup || '',
+          passportNumber: personalDetails.passportNumber || '',
+          passportExpiry: personalDetails.passportExpiry
+            ? new Date(personalDetails.passportExpiry)
+            : undefined,
+          fatherName: personalDetails.fatherName || '',
+          address: personalDetails.address || '',
+          city: personalDetails.city || '',
+          country: personalDetails.country || '',
+          emergencyContactName: emergencyContact.name || '',
+          emergencyContactPhone: emergencyContact.phone || '',
+          emergencyContactRelation: emergencyContact.relationship || '',
+          bankName: bankDetails.bankName || '',
+          bankAccountNumber: bankDetails.accountNumber || '',
+          bankBranch: bankDetails.branch || '',
+          bankAccountTitle: bankDetails.accountTitle || '',
+          employmentStatus: 'PROBATION',
+          lifecycleStage: 'ONBOARDING',
+          isActive: true,
+        },
+      });
 
-    // Update the onboarding submission to link to the new employee
-    await (prisma.onboardingSubmission as any).update({
-      where: { id: submissionId },
-      data: {
-        employeeId: employee.id,
-        reviewStatus: 'APPROVED',
-        reviewedAt: new Date(),
-        reviewedBy: 1,
-      },
-    });
+      await tx.user.create({
+        data: {
+          email: submission.candidateEmail || emp.email,
+          passwordHash: passwordHash,
+          role: 'EMPLOYEE',
+          employeeId: emp.id,
+        },
+      });
 
-    // Create audit log
-    try {
-      await prisma.auditLog.create({
+      await (tx.onboardingSubmission as any).update({
+        where: { id: submissionId },
+        data: {
+          employeeId: emp.id,
+          reviewStatus: 'APPROVED',
+          reviewedAt: new Date(),
+          reviewedBy: currentUser.id,
+        },
+      });
+
+      await tx.auditLog.create({
         data: {
           tableName: 'employees',
-          recordId: employee.id,
+          recordId: emp.id,
           action: 'CREATE',
           module: 'ONBOARDING',
           newValues: {
-            empCode: employee.empCode,
-            email: employee.email,
-            firstName: employee.firstName,
-            lastName: employee.lastName,
+            empCode: emp.empCode,
+            email: emp.email,
+            firstName: emp.firstName,
+            lastName: emp.lastName,
           } as any,
         },
       });
-    } catch {}
 
-    // Create notification
+      return emp;
+    });
+
+    // Create notification (outside transaction -- non-critical)
     try {
       await prisma.notification.create({
         data: {
@@ -178,7 +181,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error approving onboarding submission:', error);
     return NextResponse.json(
-      { error: 'Failed to approve onboarding submission', details: error?.message },
+      { error: 'Failed to approve onboarding submission' },
       { status: 500 }
     );
   }

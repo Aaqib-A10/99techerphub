@@ -644,7 +644,7 @@ model Deduction {
 
 model PayrollRun {
   id          Int           @id @default(autoincrement())
-  period      String        @unique   // e.g., "2026-03"
+  period      String        // e.g., "2026-03"
   companyId   Int?
   status      PayrollStatus @default(DRAFT)
   totalGross  Float         @default(0)
@@ -658,6 +658,7 @@ model PayrollRun {
   company     Company?      @relation(fields: [companyId], references: [id])
   items       PayrollItem[]
 
+  @@unique([period, companyId])
   @@map("payroll_runs")
 }
 

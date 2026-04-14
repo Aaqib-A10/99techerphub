@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const now = new Date();
     const in7Days = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const in30Days = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);

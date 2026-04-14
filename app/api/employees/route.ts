@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 import { seedOnboardingTasksForEmployee } from '@/lib/services/onboardingService';
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const meta = searchParams.get('meta');
 
@@ -52,6 +58,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
 
     // Generate employee code based on department prefix
@@ -124,11 +135,8 @@ export async function POST(request: NextRequest) {
       : data.companyId
         ? [parseInt(data.companyId)]
         : [];
-    if (companyIds.length > 0) {
-      const values = companyIds.map((cid: number) => `(${employee.id}, ${cid}, NOW())`).join(', ');
-      await prisma.$executeRawUnsafe(
-        `INSERT INTO employee_companies ("employeeId", "companyId", "assignedAt") VALUES ${values} ON CONFLICT ("employeeId", "companyId") DO NOTHING`
-      );
+    for (const cid of companyIds) {
+      await prisma.$executeRaw`INSERT INTO employee_companies ("employeeId", "companyId", "assignedAt") VALUES (${employee.id}, ${cid}, NOW()) ON CONFLICT ("employeeId", "companyId") DO NOTHING`;
     }
 
     // If salary provided, create initial salary history
@@ -171,7 +179,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating employee:', error);
     return NextResponse.json(
-      { error: 'Failed to create employee', details: error?.message },
+      { error: 'Failed to create employee' },
       { status: 500 }
     );
   }

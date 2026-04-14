@@ -12,6 +12,7 @@
  */
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,6 +74,11 @@ function fallbackFromLegacyDeptName(legacyName: string | null | undefined): stri
 
 export async function POST() {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const log: string[] = [];
     log.push('=== Department Normalization ===');
 

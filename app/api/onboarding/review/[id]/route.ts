@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = params;
     const submission = await (prisma.onboardingSubmission as any).findUnique({
       where: { id: parseInt(id) },
@@ -17,7 +23,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching onboarding submission:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch onboarding submission', details: error?.message },
+      { error: 'Failed to fetch onboarding submission' },
       { status: 500 }
     );
   }
@@ -28,6 +34,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = params;
     const body = await request.json();
     const { action, notes } = body;
@@ -96,7 +107,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error reviewing onboarding submission:', error);
     return NextResponse.json(
-      { error: 'Failed to review onboarding submission', details: error?.message },
+      { error: 'Failed to review onboarding submission' },
       { status: 500 }
     );
   }

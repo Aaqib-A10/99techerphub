@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const expense = await prisma.expense.findUnique({
       where: { id: parseInt(params.id) },
       include: {
@@ -34,6 +40,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const id = parseInt(params.id);
     const existing = await prisma.expense.findUnique({ where: { id } });
     if (!existing) {
@@ -60,7 +71,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error('Error deleting expense:', error);
     return NextResponse.json(
-      { error: 'Failed to delete expense', details: error?.message },
+      { error: 'Failed to delete expense' },
       { status: 500 }
     );
   }

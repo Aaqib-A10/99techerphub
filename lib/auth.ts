@@ -33,16 +33,15 @@ function generateToken(): string {
 }
 
 /**
- * Create a new session in the database and return the token
+ * Create a new session in the database and return the token.
+ * The DB write is awaited so the caller never receives a token
+ * that doesn't exist in the database.
  */
-export function createSession(userId: number): string {
+export async function createSession(userId: number): Promise<string> {
   const token = generateToken();
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
 
-  // Fire-and-forget — caller sets the cookie; the DB write can be async
-  prisma.session
-    .create({ data: { userId, token, expiresAt } })
-    .catch((err: unknown) => console.error('[Auth] Failed to persist session:', err));
+  await prisma.session.create({ data: { userId, token, expiresAt } });
 
   return token;
 }
@@ -79,7 +78,8 @@ export async function getSessionUser(): Promise<(User & { role: UserRole }) | nu
   }
 
   // Dev fallback — return first ADMIN when auth enforcement is off
-  if (process.env.AUTH_ENFORCE !== '1') {
+  // ONLY allowed in development mode to prevent accidental production bypass
+  if (process.env.NODE_ENV === 'development' && process.env.AUTH_ENFORCE !== '1') {
     const fallback = await prisma.user.findFirst({
       where: { role: 'ADMIN', isActive: true },
       orderBy: { id: 'asc' },
@@ -115,6 +115,7 @@ export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
     path: '/',

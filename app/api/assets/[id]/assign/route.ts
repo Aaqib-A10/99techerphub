@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createNotification } from '@/lib/services/notificationService';
+import { getSessionUser } from '@/lib/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const assetId = parseInt(params.id);
     const data = await request.json();
 
@@ -21,21 +27,47 @@ export async function POST(
       );
     }
 
-    // Create assignment
-    const assignment = await prisma.assetAssignment.create({
-      data: {
-        assetId,
-        employeeId: parseInt(data.employeeId),
-        assignedById: data.assignedById ? parseInt(data.assignedById) : null,
-        conditionAtAssignment: asset.condition,
-        notes: data.notes || null,
-      },
-    });
+    // Wrap core mutations in a transaction
+    const assignment = await prisma.$transaction(async (tx) => {
+      // Lock the asset row to prevent concurrent assignments
+      const [lockedAsset] = await tx.$queryRaw<any[]>`SELECT * FROM assets WHERE id = ${assetId} FOR UPDATE`;
 
-    // Update asset to mark as assigned
-    await prisma.asset.update({
-      where: { id: assetId },
-      data: { isAssigned: true },
+      if (!lockedAsset) {
+        throw new Error('Asset not found');
+      }
+
+      if (lockedAsset.is_assigned) {
+        throw new Error('Asset is already assigned');
+      }
+
+      // Create assignment
+      const assignment = await tx.assetAssignment.create({
+        data: {
+          assetId,
+          employeeId: parseInt(data.employeeId),
+          assignedById: data.assignedById ? parseInt(data.assignedById) : null,
+          conditionAtAssignment: asset.condition,
+          notes: data.notes || null,
+        },
+      });
+
+      // Update asset to mark as assigned
+      await tx.asset.update({
+        where: { id: assetId },
+        data: { isAssigned: true },
+      });
+
+      // Create audit log
+      await tx.auditLog.create({
+        data: {
+          tableName: 'asset_assignments',
+          recordId: assignment.id,
+          action: 'CREATE',
+          newValues: assignment,
+        },
+      });
+
+      return assignment;
     });
 
     // Notify the employee who received the asset (via their linked user)
@@ -56,16 +88,6 @@ export async function POST(
     } catch (err) {
       console.warn('[assets/assign] failed to notify employee:', err);
     }
-
-    // Create audit log
-    await prisma.auditLog.create({
-      data: {
-        tableName: 'asset_assignments',
-        recordId: assignment.id,
-        action: 'CREATE',
-        newValues: assignment,
-      },
-    });
 
     return NextResponse.json(assignment, { status: 201 });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 /**
  * Resolve an asset tag (e.g. "LAPTOP-0001") to its ID so the scanner
@@ -10,6 +11,11 @@ export async function GET(
   { params }: { params: { tag: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const tag = decodeURIComponent(params.tag).trim();
     if (!tag) {
       return NextResponse.json({ error: 'Missing tag' }, { status: 400 });
@@ -31,7 +37,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error resolving asset tag:', error);
     return NextResponse.json(
-      { error: 'Failed to resolve tag', details: error?.message },
+      { error: 'Failed to resolve tag' },
       { status: 500 }
     );
   }

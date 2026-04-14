@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const employee = await prisma.employee.findUnique({
       where: { id: parseInt(params.id) },
       include: {
@@ -37,6 +43,11 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const empId = parseInt(params.id);
     if (isNaN(empId)) {
       return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 });
@@ -79,7 +90,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error updating employee:', error);
     return NextResponse.json(
-      { error: 'Failed to update employee', details: error?.message },
+      { error: 'Failed to update employee' },
       { status: 500 }
     );
   }
@@ -156,7 +167,7 @@ async function handleInitiateExit(empId: number, data: any) {
   } catch (error: any) {
     console.error('Error initiating exit:', error);
     return NextResponse.json(
-      { error: 'Failed to initiate exit', details: error?.message },
+      { error: 'Failed to initiate exit' },
       { status: 500 }
     );
   }
@@ -216,7 +227,7 @@ async function handleUpdateStage(empId: number, data: any, existingEmployee: any
   } catch (error: any) {
     console.error('Error updating lifecycle stage:', error);
     return NextResponse.json(
-      { error: 'Failed to update lifecycle stage', details: error?.message },
+      { error: 'Failed to update lifecycle stage' },
       { status: 500 }
     );
   }
@@ -333,12 +344,9 @@ async function handleGeneralUpdate(empId: number, data: any, existingEmployee: a
     if (Array.isArray(data.companyIds)) {
       const newIds: number[] = data.companyIds.map((id: any) => parseInt(id)).filter((id: number) => !isNaN(id));
       // Replace all: delete existing, then insert new
-      await prisma.$executeRawUnsafe(`DELETE FROM employee_companies WHERE "employeeId" = ${empId}`);
-      if (newIds.length > 0) {
-        const values = newIds.map((cid: number) => `(${empId}, ${cid}, NOW())`).join(', ');
-        await prisma.$executeRawUnsafe(
-          `INSERT INTO employee_companies ("employeeId", "companyId", "assignedAt") VALUES ${values} ON CONFLICT ("employeeId", "companyId") DO NOTHING`
-        );
+      await prisma.$executeRaw`DELETE FROM employee_companies WHERE "employeeId" = ${empId}`;
+      for (const cid of newIds) {
+        await prisma.$executeRaw`INSERT INTO employee_companies ("employeeId", "companyId", "assignedAt") VALUES (${empId}, ${cid}, NOW()) ON CONFLICT ("employeeId", "companyId") DO NOTHING`;
       }
       // Keep companyId in sync with first selected company (backward compat)
       const primaryCompanyId = newIds.length > 0 ? newIds[0] : null;
@@ -410,7 +418,7 @@ async function handleGeneralUpdate(empId: number, data: any, existingEmployee: a
   } catch (error: any) {
     console.error('Error updating employee profile:', error);
     return NextResponse.json(
-      { error: 'Failed to update employee profile', details: error?.message },
+      { error: 'Failed to update employee profile' },
       { status: 500 }
     );
   }

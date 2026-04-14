@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 interface ImportRow {
   [key: string]: string;
@@ -12,6 +13,11 @@ interface ImportRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { rows, mapping }: ImportRequest = await request.json();
 
     if (!rows || rows.length === 0) {
@@ -170,7 +176,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error in bulk import:', error);
     return NextResponse.json(
-      { error: 'Failed to process import', details: error?.message },
+      { error: 'Failed to process import' },
       { status: 500 }
     );
   }

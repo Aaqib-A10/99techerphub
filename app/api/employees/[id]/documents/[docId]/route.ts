@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string; docId: string } }) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const employeeId = parseInt(params.id);
     const docId = parseInt(params.docId);
     const document = await prisma.employeeDocument.findUnique({ where: { id: docId } });
@@ -28,6 +34,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json(deletedDocument, { status: 200 });
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to delete document', details: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete document' }, { status: 500 });
   }
 }

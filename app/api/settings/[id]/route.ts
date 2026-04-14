@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 // --------------------------------------------------------------
 // Helpers
@@ -85,6 +86,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const type = getTypeParam(request);
     if (!type)
       return NextResponse.json({ error: 'Valid type is required' }, { status: 400 });
@@ -99,7 +105,7 @@ export async function GET(
     return NextResponse.json(record);
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to fetch record', details: error?.message },
+      { error: 'Failed to fetch record' },
       { status: 500 }
     );
   }
@@ -113,6 +119,11 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const type = getTypeParam(request);
     if (!type)
       return NextResponse.json({ error: 'Valid type is required' }, { status: 400 });
@@ -180,7 +191,7 @@ export async function PATCH(
     });
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to update record', details: error?.message },
+      { error: 'Failed to update record' },
       { status: 500 }
     );
   }
@@ -194,6 +205,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const type = getTypeParam(request);
     if (!type)
       return NextResponse.json({ error: 'Valid type is required' }, { status: 400 });
@@ -253,7 +269,7 @@ export async function DELETE(
     return NextResponse.json({ success: true, mode });
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to delete record', details: error?.message },
+      { error: 'Failed to delete record' },
       { status: 500 }
     );
   }
@@ -267,6 +283,11 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const type = getTypeParam(request);
     if (!type)
       return NextResponse.json({ error: 'Valid type is required' }, { status: 400 });
@@ -300,7 +321,7 @@ export async function POST(
     return NextResponse.json({ success: true, record: updated });
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to reactivate record', details: error?.message },
+      { error: 'Failed to reactivate record' },
       { status: 500 }
     );
   }

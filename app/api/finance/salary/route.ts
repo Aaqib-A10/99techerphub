@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 // GET: Fetch current salary for employee(s)
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const employeeId = searchParams.get('employeeId');
 
@@ -28,7 +34,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(salaries);
   } catch (error: any) {
     return NextResponse.json(
-      { error: 'Failed to fetch salary records', details: error?.message },
+      { error: 'Failed to fetch salary records' },
       { status: 500 }
     );
   }
@@ -37,6 +43,11 @@ export async function GET(request: NextRequest) {
 // POST: Create salary increment for an employee
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
 
     // Close current salary record
@@ -80,6 +91,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(salary, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to create salary record', details: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create salary record' }, { status: 500 });
   }
 }

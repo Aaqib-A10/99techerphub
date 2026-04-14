@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const submissionId = parseInt(params.id);
     const body = await request.json();
     const { notes } = body;
@@ -70,7 +76,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error requesting revision:', error);
     return NextResponse.json(
-      { error: 'Failed to request revision', details: error?.message },
+      { error: 'Failed to request revision' },
       { status: 500 }
     );
   }

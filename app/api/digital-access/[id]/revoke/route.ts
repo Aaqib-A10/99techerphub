@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const recordId = parseInt(params.id);
     const record = await prisma.digitalAccess.findUnique({ where: { id: recordId } });
 
@@ -26,6 +32,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json(updatedRecord, { status: 200 });
   } catch (error: any) {
-    return NextResponse.json({ error: 'Failed to revoke access', details: error?.message }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to revoke access' }, { status: 500 });
   }
 }

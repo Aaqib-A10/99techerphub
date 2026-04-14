@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const companies = await prisma.company.findMany({
       where: { isActive: true },
       orderBy: { name: 'asc' },
@@ -20,6 +26,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const data = await request.json();
 
     if (!data.code || !data.name || !data.country) {
@@ -53,7 +64,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating company:', error);
     return NextResponse.json(
-      { error: 'Failed to create company', details: error?.message },
+      { error: 'Failed to create company' },
       { status: 500 }
     );
   }

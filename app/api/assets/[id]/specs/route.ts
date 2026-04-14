@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const assetId = parseInt(params.id);
     const { specs } = await request.json();
 
@@ -42,7 +48,7 @@ export async function PUT(
   } catch (error: any) {
     console.error('Error updating specs:', error);
     return NextResponse.json(
-      { error: 'Failed to update specifications', details: error?.message || String(error) },
+      { error: 'Failed to update specifications' },
       { status: 500 }
     );
   }

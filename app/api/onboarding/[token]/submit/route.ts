@@ -74,7 +74,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error submitting onboarding:', error);
     return NextResponse.json(
-      { error: 'Failed to submit onboarding', details: error?.message },
+      { error: 'Failed to submit onboarding' },
       { status: 500 }
     );
   }
