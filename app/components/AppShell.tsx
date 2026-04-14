@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
@@ -10,6 +11,8 @@ const CHROMELESS_ROUTES = ['/login', '/forgot-password', '/reset-password', '/ex
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const isChromeless = CHROMELESS_ROUTES.some(
     (r) => pathname === r || pathname.startsWith(r + '/')
   );
@@ -20,9 +23,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <Sidebar />
+      <Sidebar
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
       <div className="main-wrapper">
-        <Topbar />
+        <Topbar onMenuToggle={() => setMobileMenuOpen((v) => !v)} />
         <main className="main-content">
           <PageBack />
           {children}

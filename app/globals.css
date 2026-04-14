@@ -45,6 +45,18 @@ body {
   @apply fixed left-0 top-0 h-screen w-64 text-white z-50;
   background-color: #0B1F3A;
   box-shadow: 4px 0 24px -8px rgba(11, 31, 58, 0.12);
+  overflow-y: auto;
+  transition: transform 0.25s ease;
+}
+
+/* On mobile: hide sidebar off-screen by default, slide in when open */
+@media (max-width: 1023px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.sidebar-mobile-open {
+    transform: translateX(0);
+  }
 }
 
 .sidebar-brand {
@@ -801,15 +813,13 @@ body {
 }
 
 /* ============================================================
-   Responsive
+   Responsive — Mobile-first layout
    ============================================================ */
-@media (max-width: 768px) {
-  .sidebar {
-    @apply w-full h-auto flex-col;
-  }
 
+/* Below lg (1024px): sidebar is hidden (slide-out drawer), no left margin */
+@media (max-width: 1023px) {
   .main-wrapper {
-    @apply ml-0 mt-20;
+    margin-left: 0 !important;
   }
 
   .topbar {
@@ -817,7 +827,8 @@ body {
   }
 
   .main-content {
-    @apply p-4 mt-20;
+    @apply p-4;
+    margin-top: 64px;
   }
 
   .stat-card::before {
@@ -835,5 +846,20 @@ body {
 
   .filter-item {
     @apply w-full;
+  }
+}
+
+/* Tables: horizontal scroll on mobile */
+@media (max-width: 768px) {
+  .table-container,
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Stack form grids on mobile */
+  .form-grid {
+    grid-template-columns: 1fr !important;
   }
 }

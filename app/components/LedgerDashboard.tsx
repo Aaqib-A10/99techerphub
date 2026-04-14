@@ -212,17 +212,20 @@ export default async function LedgerDashboard({
     <div style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif' }}>
       {/* ============ HERO HEADER ============ */}
       <div
-        className="flex items-start justify-between mb-10 pb-6"
+        className="flex flex-col sm:flex-row items-start sm:justify-between gap-4 mb-10 pb-6"
         style={{ borderBottom: '1px solid rgba(196,198,206,0.3)' }}
       >
         <div className="flex items-start gap-4">
           <div style={{ width: 2, height: 40, backgroundColor: TEAL }} />
           <div>
             <h1
-              className="text-[28px] font-black tracking-tight leading-none"
+              className="text-[22px] sm:text-[28px] font-black tracking-tight leading-none"
               style={{ color: NAVY }}
             >
-              Good morning, Asim
+              {(() => {
+                const h = new Date().getHours();
+                return h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+              })()}
             </h1>
             <p
               className="text-[11px] font-bold uppercase mt-2"

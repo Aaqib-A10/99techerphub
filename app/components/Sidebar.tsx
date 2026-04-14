@@ -52,152 +52,105 @@ const navStructure: NavEntry[] = [
     type: 'group',
     name: 'Employees',
     icon: ICON_PEOPLE,
-    requiredRoles: [UserRole.ADMIN, UserRole.HR, UserRole.MANAGER, UserRole.ACCOUNTANT],
+    requiredRoles: ['ADMIN', 'HR', 'MANAGER'],
     children: [
       { name: 'All Employees', href: '/employees' },
-      {
-        name: 'Onboarding',
-        href: '/onboarding-admin',
-        requiredRoles: [UserRole.ADMIN, UserRole.HR],
-      },
-      {
-        name: 'Offer Letters',
-        href: '/offer-letters',
-        requiredRoles: [UserRole.ADMIN, UserRole.HR],
-      },
+      { name: 'Onboarding', href: '/onboarding-admin' },
+      { name: 'Offer Letters', href: '/offer-letters' },
+      { name: 'Digital Access', href: '/digital-access' },
     ],
   },
   {
     type: 'group',
     name: 'Assets',
     icon: ICON_BOX,
-    requiredRoles: [UserRole.ADMIN, UserRole.HR, UserRole.MANAGER],
+    requiredRoles: ['ADMIN', 'HR'],
     children: [
-      { name: 'Hardware', href: '/assets' },
-      { name: 'Digital Access', href: '/digital-access' },
+      { name: 'All Assets', href: '/assets' },
     ],
   },
   {
     type: 'group',
     name: 'Finance',
     icon: ICON_MONEY,
+    requiredRoles: ['ADMIN', 'ACCOUNTANT', 'MANAGER'],
     children: [
-      { name: 'Overview', href: '/finance', requiredRoles: [UserRole.ADMIN, UserRole.ACCOUNTANT] },
+      { name: 'Overview', href: '/finance' },
       { name: 'Expenses', href: '/expenses' },
-      {
-        name: 'Payroll',
-        href: '/finance/payroll',
-        requiredRoles: [UserRole.ADMIN, UserRole.ACCOUNTANT],
-      },
-      {
-        name: 'Salary',
-        href: '/finance/salary',
-        requiredRoles: [UserRole.ADMIN, UserRole.ACCOUNTANT],
-      },
-      {
-        name: 'Billing Splits',
-        href: '/finance/billing',
-        requiredRoles: [UserRole.ADMIN, UserRole.ACCOUNTANT],
-      },
-      {
-        name: 'Monthly Reports',
-        href: '/finance/reports/monthly',
-        requiredRoles: [UserRole.ADMIN, UserRole.ACCOUNTANT],
-      },
+      { name: 'Payroll', href: '/finance/payroll' },
+      { name: 'Reports', href: '/finance/reports' },
     ],
   },
   {
     type: 'group',
     name: 'System',
     icon: ICON_COG,
+    requiredRoles: ['ADMIN'],
     children: [
-      { name: 'Notifications', href: '/notifications' },
-      { name: 'Audit Trail', href: '/audit', requiredRoles: [UserRole.ADMIN] },
-      {
-        name: 'Master Data',
-        href: '/master-data',
-        requiredRoles: [UserRole.ADMIN, UserRole.HR],
-      },
-      {
-        name: 'User Accounts',
-        href: '/settings/users',
-        requiredRoles: [UserRole.ADMIN],
-      },
-      { name: 'Settings', href: '/settings', requiredRoles: [UserRole.ADMIN] },
+      { name: 'Master Data', href: '/master-data' },
+      { name: 'Audit Trail', href: '/audit' },
+      { name: 'Settings', href: '/settings' },
     ],
   },
 ];
 
-function canSeeChild(child: NavChild, userRole: UserRole | null): boolean {
-  if (!child.requiredRoles) return true;
-  if (!userRole) return false;
-  return child.requiredRoles.includes(userRole);
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-function canSeeEntry(entry: NavEntry, userRole: UserRole | null): boolean {
-  if (entry.type === 'link') {
-    if (!entry.requiredRoles) return true;
-    if (!userRole) return false;
-    return entry.requiredRoles.includes(userRole);
-  }
-  // For groups: visible if the group's own gate passes AND it has at least one visible child
-  if (entry.requiredRoles && (!userRole || !entry.requiredRoles.includes(userRole))) {
-    return false;
-  }
-  return entry.children.some((c) => canSeeChild(c, userRole));
-}
-
-function groupContainsPath(group: NavGroup, pathname: string): boolean {
-  return group.children.some((c) => {
-    if (c.href === '/') return pathname === '/';
-    return pathname === c.href || pathname.startsWith(c.href + '/');
-  });
-}
-
-export default function Sidebar() {
-  const pathname = usePathname();
+export default function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
+  const pathname = usePathname() || '';
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [, setLoading] = useState(true);
 
-  // Fetch current user's role
   useEffect(() => {
-    const fetchUserRole = async () => {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const data = await res.json();
-          setUserRole(data.user?.role);
-        }
-      } catch (err) {
-        console.error('Failed to fetch user role:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserRole();
+    fetch('/api/auth/me')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.user?.role) setUserRole(data.user.role as UserRole);
+      })
+      .catch(() => {});
   }, []);
 
-  // Auto-expand the group containing the current route whenever pathname changes.
+  // Auto-expand the group containing the current path
   useEffect(() => {
-    setExpandedGroups((prev) => {
-      const next = new Set(prev);
-      for (const entry of navStructure) {
-        if (entry.type === 'group' && groupContainsPath(entry, pathname)) {
-          next.add(entry.name);
+    navStructure.forEach((entry) => {
+      if (entry.type === 'group') {
+        const hasActive = entry.children.some(
+          (c) => pathname === c.href || pathname.startsWith(c.href + '/')
+        );
+        if (hasActive) {
+          setExpandedGroups((prev) => new Set([...prev, entry.name]));
         }
       }
-      return next;
     });
   }, [pathname]);
 
-  const toggleGroup = (groupName: string) => {
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    onMobileClose?.();
+  }, [pathname]);
+
+  const toggleGroup = (name: string) => {
     setExpandedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(groupName)) next.delete(groupName);
-      else next.add(groupName);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
       return next;
     });
+  };
+
+  const canSeeEntry = (entry: NavEntry, role: UserRole | null) => {
+    if (!entry.requiredRoles) return true;
+    if (!role) return false;
+    return entry.requiredRoles.includes(role);
+  };
+
+  const canSeeChild = (child: NavChild, role: UserRole | null) => {
+    if (!child.requiredRoles) return true;
+    if (!role) return false;
+    return child.requiredRoles.includes(role);
   };
 
   const isLinkActive = (href: string) => {
@@ -208,145 +161,167 @@ export default function Sidebar() {
   const visibleEntries = navStructure.filter((e) => canSeeEntry(e, userRole));
 
   return (
-    <div className="sidebar">
+    <>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+
       <div
-        className="sidebar-brand"
-        style={{
-          padding: '24px 20px 20px',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}
+        className={`sidebar ${mobileOpen ? 'sidebar-mobile-open' : ''}`}
       >
-        {/* Text-only wordmark — matches the login screen treatment */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {/* 2px teal "Ledger Line" signature accent */}
-          <div
-            style={{
-              width: 2,
-              height: 32,
-              backgroundColor: '#14B8A6',
-              flexShrink: 0,
-              borderRadius: 1,
-            }}
-          />
-          <h1
-            style={{
-              margin: 0,
-              color: '#FFFFFF',
-              fontSize: 20,
-              fontWeight: 900,
-              letterSpacing: '-0.03em',
-              lineHeight: 1,
-            }}
-          >
-            99 Tech Hub ERP
-          </h1>
-        </div>
-        <p
+        <div
+          className="sidebar-brand"
           style={{
-            margin: '8px 0 0',
-            paddingLeft: 12,
-            color: 'rgba(255,255,255,0.55)',
-            fontSize: 10,
-            fontFamily: 'var(--font-jetbrains-mono), monospace',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
+            padding: '24px 20px 20px',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
           }}
         >
-          Organizational Tracking
-        </p>
-      </div>
-
-      <nav className="sidebar-nav">
-        {visibleEntries.map((entry) => {
-          if (entry.type === 'link') {
-            return (
-              <Link
-                key={entry.name}
-                href={entry.href}
-                className={`sidebar-link ${isLinkActive(entry.href) ? 'active' : ''}`}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 2,
+                  height: 32,
+                  backgroundColor: '#14B8A6',
+                  flexShrink: 0,
+                  borderRadius: 1,
+                }}
+              />
+              <h1
+                style={{
+                  margin: 0,
+                  color: '#FFFFFF',
+                  fontSize: 20,
+                  fontWeight: 900,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1,
+                }}
               >
-                <svg
-                  className="w-5 h-5 mr-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d={entry.icon}
-                  />
-                </svg>
-                {entry.name}
-              </Link>
-            );
-          }
-
-          // Group
-          const isExpanded = expandedGroups.has(entry.name);
-          const visibleChildren = entry.children.filter((c) => canSeeChild(c, userRole));
-          const groupHasActive = visibleChildren.some((c) => isLinkActive(c.href));
-
-          return (
-            <div key={entry.name}>
-              <button
-                onClick={() => toggleGroup(entry.name)}
-                className={`sidebar-link w-full text-left ${groupHasActive ? 'active' : ''}`}
-                aria-expanded={isExpanded}
-              >
-                <svg
-                  className="w-5 h-5 mr-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d={entry.icon}
-                  />
-                </svg>
-                <span className="flex-1">{entry.name}</span>
-                <svg
-                  className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-              {isExpanded && (
-                <div className="pl-8 space-y-1 mt-1 border-l border-slate-700/30 ml-3">
-                  {visibleChildren.map((child) => (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      className={`sidebar-sublink ${isLinkActive(child.href) ? 'active' : ''}`}
-                    >
-                      {child.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
+                99 Tech Hub ERP
+              </h1>
             </div>
-          );
-        })}
-      </nav>
+            {/* Mobile close button */}
+            <button
+              onClick={onMobileClose}
+              className="lg:hidden text-white/60 hover:text-white p-1"
+              aria-label="Close menu"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <p
+            style={{
+              margin: '8px 0 0',
+              paddingLeft: 12,
+              color: 'rgba(255,255,255,0.55)',
+              fontSize: 10,
+              fontFamily: 'var(--font-jetbrains-mono), monospace',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Organizational Tracking
+          </p>
+        </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50">
-        <div className="flex items-center justify-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
-          <p className="text-xs text-slate-400">99 ERP v2.0</p>
+        <nav className="sidebar-nav">
+          {visibleEntries.map((entry) => {
+            if (entry.type === 'link') {
+              return (
+                <Link
+                  key={entry.name}
+                  href={entry.href}
+                  className={`sidebar-link ${isLinkActive(entry.href) ? 'active' : ''}`}
+                >
+                  <svg
+                    className="w-5 h-5 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d={entry.icon}
+                    />
+                  </svg>
+                  {entry.name}
+                </Link>
+              );
+            }
+
+            // Group
+            const isExpanded = expandedGroups.has(entry.name);
+            const visibleChildren = entry.children.filter((c) => canSeeChild(c, userRole));
+            const groupHasActive = visibleChildren.some((c) => isLinkActive(c.href));
+
+            return (
+              <div key={entry.name}>
+                <button
+                  onClick={() => toggleGroup(entry.name)}
+                  className={`sidebar-link w-full text-left ${groupHasActive ? 'active' : ''}`}
+                  aria-expanded={isExpanded}
+                >
+                  <svg
+                    className="w-5 h-5 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d={entry.icon}
+                    />
+                  </svg>
+                  <span className="flex-1">{entry.name}</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                {isExpanded && (
+                  <div className="pl-8 space-y-1 mt-1 border-l border-slate-700/30 ml-3">
+                    {visibleChildren.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        className={`sidebar-sublink ${isLinkActive(child.href) ? 'active' : ''}`}
+                      >
+                        {child.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700/50">
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></div>
+            <p className="text-xs text-slate-400">99 ERP v2.0</p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

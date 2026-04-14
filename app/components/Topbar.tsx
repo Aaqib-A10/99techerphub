@@ -9,12 +9,15 @@ interface CurrentUser {
   role: string;
 }
 
-export default function Topbar() {
+interface TopbarProps {
+  onMenuToggle?: () => void;
+}
+
+export default function Topbar({ onMenuToggle }: TopbarProps) {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
-    // Fetch current user
     const fetchUser = async () => {
       try {
         const res = await fetch('/api/auth/me');
@@ -42,24 +45,39 @@ export default function Topbar() {
   return (
     <div className="topbar">
       <div className="topbar-content">
+        {/* Hamburger button — visible only on mobile */}
+        <button
+          onClick={onMenuToggle}
+          className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+          aria-label="Toggle menu"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B1F3A" strokeWidth={2}>
+            <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+          </svg>
+        </button>
+
         <div className="flex-1" />
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <NotificationBell />
 
           {/* User Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 px-2 sm:px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              <div className="text-right">
+              <div className="text-right hidden sm:block">
                 <div className="text-sm font-semibold text-gray-900">
                   {user?.email?.split('@')[0] || 'User'}
                 </div>
                 <div className="text-xs text-gray-500">{user?.role || 'Loading...'}</div>
               </div>
+              {/* Mobile: show avatar circle instead of text */}
+              <div className="sm:hidden w-8 h-8 rounded-full bg-[#0B1F3A] text-white flex items-center justify-center text-xs font-bold">
+                {(user?.email?.[0] || 'U').toUpperCase()}
+              </div>
               <svg
-                className={`w-4 h-4 text-gray-400 transition-transform ${
+                className={`w-4 h-4 text-gray-400 transition-transform hidden sm:block ${
                   showDropdown ? 'rotate-180' : ''
                 }`}
                 fill="none"
@@ -77,26 +95,30 @@ export default function Topbar() {
 
             {/* Dropdown Menu */}
             {showDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-                <div className="px-4 py-3 border-b border-gray-200">
-                  <p className="text-sm font-semibold text-gray-900">{user?.email}</p>
-                  <p className="text-xs text-gray-500 mt-1">{user?.role}</p>
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                  <div className="px-4 py-3 border-b border-gray-200">
+                    <p className="text-sm font-semibold text-gray-900">{user?.email}</p>
+                    <p className="text-xs text-gray-500 mt-1">{user?.role}</p>
+                  </div>
+                  <div className="py-2">
+                    <Link
+                      href="/settings"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      Settings
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
-                <div className="py-2">
-                  <Link
-                    href="/settings"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    Settings
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </div>
+              </>
             )}
           </div>
         </div>
