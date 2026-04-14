@@ -235,18 +235,6 @@ export default function EmployeeListClient({
           <div className="stat-label">Exited</div>
           <div className="stat-value text-slate-600">{stats.exited ?? 0}</div>
         </div>
-        <div
-          className="stat-card cursor-pointer hover:shadow-md transition"
-          onClick={() => {
-            setFilters({ ...filters, lifecycleView: 'exited' });
-            setCurrentPage(1);
-          }}
-          title="Click to view recently exited employees"
-        >
-          <div className="stat-label">Exited (30d)</div>
-          <div className="stat-value text-red-500">{stats.exitedLast30 ?? 0}</div>
-          <div className="text-[11px] mt-1" style={{ color: '#75777E' }}>Last 30 days</div>
-        </div>
         <div className="stat-card">
           <div className="stat-label">On Probation</div>
           <div className="stat-value text-blue-600">{stats.onProbation}</div>
