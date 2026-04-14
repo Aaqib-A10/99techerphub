@@ -3,6 +3,8 @@ import Link from 'next/link';
 import EmployeeListClient from './client';
 import PageHero from '@/app/components/PageHero';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EmployeesPage() {
   // Fetch employees with their multi-company assignments from the join table
   const employeesRaw = await prisma.employee.findMany({
