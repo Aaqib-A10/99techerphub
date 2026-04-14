@@ -50,20 +50,20 @@ export async function GET(request: NextRequest) {
     // Search across multiple fields
     if (search) {
       where.OR = [
-        {
-          recordId: isNaN(parseInt(search)) ? undefined : parseInt(search),
-        },
+        ...(isNaN(parseInt(search)) ? [] : [{
+          recordId: parseInt(search),
+        }]),
         {
           tableName: {
             contains: search,
-            mode: 'insensitive',
+            mode: 'insensitive' as const,
           },
         },
         {
           changedBy: {
             email: {
               contains: search,
-              mode: 'insensitive',
+              mode: 'insensitive' as const,
             },
           },
         },
