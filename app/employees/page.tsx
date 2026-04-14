@@ -55,11 +55,14 @@ export default async function EmployeesPage() {
         ],
       },
     }),
-    // Exited in last 30 days — employees with an exit date in the last 30 days
+    // Exited in last 30 days — employees whose lifecycle changed to EXITED recently,
+    // or who have an EmployeeExit record with exitDate in the last 30 days
     prisma.employee.count({
       where: {
         OR: [
-          { exitDate: { gte: thirtyDaysAgo } },
+          {
+            exitRecord: { exitDate: { gte: thirtyDaysAgo } },
+          },
           {
             lifecycleStage: { in: ['EXITED', 'EXIT_INITIATED'] },
             updatedAt: { gte: thirtyDaysAgo },
