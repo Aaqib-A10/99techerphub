@@ -79,7 +79,7 @@ export default async function EmployeesPage() {
         },
       },
     }),
-    prisma.employee.count({ where: { employmentStatus: 'PROBATION' } }),
+    prisma.employee.count({ where: { employmentStatus: 'PROBATION', isActive: true } }),
   ]);
 
   const stats = {
