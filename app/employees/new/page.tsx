@@ -121,6 +121,21 @@ export default function NewEmployeePage() {
     'Emergency Contact & References',
   ];
 
+  // Check if all mandatory fields are filled
+  const isFormComplete =
+    formData.firstName.trim() !== '' &&
+    formData.lastName.trim() !== '' &&
+    formData.fatherName.trim() !== '' &&
+    formData.email.trim() !== '' &&
+    formData.phone.trim() !== '' &&
+    formData.cnic.trim() !== '' &&
+    formData.dateOfBirth !== '' &&
+    formData.gender !== '' &&
+    formData.departmentId !== '' &&
+    formData.designation.trim() !== '' &&
+    formData.employmentStatus !== '' &&
+    formData.dateOfJoining !== '';
+
   return (
     <div>
       <PageHero
@@ -164,28 +179,28 @@ export default function NewEmployeePage() {
                   <input name="lastName" value={formData.lastName} onChange={handleChange} required className="form-input" />
                 </div>
                 <div>
-                  <label className="form-label">Father&apos;s Name</label>
-                  <input name="fatherName" value={formData.fatherName} onChange={handleChange} className="form-input" />
+                  <label className="form-label">Father&apos;s Name *</label>
+                  <input name="fatherName" value={formData.fatherName} onChange={handleChange} required className="form-input" />
                 </div>
                 <div>
-                  <label className="form-label">Email</label>
-                  <input name="email" type="email" value={formData.email} onChange={handleChange} className="form-input" />
+                  <label className="form-label">Email *</label>
+                  <input name="email" type="email" value={formData.email} onChange={handleChange} required className="form-input" />
                 </div>
                 <div>
-                  <label className="form-label">Phone</label>
-                  <input name="phone" value={formData.phone} onChange={handleChange} className="form-input" />
+                  <label className="form-label">Phone *</label>
+                  <input name="phone" value={formData.phone} onChange={handleChange} required className="form-input" />
                 </div>
                 <div>
-                  <label className="form-label">CNIC</label>
-                  <input name="cnic" value={formData.cnic} onChange={handleChange} placeholder="XXXXX-XXXXXXX-X" className="form-input" />
+                  <label className="form-label">CNIC *</label>
+                  <input name="cnic" value={formData.cnic} onChange={handleChange} required placeholder="XXXXX-XXXXXXX-X" className="form-input" />
                 </div>
                 <div>
-                  <label className="form-label">Date of Birth</label>
-                  <input name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleChange} className="form-input" />
+                  <label className="form-label">Date of Birth *</label>
+                  <input name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleChange} required className="form-input" />
                 </div>
                 <div>
-                  <label className="form-label">Gender</label>
-                  <select name="gender" value={formData.gender} onChange={handleChange} className="form-select">
+                  <label className="form-label">Gender *</label>
+                  <select name="gender" value={formData.gender} onChange={handleChange} required className="form-select">
                     <option value="">Select</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -501,9 +516,17 @@ export default function NewEmployeePage() {
             )}
           </div>
           <div className="flex gap-4">
-            <button type="submit" disabled={loading} className="btn btn-primary">
-              {loading ? 'Creating...' : 'Create Employee'}
-            </button>
+            {activeSection === sections.length - 1 && (
+              <button
+                type="submit"
+                disabled={loading || !isFormComplete}
+                className="btn btn-primary"
+                title={!isFormComplete ? 'Please fill all mandatory fields across all sections' : ''}
+                style={!isFormComplete ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+              >
+                {loading ? 'Creating...' : 'Create Employee'}
+              </button>
+            )}
             <button type="button" onClick={() => router.back()} className="btn btn-secondary">Cancel</button>
           </div>
         </div>
