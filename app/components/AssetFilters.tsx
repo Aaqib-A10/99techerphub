@@ -116,7 +116,7 @@ export default function AssetFilters({
         <div className="filter-item">
           <label>Company</label>
           <select
-            defaultValue={searchParams.get('companyId') || ''}
+            value={searchParams.get('companyId') || ''}
             onChange={(e) => updateFilter('companyId', e.target.value)}
             className="form-select"
           >
@@ -132,7 +132,7 @@ export default function AssetFilters({
         <div className="filter-item">
           <label>Category</label>
           <select
-            defaultValue={searchParams.get('categoryId') || ''}
+            value={searchParams.get('categoryId') || ''}
             onChange={(e) => updateFilter('categoryId', e.target.value)}
             className="form-select"
           >
@@ -148,7 +148,7 @@ export default function AssetFilters({
         <div className="filter-item">
           <label>Condition</label>
           <select
-            defaultValue={searchParams.get('condition') || ''}
+            value={searchParams.get('condition') || ''}
             onChange={(e) => updateFilter('condition', e.target.value)}
             className="form-select"
           >
@@ -165,8 +165,7 @@ export default function AssetFilters({
         <div className="filter-item">
           <label>Status</label>
           <select
-            key={searchParams.get('assignment') || ''}
-            defaultValue={searchParams.get('assignment') || ''}
+            value={searchParams.get('assignment') || ''}
             onChange={(e) => updateFilter('assignment', e.target.value)}
             className="form-select"
           >
@@ -179,7 +178,7 @@ export default function AssetFilters({
         <div className="filter-item">
           <label>Assigned Employee</label>
           <select
-            defaultValue={searchParams.get('employeeId') || ''}
+            value={searchParams.get('employeeId') || ''}
             onChange={(e) => updateFilter('employeeId', e.target.value)}
             className="form-select"
           >
