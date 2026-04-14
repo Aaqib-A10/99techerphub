@@ -101,7 +101,7 @@ export default async function EmployeesPage() {
       />
 
       <EmployeeListClient
-        initialEmployees={employees}
+        initialEmployees={employees as any[]}
         initialDepartments={departments}
         initialCompanies={companies}
         stats={stats}

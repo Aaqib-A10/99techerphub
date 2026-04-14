@@ -111,7 +111,7 @@ export async function GET(
     <div class="subject">Offer of Employment</div>
 
     <div class="body-text">
-      <p>Dear ${offerLetter.candidateName.split(' ')[0]},</p>
+      <p>Dear ${(offerLetter.candidateName || '').split(' ')[0]},</p>
       <p>${templateBody}</p>
     </div>
 
@@ -155,7 +155,7 @@ export async function GET(
     return new NextResponse(htmlContent, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Disposition': `inline; filename="offer-letter-${offerLetter.candidateName.replace(/\s+/g, '-')}.html"`,
+        'Content-Disposition': `inline; filename="offer-letter-${(offerLetter.candidateName || '').replace(/\s+/g, '-')}.html"`,
       },
     });
   } catch (error: any) {

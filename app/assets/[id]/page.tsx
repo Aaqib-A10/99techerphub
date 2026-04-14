@@ -164,8 +164,8 @@ export default async function AssetDetailPage({
                   manufacturer: asset.manufacturer,
                   model: asset.model,
                   categoryId: asset.categoryId,
-                  companyId: asset.companyId,
-                  locationId: asset.locationId,
+                  companyId: asset.companyId || 0,
+                  locationId: asset.locationId || 0,
                 }}
                 categories={allCategories.map((c) => ({ id: c.id, name: c.name }))}
                 companies={allCompanies.map((c) => ({ id: c.id, name: c.name }))}

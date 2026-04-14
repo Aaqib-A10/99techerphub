@@ -190,7 +190,7 @@ async function exportEmployees(
     department: emp.department.name,
     designation: emp.designation,
     company: emp.company?.name || '',
-    location: emp.location || '',
+    location: '',
     employmentStatus: emp.employmentStatus,
     dateOfJoining: emp.dateOfJoining ? emp.dateOfJoining.toISOString().split('T')[0] : '',
     email: emp.email || '',
@@ -248,7 +248,7 @@ async function exportExpenses(
 
   const data = expenses.map((exp) => ({
     expenseNumber: exp.expenseNumber,
-    title: exp.title,
+    title: exp.description,
     amount: exp.amount,
     currency: exp.currency,
     category: exp.category.name,
@@ -328,7 +328,7 @@ export async function GET(request: NextRequest) {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, mod.slice(0, 31));
       const buf: Buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-      return new NextResponse(buf, {
+      return new NextResponse(buf as unknown as BodyInit, {
         status: 200,
         headers: {
           'Content-Type':

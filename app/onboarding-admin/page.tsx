@@ -63,7 +63,7 @@ export default async function OnboardingAdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {submissions.map((submission) => (
+                {submissions.map((submission: any) => (
                   <tr key={submission.id}>
                     <td className="font-medium">{submission.candidateName || '-'}</td>
                     <td>{submission.position || '-'}</td>

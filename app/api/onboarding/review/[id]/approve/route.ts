@@ -89,7 +89,7 @@ export async function POST(
           departmentId: department.id,
           companyId: company.id,
           empCode: empCode,
-          joinDate: new Date(),
+          dateOfJoining: new Date(),
           cnic: personalDetails.cnic || '',
           dateOfBirth: personalDetails.dateOfBirth
             ? new Date(personalDetails.dateOfBirth)
@@ -112,7 +112,6 @@ export async function POST(
           bankName: bankDetails.bankName || '',
           bankAccountNumber: bankDetails.accountNumber || '',
           bankBranch: bankDetails.branch || '',
-          bankAccountTitle: bankDetails.accountTitle || '',
           employmentStatus: 'PROBATION',
           lifecycleStage: 'ONBOARDING',
           isActive: true,

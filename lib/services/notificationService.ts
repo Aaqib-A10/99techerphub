@@ -182,7 +182,7 @@ export async function checkPendingExpenses(): Promise<number> {
   if (pendingExpenses.length > 0) {
     const total = pendingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-    await createNotificationsForRole(UserRole.FINANCE, {
+    await createNotificationsForRole(UserRole.ACCOUNTANT, {
       type: 'EXPENSE_SUBMITTED' as NotificationType,
       title: 'Pending Expenses',
       message: `${pendingExpenses.length} expense(s) awaiting approval (Total: PKR ${total.toFixed(2)})`,

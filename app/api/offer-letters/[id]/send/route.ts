@@ -23,6 +23,7 @@ export async function POST(
     // Fetch offer letter
     const offerLetter = await prisma.offerLetter.findUnique({
       where: { id: offerId },
+      include: { employee: { include: { user: true } } },
     });
 
     if (!offerLetter) {
@@ -102,11 +103,12 @@ export async function POST(
     if (offerLetter.employeeId) {
       const employee = await prisma.employee.findUnique({
         where: { id: offerLetter.employeeId },
+        include: { user: true },
       });
 
-      if (employee?.user?.id) {
+      if ((employee as any)?.user?.id) {
         await createNotification({
-          userId: employee.user.id,
+          userId: (employee as any).user.id,
           type: 'GENERAL' as NotificationType,
           title: 'Offer Letter Sent',
           message: `Your offer letter for ${offerLetter.position} has been sent to your email.`,

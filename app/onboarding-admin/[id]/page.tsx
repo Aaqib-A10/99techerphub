@@ -291,7 +291,7 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
             </div>
             <div>
               <p className="text-sm text-gray-600">Phone</p>
-              <p className="font-semibold text-gray-900">{submission.personalDetails?.phone || '-'}</p>
+              <p className="font-semibold text-gray-900">{(submission.personalDetails as any)?.phone || '-'}</p>
             </div>
           </div>
 

@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     // 1. UPCOMING BIRTHDAYS (next 7 days)
     const employeesWithBirthdays = await prisma.employee.findMany({
       where: {
-        dateOfBirth: { not: null },
+        dateOfBirth: { not: null } as any,
         isActive: true,
       },
       select: {
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
     // 2. WORK ANNIVERSARIES (next 7 days)
     const employeesWithJoiningDates = await prisma.employee.findMany({
       where: {
-        dateOfJoining: { not: null },
+        dateOfJoining: { not: null } as any,
         isActive: true,
       },
       select: {

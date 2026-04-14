@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
         recordId: salary.id,
         action: 'CREATE',
         module: 'FINANCE',
-        newValues: salary,
-        oldValues: currentSalary,
+        newValues: salary as any,
+        oldValues: currentSalary as any,
       },
     });
 

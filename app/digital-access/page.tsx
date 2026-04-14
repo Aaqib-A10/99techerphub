@@ -40,7 +40,7 @@ export default async function DigitalAccessPage() {
           <div className="stat-value">{services.length}</div>
         </div>
       </div>
-      <DigitalAccessClient initialRecords={accessRecords} services={services} />
+      <DigitalAccessClient initialRecords={accessRecords as any[]} services={services} />
     </div>
   );
 }

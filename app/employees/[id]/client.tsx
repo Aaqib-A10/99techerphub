@@ -1509,8 +1509,7 @@ function DocumentsTab({ employee }: { employee: any }) {
     'OTHER',
   ];
 
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpload = async () => {
     if (!fileInput) {
       setUploadError('Please select a file');
       return;
