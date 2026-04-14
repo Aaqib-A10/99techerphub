@@ -40,15 +40,30 @@ export default async function EmployeesPage() {
     companies: empCompanyMap.get(emp.id) || (emp.company ? [{ id: emp.company.id, code: (emp.company as any).code || '', name: emp.company.name }] : []),
   }));
 
-  const [totalActive, totalInactive, totalExited, departments, companies, newThisMonth, onProbation] = await Promise.all([
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const [totalAll, totalActive, totalExited, exitedLast30, departments, companies, newThisMonth, onProbation] = await Promise.all([
+    // Total = every employee ever hired (all records in DB)
+    prisma.employee.count(),
     prisma.employee.count({ where: { isActive: true } }),
-    prisma.employee.count({ where: { isActive: false } }),
     prisma.employee.count({
       where: {
         OR: [
           { isActive: false },
           { lifecycleStage: 'EXITED' },
           { lifecycleStage: 'EXIT_INITIATED' },
+        ],
+      },
+    }),
+    // Exited in last 30 days — employees with an exit date in the last 30 days
+    prisma.employee.count({
+      where: {
+        OR: [
+          { exitDate: { gte: thirtyDaysAgo } },
+          {
+            lifecycleStage: { in: ['EXITED', 'EXIT_INITIATED'] },
+            updatedAt: { gte: thirtyDaysAgo },
+          },
         ],
       },
     }),
@@ -65,9 +80,10 @@ export default async function EmployeesPage() {
   ]);
 
   const stats = {
-    total: totalActive + totalInactive,
+    total: totalAll,
     active: totalActive,
     exited: totalExited,
+    exitedLast30,
     onProbation,
     newThisMonth,
   };

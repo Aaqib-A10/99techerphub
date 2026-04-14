@@ -135,21 +135,63 @@ export default async function EmployeeDetailPage({
                 <span className="mono" style={{ color: '#14B8A6' }}>{employee.empCode}</span> &middot; {employee.designation} &middot; {employee.department.name}
               </p>
               <div className="flex flex-wrap gap-2 mt-3">
-                <span className={`badge ${employee.isActive ? 'badge-green' : 'badge-red'}`}>
+                {/* Badges on dark header need light text + semi-transparent backgrounds */}
+                <span
+                  className="badge"
+                  style={{
+                    color: employee.isActive ? '#6EE7B7' : '#FCA5A5',
+                    backgroundColor: employee.isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
+                    borderColor: employee.isActive ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)',
+                  }}
+                >
                   {employee.isActive ? 'Active' : 'Inactive'}
                 </span>
-                <span className="badge badge-blue">
+                <span
+                  className="badge"
+                  style={{
+                    color: '#93C5FD',
+                    backgroundColor: 'rgba(59,130,246,0.15)',
+                    borderColor: 'rgba(59,130,246,0.35)',
+                  }}
+                >
                   {employee.lifecycleStage.replace(/_/g, ' ')}
                 </span>
-                <span className="badge badge-gray">
+                <span
+                  className="badge"
+                  style={{
+                    color: '#FFFFFF',
+                    backgroundColor: 'rgba(255,255,255,0.12)',
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    fontWeight: 600,
+                  }}
+                >
                   {employee.employmentStatus}
                 </span>
                 {employeeCompanies.length > 0 ? (
                   employeeCompanies.map((c) => (
-                    <span key={c.id} className="badge badge-yellow">{c.code || c.name}</span>
+                    <span
+                      key={c.id}
+                      className="badge"
+                      style={{
+                        color: '#FDE68A',
+                        backgroundColor: 'rgba(245,158,11,0.15)',
+                        borderColor: 'rgba(245,158,11,0.35)',
+                      }}
+                    >
+                      {c.code || c.name}
+                    </span>
                   ))
                 ) : employee.company?.name ? (
-                  <span className="badge badge-yellow">{employee.company.name}</span>
+                  <span
+                    className="badge"
+                    style={{
+                      color: '#FDE68A',
+                      backgroundColor: 'rgba(245,158,11,0.15)',
+                      borderColor: 'rgba(245,158,11,0.35)',
+                    }}
+                  >
+                    {employee.company.name}
+                  </span>
                 ) : null}
               </div>
             </div>

@@ -86,14 +86,15 @@ export default async function AssetsPage({
   if (condition) where.condition = condition;
   // Assignment status — "assigned" = has at least one open assignment
   // (returnedDate = null). "unassigned" = no open assignment.
-  if (assignment === 'assigned') {
+  // When filtering by specific employee, it implies "assigned" so we combine
+  // both constraints rather than overwriting.
+  if (employeeId) {
+    // Specific employee filter implies assigned — use employee-specific query
+    where.assignments = { some: { employeeId, returnedDate: null } };
+  } else if (assignment === 'assigned') {
     where.assignments = { some: { returnedDate: null } };
   } else if (assignment === 'unassigned') {
     where.assignments = { none: { returnedDate: null } };
-  }
-  // Filter by specific employee with active assignment
-  if (employeeId) {
-    where.assignments = { some: { employeeId, returnedDate: null } };
   }
   if (q) {
     where.OR = [
@@ -114,15 +115,35 @@ export default async function AssetsPage({
   // --------------------------------------------------------------
   const hasSpecFilter = !!(ramFilter || storageFilter || cpuFilter || gpuFilter);
 
-  const [companies, categories, employees] = await Promise.all([
+  const [companies, categories, activeEmployees, assignedEmployees] = await Promise.all([
     prisma.company.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
     prisma.assetCategory.findMany({ orderBy: { name: 'asc' } }),
+    // Active employees
     prisma.employee.findMany({
       where: { isActive: true },
       select: { id: true, firstName: true, lastName: true, empCode: true },
       orderBy: { firstName: 'asc' }
     }),
+    // Also include inactive employees who still have assets assigned
+    prisma.employee.findMany({
+      where: {
+        isActive: false,
+        assetAssignments: { some: { returnedDate: null } },
+      },
+      select: { id: true, firstName: true, lastName: true, empCode: true },
+      orderBy: { firstName: 'asc' }
+    }),
   ]);
+
+  // Merge and deduplicate: active employees + exited employees with active assignments
+  const employeeMap = new Map<number, typeof activeEmployees[0]>();
+  for (const e of activeEmployees) employeeMap.set(e.id, e);
+  for (const e of assignedEmployees) {
+    if (!employeeMap.has(e.id)) employeeMap.set(e.id, e);
+  }
+  const employees = Array.from(employeeMap.values()).sort((a, b) =>
+    a.firstName.localeCompare(b.firstName)
+  );
 
   let filteredIds: number[] | null = null;
   let totalFiltered = 0;

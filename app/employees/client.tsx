@@ -41,7 +41,7 @@ export default function EmployeeListClient({
   initialEmployees = [],
   initialCompanies = [],
   initialDepartments = [],
-  stats = { total: 0, active: 0, onProbation: 0, newThisMonth: 0 },
+  stats = { total: 0, active: 0, exited: 0, exitedLast30: 0, onProbation: 0, newThisMonth: 0 },
 }: {
   initialEmployees?: Employee[];
   initialCompanies?: any[];
@@ -214,10 +214,11 @@ export default function EmployeeListClient({
   return (
     <div>
       {/* Enhanced Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
         <div className="stat-card">
           <div className="stat-label">Total Employees</div>
           <div className="stat-value">{stats.total}</div>
+          <div className="text-[11px] mt-1" style={{ color: '#75777E' }}>All time hired</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Active</div>
@@ -233,6 +234,18 @@ export default function EmployeeListClient({
         >
           <div className="stat-label">Exited</div>
           <div className="stat-value text-slate-600">{stats.exited ?? 0}</div>
+        </div>
+        <div
+          className="stat-card cursor-pointer hover:shadow-md transition"
+          onClick={() => {
+            setFilters({ ...filters, lifecycleView: 'exited' });
+            setCurrentPage(1);
+          }}
+          title="Click to view recently exited employees"
+        >
+          <div className="stat-label">Exited (30d)</div>
+          <div className="stat-value text-red-500">{stats.exitedLast30 ?? 0}</div>
+          <div className="text-[11px] mt-1" style={{ color: '#75777E' }}>Last 30 days</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">On Probation</div>
