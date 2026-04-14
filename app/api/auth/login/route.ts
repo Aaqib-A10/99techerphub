@@ -131,9 +131,12 @@ export async function POST(req: NextRequest) {
     );
 
     // Set the session cookie
+    // Only set Secure flag when served over HTTPS (not just production mode)
+    const isHttps = req.headers.get('x-forwarded-proto') === 'https'
+      || req.nextUrl.protocol === 'https:';
     response.cookies.set('99tech_session', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttps,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',
