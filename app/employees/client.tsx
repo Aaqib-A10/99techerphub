@@ -81,6 +81,10 @@ export default function EmployeeListClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  // Date filter from URL params
+  const dateFrom = searchParams?.get('from') || '';
+  const dateTo = searchParams?.get('to') || '';
+
   // Filter and search
   const filteredEmployees = useMemo(() => {
     return initialEmployees.filter((emp) => {
@@ -109,11 +113,19 @@ export default function EmployeeListClient({
             ? isExited
             : !isExited;
 
+      // Date range filter on dateOfJoining
+      let matchesDate = true;
+      if (dateFrom || dateTo) {
+        const joinDate = new Date(emp.dateOfJoining);
+        if (dateFrom && joinDate < new Date(dateFrom)) matchesDate = false;
+        if (dateTo && joinDate > new Date(dateTo + 'T23:59:59')) matchesDate = false;
+      }
+
       return (
-        matchesSearch && matchesDept && matchesCompany && matchesStatus && matchesLifecycle
+        matchesSearch && matchesDept && matchesCompany && matchesStatus && matchesLifecycle && matchesDate
       );
     });
-  }, [filters, initialEmployees]);
+  }, [filters, initialEmployees, dateFrom, dateTo]);
 
   // Pagination
   const paginatedEmployees = useMemo(() => {
