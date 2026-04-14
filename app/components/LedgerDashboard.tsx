@@ -29,13 +29,15 @@ const COMPANY_COLORS = [NAVY, TEAL, TEAL_LIGHT, AMBER, '#364764', '#C4C6CE'];
 interface Props {
   selectedCompany: string;
   selectedDepartment: string;
-  selectedDateRange: string;
+  dateFrom: string;
+  dateTo: string;
 }
 
 export default async function LedgerDashboard({
   selectedCompany,
   selectedDepartment,
-  selectedDateRange,
+  dateFrom,
+  dateTo,
 }: Props) {
   const companyId =
     selectedCompany !== 'all' && !isNaN(Number(selectedCompany)) ? Number(selectedCompany) : null;
@@ -47,20 +49,34 @@ export default async function LedgerDashboard({
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
+  // Date filter range
+  const dateFilter: any = {};
+  if (dateFrom) dateFilter.gte = new Date(dateFrom);
+  if (dateTo) {
+    const toDate = new Date(dateTo);
+    toDate.setHours(23, 59, 59, 999);
+    dateFilter.lte = toDate;
+  }
+  const hasDateFilter = dateFrom || dateTo;
+
   const employeeBase: any = {};
   if (companyId != null) employeeBase.companyId = companyId;
   if (departmentId != null) employeeBase.departmentId = departmentId;
+  if (hasDateFilter) employeeBase.dateOfJoining = dateFilter;
 
   const assetBase: any = { isRetired: false };
   if (companyId != null) assetBase.companyId = companyId;
+  if (hasDateFilter) assetBase.purchaseDate = dateFilter;
 
   const expenseBase: any = {};
   if (companyId != null) expenseBase.companyId = companyId;
   if (departmentId != null) expenseBase.departmentId = departmentId;
+  if (hasDateFilter) expenseBase.createdAt = dateFilter;
 
   // -------- KPI DATA --------
   const [
     totalEmployees,
+    exitedEmployees,
     assetsCount,
     assetsValueAgg,
     pendingApprovalsCount,
@@ -76,6 +92,7 @@ export default async function LedgerDashboard({
     burnByCategory,
   ] = await Promise.all([
     prisma.employee.count({ where: employeeBase }),
+    prisma.employee.count({ where: { ...employeeBase, isActive: false } }),
     prisma.asset.count({ where: assetBase }),
     prisma.asset.aggregate({ _sum: { purchasePrice: true }, where: assetBase }),
     prisma.expense.count({ where: { ...expenseBase, status: 'PENDING' } }),
@@ -255,14 +272,22 @@ export default async function LedgerDashboard({
         </div>
       </div>
 
-      {/* ============ KPI STRIP (4-up) ============ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      {/* ============ KPI STRIP (5-up) ============ */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
         <KpiCard
           href="/employees"
           label="Total Employees"
           value={totalEmployees.toString().padStart(3, '0')}
-          chip={<span style={{ color: TEAL }}>+{selectedDateRange === 'all' ? '4' : '0'}%</span>}
+          chip={<span style={{ color: TEAL }}>{(totalEmployees - exitedEmployees)} active</span>}
           chipBg="rgba(20, 184, 166, 0.1)"
+        />
+        <KpiCard
+          href="/employees?status=exited"
+          label="Exited"
+          value={exitedEmployees.toString().padStart(3, '0')}
+          valueColor={ROSE}
+          chip={<span style={{ color: ROSE }}>{totalEmployees > 0 ? Math.round((exitedEmployees / totalEmployees) * 100) : 0}%</span>}
+          chipBg="rgba(225, 29, 72, 0.08)"
         />
         <KpiCard
           href="/assets"

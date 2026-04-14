@@ -11,12 +11,14 @@ export default async function Dashboard({
   searchParams: {
     company?: string;
     department?: string;
-    dateRange?: string;
+    from?: string;
+    to?: string;
   };
 }) {
   const selectedCompany = searchParams.company || 'all';
   const selectedDepartment = searchParams.department || 'all';
-  const selectedDateRange = searchParams.dateRange || 'all';
+  const dateFrom = searchParams.from || '';
+  const dateTo = searchParams.to || '';
 
   const [companies, departments] = await Promise.all([
     prisma.company.findMany({
@@ -41,7 +43,8 @@ export default async function Dashboard({
             departments={departments}
             selectedCompany={selectedCompany}
             selectedDepartment={selectedDepartment}
-            selectedDateRange={selectedDateRange}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
           />
         </div>
 
@@ -58,7 +61,8 @@ export default async function Dashboard({
           <LedgerDashboard
             selectedCompany={selectedCompany}
             selectedDepartment={selectedDepartment}
-            selectedDateRange={selectedDateRange}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
           />
         </Suspense>
       </div>
