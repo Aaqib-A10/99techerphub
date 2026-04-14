@@ -37,7 +37,7 @@ export async function PATCH(
     }
 
     // Update clearance status
-    const existingClearance = employee.exitRecord.clearanceStatus || {
+    const existingClearance = (employee.exitRecord.clearanceStatus as Record<string, any>) || {
       assetsReturned: false,
       digitalAccessRevoked: false,
       financialSettlement: false,
@@ -46,7 +46,7 @@ export async function PATCH(
 
     const updatedClearance = {
       ...existingClearance,
-      ...requestData.clearanceStatus,
+      ...(requestData.clearanceStatus || {}),
     };
 
     const updatedExitRecord = await prisma.employeeExit.update({
