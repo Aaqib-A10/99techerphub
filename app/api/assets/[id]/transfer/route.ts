@@ -32,7 +32,7 @@ export async function POST(
       const transfer = await tx.assetTransfer.create({
         data: {
           assetId,
-          fromCompanyId: asset.companyId ?? undefined,
+          fromCompanyId: asset.companyId || 0,
           toCompanyId: data.toCompanyId,
           transferredBy: data.transferredBy || null,
           reason: data.reason,
