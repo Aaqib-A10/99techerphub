@@ -132,11 +132,24 @@ export default function ScanClient({ initialTag }: { initialTag: string }) {
     setScanning(false);
   }
 
-  // Clean up on unmount.
+  // Clean up on unmount — guard against double-stop (success callback
+  // already stops the scanner before navigation, so the unmount cleanup
+  // would otherwise log "Cannot stop, scanner is not running or paused").
   useEffect(() => {
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
+      const s = scannerRef.current;
+      if (s && typeof s.getState === 'function') {
+        try {
+          const state = s.getState();
+          // Only stop if still scanning (state 2 = SCANNING, 3 = PAUSED)
+          if (state === 2 || state === 3) {
+            s.stop().catch(() => {});
+          }
+        } catch {
+          // getState itself can throw if scanner was never started
+        }
+      } else if (s) {
+        s.stop().catch(() => {});
       }
     };
   }, []);
