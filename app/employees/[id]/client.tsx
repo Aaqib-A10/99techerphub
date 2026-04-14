@@ -1046,7 +1046,7 @@ export default function EmployeeDetailClient({
               </h3>
               {employee.isActive && (
                 <Link
-                  href={`/assets/assign?employeeId=${employee.id}`}
+                  href={`/assets?assignment=unassigned`}
                   className="btn btn-sm btn-primary"
                 >
                   + Assign Asset
