@@ -95,10 +95,29 @@ export default function ScanClient({ initialTag }: { initialTag: string }) {
       );
     } catch (err: any) {
       setScanning(false);
-      setError(
-        err?.message ||
-          'Could not start the camera. Please allow camera access and try again.'
-      );
+      const name = err?.name || '';
+      let msg = err?.message || 'Could not start the camera.';
+      if (
+        name === 'NotAllowedError' ||
+        name === 'PermissionDeniedError' ||
+        msg.includes('Permission')
+      ) {
+        msg = 'Camera permission was denied. Please allow camera access in your browser settings.';
+      } else if (name === 'NotFoundError') {
+        msg = 'No camera was found on this device.';
+      } else if (name === 'NotReadableError') {
+        msg = 'The camera is already in use by another app.';
+      }
+      // Check HTTPS requirement
+      if (
+        typeof window !== 'undefined' &&
+        window.location.protocol !== 'https:' &&
+        window.location.hostname !== 'localhost' &&
+        window.location.hostname !== '127.0.0.1'
+      ) {
+        msg += ' Note: Camera access requires HTTPS. Your site is running on HTTP which blocks camera access.';
+      }
+      setError(msg);
     }
   }
 

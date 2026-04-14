@@ -234,6 +234,14 @@ export default function ExpenseCapturePage() {
       } else if (name === 'NotReadableError') {
         msg = 'The camera is already in use by another app.';
       }
+      if (
+        typeof window !== 'undefined' &&
+        window.location.protocol !== 'https:' &&
+        window.location.hostname !== 'localhost' &&
+        window.location.hostname !== '127.0.0.1'
+      ) {
+        msg += ' Note: Camera access requires HTTPS. Your site is running on HTTP which blocks camera access.';
+      }
       setCameraError(msg);
     } finally {
       setCameraStarting(false);
