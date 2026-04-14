@@ -1,6 +1,9 @@
+export const dynamic = 'force-dynamic';
+
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
+import DateFilter from '@/app/components/DateFilter';
 
 export default async function FinancePage() {
   const [
@@ -78,6 +81,11 @@ export default async function FinancePage() {
           <div className="stat-label">Deductions</div>
           <div className="stat-value">{deductionCount}</div>
         </div>
+      </div>
+
+      {/* Date Filter */}
+      <div className="mb-6 flex justify-end">
+        <DateFilter />
       </div>
 
       {/* Quick Actions */}

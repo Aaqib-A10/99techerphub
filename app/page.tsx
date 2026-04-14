@@ -36,15 +36,12 @@ export default async function Dashboard({
   return (
     <div style={{ backgroundColor: '#F8F9FF', minHeight: '100vh' }}>
       <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* Filter bar (kept — sits subtly above the hero) */}
         <div className="mb-4 flex justify-end">
           <DashboardFilterBar
             companies={companies}
             departments={departments}
             selectedCompany={selectedCompany}
             selectedDepartment={selectedDepartment}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
           />
         </div>
 

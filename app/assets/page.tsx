@@ -4,6 +4,7 @@ import AssetFilters from '@/components/AssetFilters';
 import ExportButton from '@/components/ExportButton';
 import Pagination from '@/components/Pagination';
 import AssetTable from './AssetTable';
+import DateFilter from '@/app/components/DateFilter';
 
 /**
  * Extract a spec value from the JSON blob using case-insensitive
@@ -314,6 +315,11 @@ export default async function AssetsPage({
             Add Asset
           </Link>
         </div>
+      </div>
+
+      {/* Date Filter */}
+      <div className="mb-6 flex justify-end">
+        <DateFilter />
       </div>
 
       {/* Filters - Client Component */}

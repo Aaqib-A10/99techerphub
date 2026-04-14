@@ -1,8 +1,11 @@
+export const dynamic = 'force-dynamic';
+
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import ExportButton from '@/components/ExportButton';
 import ExpenseTable from './ExpenseTable';
 import PageHero from '@/app/components/PageHero';
+import DateFilter from '@/app/components/DateFilter';
 
 export default async function ExpensesPage() {
   const expenses = await prisma.expense.findMany({
@@ -76,6 +79,11 @@ export default async function ExpensesPage() {
           <div className="stat-label">Rejected</div>
           <div className="stat-value text-red-600">{rejectedCount}</div>
         </div>
+      </div>
+
+      {/* Date Filter */}
+      <div className="mb-6 flex justify-end">
+        <DateFilter />
       </div>
 
       {/* Expense Table */}

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { prisma } from '@/lib/prisma';
 import CompaniesClient from './client';
 import PageHero from '@/app/components/PageHero';

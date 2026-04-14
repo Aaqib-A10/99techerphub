@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import ExportButton from '@/components/ExportButton';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
+import DateFilter from '@/app/components/DateFilter';
 
 // Three-way employment lifecycle filter for the employees list.
 // Kept in URL-param form so dashboard tiles can deep-link e.g. ?status=exited.
@@ -243,6 +244,11 @@ export default function EmployeeListClient({
           <div className="stat-label">New This Month</div>
           <div className="stat-value text-purple-600">{stats.newThisMonth}</div>
         </div>
+      </div>
+
+      {/* Date Filter */}
+      <div className="mb-6 flex justify-end">
+        <DateFilter />
       </div>
 
       {/* Search and Filter with Export */}
