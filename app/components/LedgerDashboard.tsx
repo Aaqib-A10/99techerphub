@@ -47,7 +47,7 @@ export default async function LedgerDashboard({
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const employeeBase: any = { isActive: true };
+  const employeeBase: any = {};
   if (companyId != null) employeeBase.companyId = companyId;
   if (departmentId != null) employeeBase.departmentId = departmentId;
 
@@ -151,14 +151,23 @@ export default async function LedgerDashboard({
     categories.find((c) => c.id === id)?.name || 'Other';
 
   // Company distribution map
-  const companyCountMap = new Map<number, number>();
+  const companyCountMap = new Map<number | null, number>();
+  let unassignedCount = 0;
   assetsByCompany.forEach((r) => {
-    if (r.companyId) companyCountMap.set(r.companyId, r._count.id);
+    if (r.companyId) {
+      companyCountMap.set(r.companyId, r._count.id);
+    } else {
+      unassignedCount += r._count.id;
+    }
   });
   const assetsCompanyList = companyRows.map((c) => ({
     ...c,
     count: companyCountMap.get(c.id) || 0,
   }));
+  // If there are assets with no company, show them under a virtual entry
+  if (unassignedCount > 0) {
+    assetsCompanyList.push({ id: 0, name: 'Unassigned', code: null, count: unassignedCount });
+  }
   const assetsCompanyTotal = assetsCompanyList.reduce((a, c) => a + c.count, 0) || 1;
 
   // Burn by category totals

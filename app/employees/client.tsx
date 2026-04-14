@@ -405,7 +405,7 @@ export default function EmployeeListClient({
                 <th>Emp Code</th>
                 <th>Name</th>
                 <th>Department</th>
-                <th>Company</th>
+                <th>Bill to</th>
                 <th>Designation</th>
                 <th>Status</th>
                 <th>Joining Date</th>
