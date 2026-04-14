@@ -60,6 +60,9 @@ export default async function AssetDetailPage({
   params: { id: string };
 }) {
   const assetId = parseInt(params.id);
+  if (isNaN(assetId)) {
+    notFound();
+  }
 
   const asset = await prisma.asset.findUnique({
     where: { id: assetId },
