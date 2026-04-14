@@ -37,6 +37,11 @@ enum EmployeeLifecycleStage {
   EXITED
 }
 
+enum AssetType {
+  HARDWARE
+  SOFTWARE
+}
+
 enum AssetCondition {
   NEW
   WORKING
@@ -439,12 +444,13 @@ model EmployeeExit {
 // ========================
 
 model AssetCategory {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  code        String    @unique
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  code        String     @unique
+  assetType   AssetType  @default(HARDWARE)
   description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   assets Asset[]
 

@@ -23,9 +23,6 @@ const EMERALD = '#059669';
 
 const MONO = 'var(--font-jetbrains-mono), ui-monospace, monospace';
 
-// Distinct colors for the 6 sub-companies
-const COMPANY_COLORS = [NAVY, TEAL, TEAL_LIGHT, AMBER, '#364764', '#C4C6CE'];
-
 interface Props {
   selectedCompany: string;
   selectedDepartment: string;
@@ -82,9 +79,8 @@ export default async function LedgerDashboard({
     pendingApprovalsCount,
     pendingApprovalsSumAgg,
     overdueReturnsCount,
-    // Asset distribution by company
+    // Company names (for header pill)
     companyRows,
-    assetsByCompany,
     // Recent activity — pull recent expenses + assignments
     recentExpenses,
     recentAssetAssignments,
@@ -114,11 +110,6 @@ export default async function LedgerDashboard({
       where: { isActive: true },
       select: { id: true, name: true, code: true },
       orderBy: { name: 'asc' },
-    }),
-    prisma.asset.groupBy({
-      by: ['companyId'],
-      _count: { id: true },
-      where: assetBase,
     }),
     prisma.expense.findMany({
       where: expenseBase,
@@ -167,25 +158,20 @@ export default async function LedgerDashboard({
   const catName = (id: number | null) =>
     categories.find((c) => c.id === id)?.name || 'Other';
 
-  // Company distribution map
-  const companyCountMap = new Map<number | null, number>();
-  let unassignedCount = 0;
-  assetsByCompany.forEach((r) => {
-    if (r.companyId) {
-      companyCountMap.set(r.companyId, r._count.id);
-    } else {
-      unassignedCount += r._count.id;
-    }
-  });
-  const assetsCompanyList = companyRows.map((c) => ({
-    ...c,
-    count: companyCountMap.get(c.id) || 0,
-  }));
-  // If there are assets with no company, show them under a virtual entry
-  if (unassignedCount > 0) {
-    assetsCompanyList.push({ id: 0, name: 'Unassigned', code: 'N/A', count: unassignedCount } as any);
-  }
-  const assetsCompanyTotal = assetsCompanyList.reduce((a, c) => a + c.count, 0) || 1;
+  // Expense status breakdown for the dashboard card
+  const [expApproved, expPendingAgg, expRejected, expDraft] = await Promise.all([
+    prisma.expense.aggregate({ _sum: { amount: true }, _count: true, where: { ...expenseBase, status: 'APPROVED' } }),
+    prisma.expense.aggregate({ _sum: { amount: true }, _count: true, where: { ...expenseBase, status: 'PENDING' } }),
+    prisma.expense.aggregate({ _sum: { amount: true }, _count: true, where: { ...expenseBase, status: 'REJECTED' } }),
+    prisma.expense.aggregate({ _sum: { amount: true }, _count: true, where: { ...expenseBase, status: 'DRAFT' } }),
+  ]);
+  const expenseStatusData = [
+    { label: 'Approved', count: expApproved._count, amount: expApproved._sum.amount || 0, color: EMERALD },
+    { label: 'Pending', count: expPendingAgg._count, amount: expPendingAgg._sum.amount || 0, color: AMBER },
+    { label: 'Rejected', count: expRejected._count, amount: expRejected._sum.amount || 0, color: ROSE },
+    { label: 'Draft', count: expDraft._count, amount: expDraft._sum.amount || 0, color: OUTLINE },
+  ];
+  const expenseTotalAmount = expenseStatusData.reduce((a, e) => a + e.amount, 0) || 1;
 
   // Burn by category totals
   const burnTotal = burnByCategory.reduce((a, b) => a + (b._sum.amount || 0), 0);
@@ -409,46 +395,67 @@ export default async function LedgerDashboard({
 
         {/* RIGHT RAIL */}
         <div className="lg:col-span-5 space-y-8">
-          {/* Asset Distribution */}
+          {/* Expenses Overview */}
           <Card>
             <h3
               className="text-sm font-black uppercase mb-6"
               style={{ color: NAVY, letterSpacing: '0.08em' }}
             >
-              Asset distribution by sub-company
+              Expenses Overview
             </h3>
 
             {/* Stacked bar */}
             <div className="h-6 w-full flex rounded-full overflow-hidden mb-6">
-              {assetsCompanyList.map((c, i) => {
-                const pct = (c.count / assetsCompanyTotal) * 100;
+              {expenseStatusData.map((s) => {
+                const pct = (s.amount / expenseTotalAmount) * 100;
                 if (pct === 0) return null;
                 return (
                   <div
-                    key={c.id}
+                    key={s.label}
                     style={{
-                      backgroundColor: COMPANY_COLORS[i % COMPANY_COLORS.length],
+                      backgroundColor: s.color,
                       width: `${pct}%`,
                     }}
-                    title={`${c.name}: ${c.count}`}
+                    title={`${s.label}: ${fmtMoney(s.amount)}`}
                   />
                 );
               })}
             </div>
 
             {/* Legend */}
-            <div className="grid grid-cols-2 gap-y-3">
-              {assetsCompanyList.map((c, i) => (
-                <div key={c.id} className="flex items-center gap-2">
-                  <span
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: COMPANY_COLORS[i % COMPANY_COLORS.length] }}
-                  />
-                  <span className="text-[11px] font-bold truncate" style={{ color: INK }}>
-                    {c.name} <span style={{ color: OUTLINE, fontFamily: MONO }}>({c.count})</span>
+            <div className="space-y-3">
+              {expenseStatusData.map((s) => (
+                <div key={s.label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: s.color }}
+                    />
+                    <span className="text-[11px] font-bold" style={{ color: INK }}>
+                      {s.label}
+                    </span>
+                    <span className="text-[10px]" style={{ color: OUTLINE, fontFamily: MONO }}>
+                      ({s.count})
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-bold" style={{ fontFamily: MONO, color: INK }}>
+                    {fmtMoney(s.amount)}
                   </span>
                 </div>
               ))}
+            </div>
+
+            {/* Total */}
+            <div
+              className="mt-4 pt-4 flex items-center justify-between"
+              style={{ borderTop: '1px solid rgba(196,198,206,0.3)' }}
+            >
+              <span className="text-xs font-bold uppercase" style={{ color: OUTLINE, letterSpacing: '0.08em' }}>
+                Total
+              </span>
+              <span className="text-sm font-black" style={{ fontFamily: MONO, color: NAVY }}>
+                {fmtMoney(expenseStatusData.reduce((a, e) => a + e.amount, 0))}
+              </span>
             </div>
           </Card>
 

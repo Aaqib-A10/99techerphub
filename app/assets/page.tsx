@@ -58,6 +58,7 @@ export default async function AssetsPage({
     ? parseInt(searchParams.employeeId as string)
     : undefined;
   const condition = searchParams.condition as string | undefined;
+  const assetType = searchParams.assetType as string | undefined;
   const assignment = ((searchParams.assignment as string) || '').toLowerCase();
 
   const q = ((searchParams.q as string) || '').trim();
@@ -84,6 +85,7 @@ export default async function AssetsPage({
   const where: any = {};
   if (companyId) where.companyId = companyId;
   if (categoryId) where.categoryId = categoryId;
+  if (assetType) where.category = { assetType };
   if (condition) where.condition = condition;
   // Assignment status — "assigned" = has at least one open assignment
   // (returnedDate = null). "unassigned" = no open assignment.

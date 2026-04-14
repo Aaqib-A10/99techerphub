@@ -78,6 +78,7 @@ export default function AssetFilters({
   };
 
   const hasAnyFilter =
+    !!searchParams.get('assetType') ||
     !!searchParams.get('companyId') ||
     !!searchParams.get('categoryId') ||
     !!searchParams.get('condition') ||
@@ -113,6 +114,19 @@ export default function AssetFilters({
 
       {/* Row 1 — classification filters */}
       <div className="filter-bar">
+        <div className="filter-item">
+          <label>Type</label>
+          <select
+            value={searchParams.get('assetType') || ''}
+            onChange={(e) => updateFilter('assetType', e.target.value)}
+            className="form-select"
+          >
+            <option value="">All Types</option>
+            <option value="HARDWARE">Hardware</option>
+            <option value="SOFTWARE">Software</option>
+          </select>
+        </div>
+
         <div className="filter-item">
           <label>Company</label>
           <select
