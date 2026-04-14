@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
     const companyId = searchParams.get('companyId');
     const categoryId = searchParams.get('categoryId');
     const condition = searchParams.get('condition');
+    const employeeId = searchParams.get('employeeId');
+    const assignment = (searchParams.get('assignment') || '').toLowerCase();
+    const q = (searchParams.get('q') || '').trim();
     const skip = parseInt(searchParams.get('skip') || '0');
     const take = parseInt(searchParams.get('take') || '50');
 
@@ -21,6 +24,42 @@ export async function GET(request: NextRequest) {
     if (categoryId) where.categoryId = parseInt(categoryId);
     if (condition) where.condition = condition;
 
+    // Assignment / employee filters
+    if (employeeId) {
+      where.assignments = { some: { employeeId: parseInt(employeeId), returnedDate: null } };
+    } else if (assignment === 'assigned') {
+      if (!where.AND) where.AND = [];
+      where.AND.push({
+        OR: [
+          { assignments: { some: { returnedDate: null } } },
+          { assignedToName: { not: null, notIn: ['', 'Available', 'available'] } },
+        ],
+      });
+    } else if (assignment === 'unassigned') {
+      if (!where.AND) where.AND = [];
+      where.AND.push(
+        { assignments: { none: { returnedDate: null } } },
+        {
+          OR: [
+            { assignedToName: null },
+            { assignedToName: { in: ['', 'Available', 'available'] } },
+          ],
+        },
+      );
+    }
+
+    // Full-text search across multiple fields
+    if (q) {
+      where.OR = [
+        { assetTag: { contains: q, mode: 'insensitive' } },
+        { serialNumber: { contains: q, mode: 'insensitive' } },
+        { model: { contains: q, mode: 'insensitive' } },
+        { manufacturer: { contains: q, mode: 'insensitive' } },
+        { assignedToName: { contains: q, mode: 'insensitive' } },
+        { notes: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
     const [assets, total] = await Promise.all([
       prisma.asset.findMany({
         where,
@@ -28,6 +67,11 @@ export async function GET(request: NextRequest) {
           category: true,
           company: true,
           location: true,
+          assignments: {
+            where: { returnedDate: null },
+            include: { employee: true },
+            take: 1,
+          },
         },
         skip,
         take,

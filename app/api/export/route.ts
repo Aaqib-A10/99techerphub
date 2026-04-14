@@ -57,6 +57,10 @@ async function exportAssets(
     ? parseInt(searchParams.get('categoryId')!)
     : undefined;
   const condition = searchParams.get('condition') || undefined;
+  const employeeId = searchParams.get('employeeId')
+    ? parseInt(searchParams.get('employeeId')!)
+    : undefined;
+  const assignment = (searchParams.get('assignment') || '').toLowerCase();
 
   const q = (searchParams.get('q') || '').trim();
   const ramFilter = (searchParams.get('ram') || '').trim().toLowerCase();
@@ -68,6 +72,31 @@ async function exportAssets(
   if (companyId) where.companyId = companyId;
   if (categoryId) where.categoryId = categoryId;
   if (condition) where.condition = condition;
+
+  // Assignment / employee filters (mirrors logic in /app/assets/page.tsx)
+  if (employeeId) {
+    where.assignments = { some: { employeeId, returnedDate: null } };
+  } else if (assignment === 'assigned') {
+    if (!where.AND) where.AND = [];
+    where.AND.push({
+      OR: [
+        { assignments: { some: { returnedDate: null } } },
+        { assignedToName: { not: null, notIn: ['', 'Available', 'available'] } },
+      ],
+    });
+  } else if (assignment === 'unassigned') {
+    if (!where.AND) where.AND = [];
+    where.AND.push(
+      { assignments: { none: { returnedDate: null } } },
+      {
+        OR: [
+          { assignedToName: null },
+          { assignedToName: { in: ['', 'Available', 'available'] } },
+        ],
+      },
+    );
+  }
+
   if (q) {
     where.OR = [
       { assetTag: { contains: q, mode: 'insensitive' } },

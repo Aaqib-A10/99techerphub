@@ -247,7 +247,8 @@ export default function AssetTable({ assets }: { assets: AssetRow[] }) {
                   <StatusBadge condition={asset.condition as AssetCondition} />
                 </td>
                 <td className="px-4 py-3">
-                  {asset.assignments && asset.assignments.length > 0 ? (
+                  {(asset.assignments && asset.assignments.length > 0) ||
+                   (asset.assignedToName && asset.assignedToName !== '' && asset.assignedToName.toLowerCase() !== 'available') ? (
                     <span
                       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
                       style={{

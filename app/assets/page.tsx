@@ -92,9 +92,29 @@ export default async function AssetsPage({
     // Specific employee filter implies assigned — use employee-specific query
     where.assignments = { some: { employeeId, returnedDate: null } };
   } else if (assignment === 'assigned') {
-    where.assignments = { some: { returnedDate: null } };
+    // An asset is "assigned" if it has an open assignment record OR has a
+    // legacy assignedToName value (from bulk-imported / migrated data that
+    // pre-dates the assignments table).  Wrap in AND so this doesn't
+    // collide with the search-term OR below.
+    if (!where.AND) where.AND = [];
+    where.AND.push({
+      OR: [
+        { assignments: { some: { returnedDate: null } } },
+        { assignedToName: { not: null, notIn: ['', 'Available', 'available'] } },
+      ],
+    });
   } else if (assignment === 'unassigned') {
-    where.assignments = { none: { returnedDate: null } };
+    // Unassigned means no open assignment AND no legacy holder name.
+    if (!where.AND) where.AND = [];
+    where.AND.push(
+      { assignments: { none: { returnedDate: null } } },
+      {
+        OR: [
+          { assignedToName: null },
+          { assignedToName: { in: ['', 'Available', 'available'] } },
+        ],
+      },
+    );
   }
   if (q) {
     where.OR = [
