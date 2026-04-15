@@ -1478,23 +1478,146 @@ function TimelineEntryComponent({
   );
 }
 
+// Individual document upload slot
+function DocumentSlot({
+  docType,
+  existingDoc,
+  employeeId,
+  onUploaded,
+  onDeleted,
+}: {
+  docType: { value: string; label: string; accept: string; required: boolean };
+  existingDoc: any | null;
+  employeeId: number;
+  onUploaded: (doc: any) => void;
+  onDeleted: (docId: number) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const allowed = docType.accept.split(',').map(f => f.replace('.', ''));
+    if (!ext || !allowed.includes(ext)) {
+      setError(`Invalid format. Accepted: ${docType.accept.replace(/\./g, '').toUpperCase()}`);
+      e.target.value = '';
+      return;
+    }
+
+    setUploading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('documentType', docType.value);
+
+      const response = await fetch(`/api/employees/${employeeId}/documents`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      const newDoc = await response.json();
+      onUploaded(newDoc);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!existingDoc || !confirm('Delete this document?')) return;
+    try {
+      const response = await fetch(`/api/employees/${employeeId}/documents/${existingDoc.id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Delete failed');
+      onDeleted(existingDoc.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed');
+    }
+  };
+
+  return (
+    <div className={`border rounded-lg p-4 ${existingDoc ? 'border-green-200 bg-green-50/30' : docType.required ? 'border-red-200 bg-red-50/20' : 'border-gray-200'}`}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          {existingDoc ? (
+            <span className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">{'\u2713'}</span>
+          ) : (
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${docType.required ? 'bg-red-100 text-red-500' : 'bg-gray-100 text-gray-400'}`}>
+              {docType.required ? '!' : '?'}
+            </span>
+          )}
+          <h4 className="text-sm font-semibold text-gray-800">{docType.label}</h4>
+        </div>
+        <span className="text-[10px] text-gray-400 font-mono">{docType.accept.replace(/\./g, '').toUpperCase()}</span>
+      </div>
+
+      {error && <p className="text-xs text-red-600 mb-2">{error}</p>}
+
+      {existingDoc ? (
+        <div className="flex items-center justify-between bg-white rounded border border-gray-100 px-3 py-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-700 truncate">{existingDoc.fileName}</p>
+            <p className="text-[10px] text-gray-400">
+              {new Date(existingDoc.uploadedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </p>
+          </div>
+          <div className="flex gap-1 ml-2 flex-shrink-0">
+            <a
+              href={existingDoc.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs hover:bg-blue-100 font-medium"
+            >
+              View
+            </a>
+            <button onClick={handleDelete} className="px-2 py-1 bg-red-50 text-red-600 rounded text-xs hover:bg-red-100 font-medium">
+              Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <label className="block cursor-pointer">
+          <div className={`border-2 border-dashed rounded-lg p-3 text-center transition-colors ${uploading ? 'border-gray-200 bg-gray-50' : 'border-gray-300 hover:border-brand-primary hover:bg-brand-primary/5'}`}>
+            {uploading ? (
+              <p className="text-xs text-gray-500">Uploading...</p>
+            ) : (
+              <>
+                <svg className="w-6 h-6 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p className="text-xs text-gray-500">Click to upload</p>
+              </>
+            )}
+          </div>
+          <input type="file" accept={docType.accept} onChange={handleFileChange} className="hidden" disabled={uploading} />
+        </label>
+      )}
+    </div>
+  );
+}
+
 // Documents Tab Component
 function DocumentsTab({ employee }: { employee: any }) {
   const [documents, setDocuments] = useState(employee.documents || []);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState('');
-  const [uploadSuccess, setUploadSuccess] = useState('');
-  const [fileInput, setFileInput] = useState<File | null>(null);
-  const [documentType, setDocumentType] = useState('CNIC');
   const router = useRouter();
 
   const DOCUMENT_TYPES = [
     { value: 'CNIC_FRONT', label: 'CNIC Front *', accept: '.pdf,.png,.jpg,.jpeg', required: true },
     { value: 'CNIC_BACK', label: 'CNIC Back *', accept: '.pdf,.png,.jpg,.jpeg', required: true },
     { value: 'PHOTO', label: 'Photo (Passport Size) *', accept: '.png,.jpg,.jpeg', required: true },
-    { value: 'DEGREE', label: 'Degree', accept: '.pdf,.png,.jpg,.jpeg', required: false },
     { value: 'RESUME', label: 'Resume *', accept: '.pdf', required: true },
+    { value: 'DEGREE', label: 'Degree', accept: '.pdf,.png,.jpg,.jpeg', required: false },
     { value: 'CONTRACT', label: 'Contract', accept: '.pdf,.png,.jpg,.jpeg', required: false },
     { value: 'NDA', label: 'NDA', accept: '.pdf,.png,.jpg,.jpeg', required: false },
     { value: 'OFFER_LETTER', label: 'Offer Letter', accept: '.pdf,.png,.jpg,.jpeg', required: false },
@@ -1502,245 +1625,66 @@ function DocumentsTab({ employee }: { employee: any }) {
     { value: 'OTHER', label: 'Other', accept: '.pdf,.png,.jpg,.jpeg', required: false },
   ];
 
-  const selectedDocType = DOCUMENT_TYPES.find(d => d.value === documentType);
-  const acceptFormats = selectedDocType?.accept || '.pdf,.png,.jpg,.jpeg';
+  const requiredTypes = DOCUMENT_TYPES.filter(dt => dt.required);
+  const optionalTypes = DOCUMENT_TYPES.filter(dt => !dt.required);
+  const requiredUploaded = requiredTypes.filter(dt => documents.some((d: any) => d.documentType === dt.value)).length;
 
-  const handleUpload = async () => {
-    if (!fileInput) {
-      setUploadError('Please select a file');
-      return;
-    }
-
-    setUploading(true);
-    setUploadError('');
-    setUploadSuccess('');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', fileInput);
-      formData.append('documentType', documentType);
-
-      const response = await fetch(
-        `/api/employees/${employee.id}/documents`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to upload document');
-      }
-
-      const newDoc = await response.json();
-      setDocuments([...documents, newDoc]);
-      setUploadSuccess('Document uploaded successfully');
-      setFileInput(null);
-      setDocumentType('CNIC');
-      setShowUploadModal(false);
-      router.refresh();
-    } catch (err) {
-      setUploadError(
-        err instanceof Error ? err.message : 'Failed to upload'
-      );
-    } finally {
-      setUploading(false);
-    }
+  const handleUploaded = (doc: any) => {
+    setDocuments((prev: any[]) => [...prev, doc]);
+    router.refresh();
   };
 
-  const handleDeleteDocument = async (docId: number) => {
-    if (!confirm('Are you sure you want to delete this document?')) return;
-
-    try {
-      const response = await fetch(
-        `/api/employees/${employee.id}/documents/${docId}`,
-        {
-          method: 'DELETE',
-        }
-      );
-
-      if (!response.ok) throw new Error('Failed to delete document');
-
-      setDocuments(documents.filter((d: any) => d.id !== docId));
-      router.refresh();
-    } catch (err) {
-      setUploadError(
-        err instanceof Error ? err.message : 'Failed to delete'
-      );
-    }
+  const handleDeleted = (docId: number) => {
+    setDocuments((prev: any[]) => prev.filter((d: any) => d.id !== docId));
+    router.refresh();
   };
 
   return (
     <div className="space-y-6">
+      {/* Required Documents */}
       <div className="card">
         <div className="card-header flex justify-between items-center">
-          <h3 className="section-heading">Employee Documents</h3>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="px-4 py-2 bg-brand-primary text-white rounded-lg text-sm hover:bg-brand-dark"
-          >
-            + Upload Document
-          </button>
+          <h3 className="section-heading">Required Documents</h3>
+          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${requiredUploaded === requiredTypes.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+            {requiredUploaded}/{requiredTypes.length} uploaded
+          </span>
         </div>
         <div className="card-body">
-          {uploadError && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
-              {uploadError}
-            </div>
-          )}
-          {uploadSuccess && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
-              {uploadSuccess}
-            </div>
-          )}
-
-          {/* Required documents checklist */}
-          <div className="mb-4 p-3 bg-slate-50 rounded-lg">
-            <p className="text-xs font-semibold text-gray-600 mb-2">Required Documents</p>
-            <div className="flex flex-wrap gap-2">
-              {DOCUMENT_TYPES.filter(dt => dt.required).map(dt => {
-                const uploaded = documents.some((d: any) => d.documentType === dt.value);
-                return (
-                  <span key={dt.value} className={`text-xs px-2 py-1 rounded-full font-medium ${uploaded ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'}`}>
-                    {uploaded ? '\u2713' : '\u2717'} {dt.label.replace(' *', '')}
-                  </span>
-                );
-              })}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {requiredTypes.map(dt => (
+              <DocumentSlot
+                key={dt.value}
+                docType={dt}
+                existingDoc={documents.find((d: any) => d.documentType === dt.value) || null}
+                employeeId={employee.id}
+                onUploaded={handleUploaded}
+                onDeleted={handleDeleted}
+              />
+            ))}
           </div>
-
-          {documents.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No documents uploaded yet</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {documents.map((doc: any) => (
-                <div
-                  key={doc.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <svg
-                          className="w-5 h-5 text-blue-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        <span className="text-xs font-semibold text-blue-600 uppercase">
-                          {doc.documentType}
-                        </span>
-                      </div>
-                      <h4 className="font-semibold text-sm text-gray-900 truncate">
-                        {doc.fileName}
-                      </h4>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(doc.uploadedAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 pt-3 border-t border-gray-100">
-                    <a
-                      href={doc.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 px-3 py-2 bg-blue-50 text-blue-700 rounded text-sm hover:bg-blue-100 text-center font-medium"
-                    >
-                      Download
-                    </a>
-                    <button
-                      onClick={() => handleDeleteDocument(doc.id)}
-                      className="px-3 py-2 bg-red-50 text-red-700 rounded text-sm hover:bg-red-100"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Upload Modal */}
-      <Modal
-        isOpen={showUploadModal}
-        title="Upload Document"
-        onClose={() => {
-          setShowUploadModal(false);
-          setFileInput(null);
-          setUploadError('');
-        }}
-        onSubmit={handleUpload}
-        submitLabel="Upload"
-        submitDisabled={!fileInput || uploading}
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Document Type *
-            </label>
-            <select
-              value={documentType}
-              onChange={(e) => setDocumentType(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-            >
-              {DOCUMENT_TYPES.map((dt) => (
-                <option key={dt.value} value={dt.value}>
-                  {dt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select File *
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <input
-                type="file"
-                accept={acceptFormats}
-                onChange={(e) => {
-                  const file = e.target.files?.[0] || null;
-                  if (file) {
-                    const ext = file.name.split('.').pop()?.toLowerCase();
-                    const allowed = acceptFormats.split(',').map(f => f.replace('.', ''));
-                    if (!ext || !allowed.includes(ext)) {
-                      setUploadError(`Invalid file type. Accepted: ${acceptFormats.replace(/\./g, '').toUpperCase()}`);
-                      setFileInput(null);
-                      e.target.value = '';
-                      return;
-                    }
-                  }
-                  setUploadError('');
-                  setFileInput(file);
-                }}
-                className="w-full"
+      {/* Optional Documents */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="section-heading">Additional Documents</h3>
+        </div>
+        <div className="card-body">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {optionalTypes.map(dt => (
+              <DocumentSlot
+                key={dt.value}
+                docType={dt}
+                existingDoc={documents.find((d: any) => d.documentType === dt.value) || null}
+                employeeId={employee.id}
+                onUploaded={handleUploaded}
+                onDeleted={handleDeleted}
               />
-              {fileInput && (
-                <p className="mt-2 text-sm text-gray-600">
-                  Selected: {fileInput.name}
-                </p>
-              )}
-              <p className="text-xs text-gray-500 mt-2">
-                Accepted: {acceptFormats.replace(/\./g, '').toUpperCase()} (Max 10MB)
-              </p>
-            </div>
+            ))}
           </div>
         </div>
-      </Modal>
+      </div>
     </div>
   );
 }
