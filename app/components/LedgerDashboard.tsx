@@ -143,8 +143,8 @@ export default async function LedgerDashboard({
     }),
   ]);
 
-  const assetsValue = assetsValueAgg._sum.purchasePrice || 0;
-  const pendingApprovalsSum = pendingApprovalsSumAgg._sum.amount || 0;
+  const assetsValue = Number(assetsValueAgg._sum.purchasePrice) || 0;
+  const pendingApprovalsSum = Number(pendingApprovalsSumAgg._sum.amount) || 0;
 
   // Resolve category names for the burn card
   const catIds = burnByCategory.map((b) => b.categoryId).filter(Boolean) as number[];
@@ -166,15 +166,15 @@ export default async function LedgerDashboard({
     prisma.expense.aggregate({ _sum: { amount: true }, _count: true, where: { ...expenseBase, status: 'DRAFT' } }),
   ]);
   const expenseStatusData = [
-    { label: 'Approved', count: expApproved._count, amount: expApproved._sum.amount || 0, color: EMERALD },
-    { label: 'Pending', count: expPendingAgg._count, amount: expPendingAgg._sum.amount || 0, color: AMBER },
-    { label: 'Rejected', count: expRejected._count, amount: expRejected._sum.amount || 0, color: ROSE },
-    { label: 'Draft', count: expDraft._count, amount: expDraft._sum.amount || 0, color: OUTLINE },
+    { label: 'Approved', count: expApproved._count, amount: Number(expApproved._sum.amount) || 0, color: EMERALD },
+    { label: 'Pending', count: expPendingAgg._count, amount: Number(expPendingAgg._sum.amount) || 0, color: AMBER },
+    { label: 'Rejected', count: expRejected._count, amount: Number(expRejected._sum.amount) || 0, color: ROSE },
+    { label: 'Draft', count: expDraft._count, amount: Number(expDraft._sum.amount) || 0, color: OUTLINE },
   ];
   const expenseTotalAmount = expenseStatusData.reduce((a, e) => a + e.amount, 0) || 1;
 
   // Burn by category totals
-  const burnTotal = burnByCategory.reduce((a, b) => a + (b._sum.amount || 0), 0);
+  const burnTotal = burnByCategory.reduce((a, b) => a + (Number(b._sum.amount) || 0), 0);
 
   // Merge recent expenses + assignments into a unified activity feed
   type Activity = {
@@ -196,7 +196,7 @@ export default async function LedgerDashboard({
         : 'Someone',
       verb: 'submitted expense for',
       what: e.category?.name || 'Expense',
-      meta: `${e.company?.code || '—'} · ${fmtMoney(e.amount)}`,
+      meta: `${e.company?.code || '—'} · ${fmtMoney(Number(e.amount))}`,
       time: e.createdAt,
     })),
     ...recentAssetAssignments.map<Activity>((a) => ({
@@ -492,7 +492,7 @@ export default async function LedgerDashboard({
                   </p>
                 )}
                 {burnByCategory.map((b, i) => {
-                  const amount = b._sum.amount || 0;
+                  const amount = Number(b._sum.amount) || 0;
                   const pct = burnTotal > 0 ? Math.round((amount / burnTotal) * 100) : 0;
                   return (
                     <div key={b.categoryId || i} className="flex items-center justify-between">
@@ -599,7 +599,7 @@ function BurnDonut({
   slices,
 }: {
   total: number;
-  slices: { categoryId: number | null; _sum: { amount: number | null } }[];
+  slices: { categoryId: number | null; _sum: { amount: any } }[];
 }) {
   const colors = [NAVY, TEAL, AMBER, '#364764', OUTLINE];
   const radius = 16;
@@ -619,7 +619,7 @@ function BurnDonut({
         />
         {total > 0 &&
           slices.map((s, i) => {
-            const amount = s._sum.amount || 0;
+            const amount = Number(s._sum.amount) || 0;
             const pct = (amount / total) * 100;
             const dash = (pct / 100) * circ;
             const gap = circ - dash;

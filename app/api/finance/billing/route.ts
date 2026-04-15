@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { parseCurrency, validatePercentageSum } from '@/lib/currency';
 
 export async function GET() {
   try {
@@ -26,6 +27,7 @@ export async function GET() {
   }
 }
 
+// POST: Create/update billing splits — ATOMIC with advisory lock
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await getSessionUser();
@@ -35,64 +37,63 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json();
     const { employeeId, splits } = data;
+    const empId = parseInt(employeeId);
 
-    // splits is an array of { companyId, percentage }
-    // Validate percentages sum to 100
-    const totalPercentage = splits.reduce(
-      (sum: number, split: any) => sum + parseFloat(split.percentage),
-      0
-    );
-
-    if (Math.abs(totalPercentage - 100) > 0.01) {
+    // Validate percentages sum to exactly 100% using integer arithmetic
+    if (!validatePercentageSum(splits.map((s: any) => s.percentage))) {
       return NextResponse.json(
         { error: 'Billing percentages must sum to 100%' },
         { status: 400 }
       );
     }
 
-    // Close existing splits for this employee
-    const existingSplits = await prisma.billingSplit.findMany({
-      where: { employeeId: parseInt(employeeId), effectiveTo: null },
-    });
+    const newSplits = await prisma.$transaction(async (tx) => {
+      // Advisory lock per employee — serializes concurrent billing updates
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(99003, ${empId})`;
 
-    if (existingSplits.length > 0) {
-      await prisma.billingSplit.updateMany({
-        where: {
-          employeeId: parseInt(employeeId),
-          effectiveTo: null,
-        },
-        data: { effectiveTo: new Date() },
+      // Close existing splits (inside transaction — rolls back if creates fail)
+      const existingSplits = await tx.billingSplit.findMany({
+        where: { employeeId: empId, effectiveTo: null },
       });
-    }
 
-    // Create new splits
-    const newSplits = await Promise.all(
-      splits.map((split: any) =>
-        prisma.billingSplit.create({
+      if (existingSplits.length > 0) {
+        await tx.billingSplit.updateMany({
+          where: { employeeId: empId, effectiveTo: null },
+          data: { effectiveTo: new Date() },
+        });
+      }
+
+      // Create new splits sequentially (all inside transaction)
+      const created = [];
+      for (const split of splits) {
+        const newSplit = await tx.billingSplit.create({
           data: {
-            employeeId: parseInt(employeeId),
+            employeeId: empId,
             companyId: parseInt(split.companyId),
-            percentage: parseFloat(split.percentage),
+            percentage: parseCurrency(split.percentage),
             effectiveFrom: new Date(),
           },
           include: {
             employee: true,
             company: true,
           },
-        })
-      )
-    );
+        });
+        created.push(newSplit);
+      }
 
-    // Create audit log
-    await prisma.auditLog.create({
-      data: {
-        tableName: 'billing_splits',
-        recordId: newSplits[0]?.id || 0,
-        action: 'CREATE',
-        module: 'FINANCE',
-        newValues: { splits: newSplits },
-        oldValues: { splits: existingSplits },
-      },
+      // Audit log
+      await tx.auditLog.create({
+        data: {
+          tableName: 'billing_splits',
+          recordId: created[0]?.id || 0,
+          action: 'CREATE',
+          module: 'FINANCE',
+          newValues: { splits: created },
+          oldValues: { splits: existingSplits },
+        },
+      });
+
+      return created;
     });
 
     return NextResponse.json(newSplits, { status: 201 });

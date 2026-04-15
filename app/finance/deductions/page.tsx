@@ -153,7 +153,7 @@ export default function DeductionsPage() {
                     <td className="font-semibold">{d.employee?.firstName} {d.employee?.lastName}</td>
                     <td><span className="badge badge-blue">{typeLabels[d.deductionType] || d.deductionType}</span></td>
                     <td>{d.period}</td>
-                    <td className="font-semibold text-red-600">{d.currency} {d.amount.toLocaleString()}</td>
+                    <td className="font-semibold text-red-600">{d.currency} {Number(d.amount).toLocaleString()}</td>
                     <td className="text-sm text-gray-600">{d.description || '-'}</td>
                     <td className="text-sm text-gray-500">{new Date(d.createdAt).toLocaleDateString()}</td>
                   </tr>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { parseCurrency } from '@/lib/currency';
 
 export async function GET(request: NextRequest) {
   try {
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
         manufacturer: data.manufacturer,
         model: data.model,
         purchaseDate: data.purchaseDate ? new Date(data.purchaseDate) : new Date(),
-        purchasePrice: data.purchasePrice ? parseFloat(data.purchasePrice) : 0,
+        purchasePrice: data.purchasePrice ? parseCurrency(data.purchasePrice) : 0,
         currency: data.currency || 'PKR',
         warrantyExpiry: data.warrantyExpiry
           ? new Date(data.warrantyExpiry)

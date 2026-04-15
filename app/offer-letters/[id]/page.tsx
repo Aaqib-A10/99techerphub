@@ -65,7 +65,7 @@ export default async function OfferLetterDetailPage({
         actions={
           <div className="text-right" style={{ color: '#FFFFFF' }}>
             <div className="mono" style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
-              {offerLetter.currency} {offerLetter.salary.toLocaleString()}
+              {offerLetter.currency} {Number(offerLetter.salary).toLocaleString()}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.65)' }}>
               {formatDate(offerLetter.offerDate)}

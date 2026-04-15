@@ -155,7 +155,7 @@ export default async function FinancePage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold mono" style={{ color: '#0B1F3A' }}>PKR {pr.totalNet.toLocaleString()}</div>
+                      <div className="font-semibold mono" style={{ color: '#0B1F3A' }}>PKR {Number(pr.totalNet).toLocaleString()}</div>
                       <span className={`badge ${statusColors[pr.status]}`}>{pr.status}</span>
                     </div>
                   </div>
@@ -186,9 +186,9 @@ export default async function FinancePage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold mono" style={{ color: '#0B1F3A' }}>{sh.currency} {sh.baseSalary.toLocaleString()}</div>
+                      <div className="font-semibold mono" style={{ color: '#0B1F3A' }}>{sh.currency} {Number(sh.baseSalary).toLocaleString()}</div>
                       {sh.incrementPct && (
-                        <span className="badge badge-green text-xs">+{sh.incrementPct}%</span>
+                        <span className="badge badge-green text-xs">+{Number(sh.incrementPct)}%</span>
                       )}
                     </div>
                   </div>

@@ -292,7 +292,7 @@ model OfferLetter {
   position            String
   department          String?
   companyName         String?   // Which sub-company
-  salary              Float
+  salary              Decimal    @db.Decimal(12, 2)
   currency            String    @default("PKR")
   startDate           DateTime
   // Extra contract terms
@@ -429,7 +429,7 @@ model EmployeeExit {
   reason            String?
   exitType          String    @default("RESIGNATION") // RESIGNATION, TERMINATION, CONTRACT_END
   clearanceStatus   Json?     // Checklist items: assets returned, access revoked, etc.
-  finalSettlement   Float?
+  finalSettlement   Decimal?   @db.Decimal(12, 2)
   isComplete        Boolean   @default(false)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -466,7 +466,7 @@ model Asset {
   model           String
   description     String?
   purchaseDate    DateTime?
-  purchasePrice   Float     @default(0)
+  purchasePrice   Decimal   @default(0) @db.Decimal(12, 2)
   currency        String    @default("PKR")
   warrantyExpiry  DateTime?
   condition       AssetCondition @default(WORKING)
@@ -561,7 +561,7 @@ model Expense {
   companyId       Int
   departmentId    Int?
   submittedById   Int
-  amount          Float
+  amount          Decimal   @db.Decimal(12, 2)
   currency        String        @default("PKR")
   description     String
   paymentMethod   String?       // CASH, BANK_TRANSFER, CREDIT_CARD, PETTY_CASH
@@ -605,11 +605,11 @@ model ExpenseApproval {
 model SalaryHistory {
   id            Int       @id @default(autoincrement())
   employeeId    Int
-  baseSalary    Float
+  baseSalary    Decimal   @db.Decimal(12, 2)
   currency      String    @default("PKR")
   effectiveFrom DateTime
   effectiveTo   DateTime?
-  incrementPct  Float?    // Percentage increase from previous
+  incrementPct  Decimal?  @db.Decimal(5, 2)  // Percentage increase from previous
   reason        String?   // Annual increment, promotion, etc.
   createdAt     DateTime  @default(now())
 
@@ -621,7 +621,7 @@ model SalaryHistory {
 model Commission {
   id           Int       @id @default(autoincrement())
   employeeId   Int
-  amount       Float
+  amount       Decimal   @db.Decimal(12, 2)
   currency     String    @default("PKR")
   description  String
   period       String    // e.g., "2026-03"
@@ -636,7 +636,7 @@ model Commission {
 model Deduction {
   id           Int       @id @default(autoincrement())
   employeeId   Int
-  amount       Float
+  amount       Decimal   @db.Decimal(12, 2)
   currency     String    @default("PKR")
   deductionType String   // TAX, LOAN, ADVANCE, INSURANCE, OTHER
   description  String?
@@ -653,9 +653,9 @@ model PayrollRun {
   period      String        // e.g., "2026-03"
   companyId   Int?
   status      PayrollStatus @default(DRAFT)
-  totalGross  Float         @default(0)
-  totalDeductions Float     @default(0)
-  totalNet    Float         @default(0)
+  totalGross      Decimal       @default(0) @db.Decimal(14, 2)
+  totalDeductions Decimal       @default(0) @db.Decimal(14, 2)
+  totalNet        Decimal       @default(0) @db.Decimal(14, 2)
   processedAt DateTime?
   paidAt      DateTime?
   createdAt   DateTime      @default(now())
@@ -672,11 +672,11 @@ model PayrollItem {
   id            Int       @id @default(autoincrement())
   payrollRunId  Int
   employeeId    Int
-  baseSalary    Float
-  commissions   Float     @default(0)
-  bonuses       Float     @default(0)
-  deductions    Float     @default(0)
-  netPay        Float
+  baseSalary    Decimal   @db.Decimal(12, 2)
+  commissions   Decimal   @default(0) @db.Decimal(12, 2)
+  bonuses       Decimal   @default(0) @db.Decimal(12, 2)
+  deductions    Decimal   @default(0) @db.Decimal(12, 2)
+  netPay        Decimal   @db.Decimal(12, 2)
   currency      String    @default("PKR")
   createdAt     DateTime  @default(now())
 
@@ -690,7 +690,7 @@ model BillingSplit {
   id          Int       @id @default(autoincrement())
   employeeId  Int
   companyId   Int
-  percentage  Float     // What % of this employee is billed to this company
+  percentage  Decimal   @db.Decimal(5, 2) // What % of this employee is billed to this company
   effectiveFrom DateTime
   effectiveTo DateTime?
   createdAt   DateTime  @default(now())
@@ -748,6 +748,23 @@ model Notification {
   user        User             @relation(fields: [userId], references: [id])
 
   @@map("notifications")
+}
+
+// ========================
+// IDEMPOTENCY / REQUEST LOG
+// ========================
+
+model RequestLog {
+  id             Int      @id @default(autoincrement())
+  idempotencyKey String   @unique
+  method         String
+  path           String
+  statusCode     Int
+  responseBody   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([idempotencyKey])
+  @@map("request_logs")
 }
 
 // ========================

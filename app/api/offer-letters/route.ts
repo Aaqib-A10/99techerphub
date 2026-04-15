@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { parseCurrency } from '@/lib/currency';
 
 export async function GET(request: NextRequest) {
   try {
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
         position: data.position,
         department: data.department || null,
         companyName: data.companyName || null,
-        salary: parseFloat(data.salary),
+        salary: parseCurrency(data.salary),
         currency: data.currency || 'PKR',
         startDate: new Date(data.startDate),
         reportingTo: data.reportingTo || null,

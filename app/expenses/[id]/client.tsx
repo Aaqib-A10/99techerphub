@@ -154,7 +154,7 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
           <div>
             <div className="text-sm" style={{ color: '#75777E' }}>Amount</div>
             <div className="text-2xl font-bold mono mt-1" style={{ color: '#0B1F3A' }}>
-              {expense.currency} {expense.amount.toLocaleString()}
+              {expense.currency} {Number(expense.amount).toLocaleString()}
             </div>
           </div>
           <div className="pt-3 border-t">
@@ -211,7 +211,7 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
         <div className="space-y-4">
           <div>
             <p className="text-sm text-gray-600">
-              Approve this expense of <span className="font-bold">{expense.currency} {expense.amount.toLocaleString()}</span>?
+              Approve this expense of <span className="font-bold">{expense.currency} {Number(expense.amount).toLocaleString()}</span>?
             </p>
           </div>
           <div>

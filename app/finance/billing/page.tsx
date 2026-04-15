@@ -56,29 +56,22 @@ export default function BillingSplitPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [splitsRes, empRes, compRes] = await Promise.all([
+        // Fetch all data in parallel — batch salary endpoint replaces N+1 loop
+        const [splitsRes, empRes, compRes, salaryBatchRes] = await Promise.all([
           fetch('/api/finance/billing'),
           fetch('/api/employees'),
           fetch('/api/settings'),
+          fetch('/api/finance/salary/batch'),
         ]);
 
         const splits = await splitsRes.json();
         const emps = await empRes.json();
         const compData = await compRes.json();
+        const salaryMap = salaryBatchRes.ok ? await salaryBatchRes.json() : {};
 
         setBillingSplits(splits);
         setEmployees(emps);
         setCompanies(compData.companies || []);
-
-        // Fetch salary history for all employees
-        const salaryMap: Record<number, SalaryHistory> = {};
-        for (const emp of emps) {
-          const salRes = await fetch(`/api/finance/salary?employeeId=${emp.id}`);
-          if (salRes.ok) {
-            const sal = await salRes.json();
-            salaryMap[emp.id] = sal;
-          }
-        }
         setSalaryHistory(salaryMap);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -182,7 +175,7 @@ export default function BillingSplitPage() {
       if (!companyCosts[split.companyId]) {
         companyCosts[split.companyId] = 0;
       }
-      companyCosts[split.companyId] += (salary * split.percentage) / 100;
+      companyCosts[split.companyId] += Math.round((Number(salary) * Number(split.percentage)) / 100);
     });
   });
 
@@ -369,7 +362,7 @@ export default function BillingSplitPage() {
                 </tr>
               ) : employees.map((emp) => {
                 const splits = splitsByEmployee[emp.id] || [];
-                const salary = salaryHistory[emp.id]?.baseSalary || 0;
+                const salary = Number(salaryHistory[emp.id]?.baseSalary) || 0;
                 const currency = salaryHistory[emp.id]?.currency || 'PKR';
 
                 return (
@@ -414,7 +407,7 @@ export default function BillingSplitPage() {
                               key={split.id}
                               className="text-sm"
                             >
-                              {currency} {Math.round((salary * split.percentage) / 100).toLocaleString()}
+                              {currency} {Math.round((salary * Number(split.percentage)) / 100).toLocaleString()}
                             </div>
                           ))}
                         </div>

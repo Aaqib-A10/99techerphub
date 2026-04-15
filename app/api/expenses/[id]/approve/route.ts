@@ -87,8 +87,8 @@ export async function POST(
         };
 
         const message = data.comments
-          ? `${updatedExpense.expenseNumber} (${updatedExpense.currency} ${updatedExpense.amount.toLocaleString()}) ${verbMap[action]}. Note: ${data.comments}`
-          : `${updatedExpense.expenseNumber} (${updatedExpense.currency} ${updatedExpense.amount.toLocaleString()}) ${verbMap[action]}.`;
+          ? `${updatedExpense.expenseNumber} (${updatedExpense.currency} ${Number(updatedExpense.amount).toLocaleString()}) ${verbMap[action]}. Note: ${data.comments}`
+          : `${updatedExpense.expenseNumber} (${updatedExpense.currency} ${Number(updatedExpense.amount).toLocaleString()}) ${verbMap[action]}.`;
 
         await createNotification({
           userId: submitterUserId,

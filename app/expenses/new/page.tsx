@@ -555,7 +555,7 @@ export default function NewExpensePage() {
                         <div className="text-blue-600 uppercase tracking-wide">Amount</div>
                         <div className="text-blue-900 font-medium">
                           {ocrResult.amount != null
-                            ? `${ocrResult.currency || ''} ${ocrResult.amount.toLocaleString()}`.trim()
+                            ? `${ocrResult.currency || ''} ${Number(ocrResult.amount).toLocaleString()}`.trim()
                             : '—'}
                         </div>
                       </div>

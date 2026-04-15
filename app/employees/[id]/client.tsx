@@ -1249,7 +1249,7 @@ export default function EmployeeDetailClient({
                     {employee.salaryHistory.map((s: any) => (
                       <div key={s.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
                         <div>
-                          <div className="font-semibold">{s.currency} {s.baseSalary.toLocaleString()}</div>
+                          <div className="font-semibold">{s.currency} {Number(s.baseSalary).toLocaleString()}</div>
                           <div className="text-xs text-gray-500">
                             From {new Date(s.effectiveFrom).toLocaleDateString()}
                             {s.incrementPct && ` (+${s.incrementPct}%)`}

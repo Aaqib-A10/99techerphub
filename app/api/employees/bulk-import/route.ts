@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { parseCurrency } from '@/lib/currency';
 
 interface ImportRow {
   [key: string]: string;
@@ -188,8 +189,8 @@ export async function POST(request: NextRequest) {
 
         // Create salary history if baseSalary provided
         if (baseSalaryStr) {
-          const baseSalary = parseFloat(baseSalaryStr);
-          if (!isNaN(baseSalary)) {
+          const baseSalary = parseCurrency(baseSalaryStr);
+          if (baseSalary > 0) {
             await prisma.salaryHistory.create({
               data: {
                 employeeId: employee.id,

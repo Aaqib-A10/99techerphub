@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
 import { seedOnboardingTasksForEmployee } from '@/lib/services/onboardingService';
+import { parseCurrency } from '@/lib/currency';
 
 export async function GET(request: NextRequest) {
   try {
@@ -144,7 +145,7 @@ export async function POST(request: NextRequest) {
       await prisma.salaryHistory.create({
         data: {
           employeeId: employee.id,
-          baseSalary: parseFloat(data.baseSalary),
+          baseSalary: parseCurrency(data.baseSalary),
           currency: data.currency || 'PKR',
           effectiveFrom: new Date(data.dateOfJoining),
           reason: 'Initial salary',

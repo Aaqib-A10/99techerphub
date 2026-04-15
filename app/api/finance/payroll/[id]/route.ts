@@ -16,56 +16,75 @@ export async function PATCH(
     const data = await request.json();
 
     if (data.action === 'finalize') {
-      const run = await prisma.payrollRun.update({
-        where: { id: runId },
-        data: { status: 'FINALIZED', processedAt: new Date() },
-      });
+      // Finalize is a single-step update — transaction wraps for audit consistency
+      const run = await prisma.$transaction(async (tx) => {
+        const updated = await tx.payrollRun.update({
+          where: { id: runId },
+          data: { status: 'FINALIZED', processedAt: new Date() },
+        });
 
-      await prisma.auditLog.create({
-        data: {
-          tableName: 'payroll_runs',
-          recordId: runId,
-          action: 'UPDATE',
-          module: 'PAYROLL',
-          newValues: { status: 'FINALIZED' },
-        },
+        await tx.auditLog.create({
+          data: {
+            tableName: 'payroll_runs',
+            recordId: runId,
+            action: 'UPDATE',
+            module: 'PAYROLL',
+            newValues: { status: 'FINALIZED' },
+          },
+        });
+
+        return updated;
       });
 
       return NextResponse.json(run);
     }
 
     if (data.action === 'mark_paid') {
-      const run = await prisma.payrollRun.update({
-        where: { id: runId },
-        data: { status: 'PAID', paidAt: new Date() },
-      });
-
-      // Mark related commissions as paid
-      const items = await prisma.payrollItem.findMany({
-        where: { payrollRunId: runId },
-      });
-      for (const item of items) {
-        await prisma.commission.updateMany({
-          where: { employeeId: item.employeeId, period: run.period, isPaid: false },
-          data: { isPaid: true },
+      // ATOMIC: status + commissions + audit all in one transaction
+      const result = await prisma.$transaction(async (tx) => {
+        const run = await tx.payrollRun.update({
+          where: { id: runId },
+          data: { status: 'PAID', paidAt: new Date() },
         });
-      }
 
-      await prisma.auditLog.create({
-        data: {
-          tableName: 'payroll_runs',
-          recordId: runId,
-          action: 'UPDATE',
-          module: 'PAYROLL',
-          newValues: { status: 'PAID' },
-        },
+        // Batch: get all employee IDs from payroll items
+        const items = await tx.payrollItem.findMany({
+          where: { payrollRunId: runId },
+          select: { employeeId: true },
+        });
+        const employeeIds = items.map(i => i.employeeId);
+
+        // Single batch update replaces the N+1 loop
+        if (employeeIds.length > 0) {
+          await tx.commission.updateMany({
+            where: {
+              employeeId: { in: employeeIds },
+              period: run.period,
+              isPaid: false,
+            },
+            data: { isPaid: true },
+          });
+        }
+
+        await tx.auditLog.create({
+          data: {
+            tableName: 'payroll_runs',
+            recordId: runId,
+            action: 'UPDATE',
+            module: 'PAYROLL',
+            newValues: { status: 'PAID', employeesAffected: employeeIds.length },
+          },
+        });
+
+        return run;
       });
 
-      return NextResponse.json(run);
+      return NextResponse.json(result);
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error: any) {
+    console.error('Error updating payroll:', error);
     return NextResponse.json(
       { error: 'Failed to update payroll' },
       { status: 500 }

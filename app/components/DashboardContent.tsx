@@ -168,7 +168,7 @@ export default async function DashboardContent({
       },
     }),
   ]);
-  const mainExpensesThisPeriod = mainExpensesThisPeriodAgg._sum.amount || 0;
+  const mainExpensesThisPeriod = Number(mainExpensesThisPeriodAgg._sum.amount) || 0;
 
   // ---- EMPLOYEES SECTION ----
   const last30d = {
@@ -223,7 +223,7 @@ export default async function DashboardContent({
       },
       select: { baseSalary: true },
     });
-    payrollEstimate = salaries.reduce((acc, s) => acc + (s.baseSalary || 0), 0);
+    payrollEstimate = salaries.reduce((acc, s) => acc + (Number(s.baseSalary) || 0), 0);
   }
 
   const [financeMtdSpendAgg, financePendingReimAgg, financeApprovedMtdAgg] = await Promise.all([
@@ -356,9 +356,9 @@ export default async function DashboardContent({
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <KpiTile label="Monthly Payroll" value={fmtMoney(payrollEstimate)} sub={`${activeIds.length} active employees`} color="violet" href="/finance/payroll" />
-          <KpiTile label={`MTD Spend`} value={fmtMoney(financeMtdSpendAgg._sum.amount || 0)} sub="Approved + pending" color="blue" href="/expenses" />
-          <KpiTile label="Pending Reimbursements" value={fmtMoney(financePendingReimAgg._sum.amount || 0)} sub="Awaiting approval" color="amber" href="/expenses?status=PENDING" />
-          <KpiTile label="Approved (period)" value={fmtMoney(financeApprovedMtdAgg._sum.amount || 0)} sub="Cleared spend" color="emerald" href="/expenses?status=APPROVED" />
+          <KpiTile label={`MTD Spend`} value={fmtMoney(Number(financeMtdSpendAgg._sum.amount) || 0)} sub="Approved + pending" color="blue" href="/expenses" />
+          <KpiTile label="Pending Reimbursements" value={fmtMoney(Number(financePendingReimAgg._sum.amount) || 0)} sub="Awaiting approval" color="amber" href="/expenses?status=PENDING" />
+          <KpiTile label="Approved (period)" value={fmtMoney(Number(financeApprovedMtdAgg._sum.amount) || 0)} sub="Cleared spend" color="emerald" href="/expenses?status=APPROVED" />
         </div>
       </section>
 

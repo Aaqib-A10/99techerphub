@@ -132,7 +132,7 @@ export default function CommissionsPage() {
                   <tr key={c.id}>
                     <td className="font-semibold">{c.employee?.firstName} {c.employee?.lastName}</td>
                     <td>{c.period}</td>
-                    <td className="font-semibold text-green-700">{c.currency} {c.amount.toLocaleString()}</td>
+                    <td className="font-semibold text-green-700">{c.currency} {Number(c.amount).toLocaleString()}</td>
                     <td className="text-sm text-gray-600">{c.description}</td>
                     <td><span className={`badge ${c.isPaid ? 'badge-green' : 'badge-yellow'}`}>{c.isPaid ? 'Paid' : 'Pending'}</span></td>
                     <td className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</td>

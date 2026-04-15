@@ -19,14 +19,6 @@ const PUBLIC_ROUTES = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Auth enforcement is OPT-IN via env variable during development.
-  // Set AUTH_ENFORCE=1 in .env to enable strict route protection.
-  // While disabled, all routes are accessible without a session cookie so
-  // existing pages continue to work and the auth system can be tested incrementally.
-  if (process.env.AUTH_ENFORCE !== '1') {
-    return NextResponse.next();
-  }
-
   // Check if the route is public
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
 

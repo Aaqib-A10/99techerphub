@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createNotificationsForRole } from '@/lib/services/notificationService';
 import { getSessionUser } from '@/lib/auth';
+import { parseCurrency } from '@/lib/currency';
 
 export async function GET(request: NextRequest) {
   try {
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
         companyId: parseInt(data.companyId),
         departmentId: data.departmentId ? parseInt(data.departmentId) : null,
         submittedById: parseInt(data.submittedById),
-        amount: parseFloat(data.amount),
+        amount: parseCurrency(data.amount),
         currency: data.currency || 'PKR',
         description: data.description,
         vendor: data.vendor || null,

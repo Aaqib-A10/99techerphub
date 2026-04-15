@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
-import { toMinor, toMajor } from '@/lib/decimal';
+import { toMinor, toMajor } from '@/lib/currency';
 
 export async function GET() {
   try {

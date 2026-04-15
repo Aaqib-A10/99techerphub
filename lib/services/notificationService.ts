@@ -180,7 +180,7 @@ export async function checkPendingExpenses(): Promise<number> {
   });
 
   if (pendingExpenses.length > 0) {
-    const total = pendingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const total = pendingExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
     await createNotificationsForRole(UserRole.ACCOUNTANT, {
       type: 'EXPENSE_SUBMITTED' as NotificationType,

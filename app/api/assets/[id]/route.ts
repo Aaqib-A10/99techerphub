@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { parseCurrency } from '@/lib/currency';
 
 export async function GET(
   request: NextRequest,
@@ -96,7 +97,7 @@ export async function PUT(
     if (data.purchaseDate !== undefined)
       update.purchaseDate = new Date(data.purchaseDate);
     if (data.purchasePrice !== undefined)
-      update.purchasePrice = parseFloat(data.purchasePrice);
+      update.purchasePrice = parseCurrency(data.purchasePrice);
     if (data.currency !== undefined) update.currency = data.currency;
     if (data.warrantyExpiry !== undefined)
       update.warrantyExpiry = data.warrantyExpiry

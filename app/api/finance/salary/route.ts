@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { parseCurrency } from '@/lib/currency';
 
 // GET: Fetch current salary for employee(s)
 export async function GET(request: NextRequest) {
@@ -14,7 +15,6 @@ export async function GET(request: NextRequest) {
     const employeeId = searchParams.get('employeeId');
 
     if (employeeId) {
-      // Get current salary for a specific employee
       const salary = await prisma.salaryHistory.findFirst({
         where: {
           employeeId: parseInt(employeeId),
@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(salary || {});
     }
 
-    // Get all active salaries
     const salaries = await prisma.salaryHistory.findMany({
       where: { effectiveTo: null },
       include: { employee: true },
@@ -40,7 +39,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create salary increment for an employee
+// POST: Create salary increment — ATOMIC with advisory lock
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await getSessionUser();
@@ -49,48 +48,58 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
+    const employeeId = parseInt(data.employeeId);
+    const newBaseSalary = parseCurrency(data.baseSalary);
 
-    // Close current salary record
-    const currentSalary = await prisma.salaryHistory.findFirst({
-      where: { employeeId: parseInt(data.employeeId), effectiveTo: null },
-      orderBy: { effectiveFrom: 'desc' },
-    });
+    const salary = await prisma.$transaction(async (tx) => {
+      // Advisory lock per employee — serializes concurrent salary updates
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(99002, ${employeeId})`;
 
-    if (currentSalary) {
-      await prisma.salaryHistory.update({
-        where: { id: currentSalary.id },
-        data: { effectiveTo: new Date(data.effectiveFrom) },
+      // Close current salary record (inside transaction)
+      const currentSalary = await tx.salaryHistory.findFirst({
+        where: { employeeId, effectiveTo: null },
+        orderBy: { effectiveFrom: 'desc' },
       });
-    }
 
-    const incrementPct = currentSalary
-      ? ((parseFloat(data.baseSalary) - currentSalary.baseSalary) / currentSalary.baseSalary) * 100
-      : null;
+      if (currentSalary) {
+        await tx.salaryHistory.update({
+          where: { id: currentSalary.id },
+          data: { effectiveTo: new Date(data.effectiveFrom) },
+        });
+      }
 
-    const salary = await prisma.salaryHistory.create({
-      data: {
-        employeeId: parseInt(data.employeeId),
-        baseSalary: parseFloat(data.baseSalary),
-        currency: data.currency || 'PKR',
-        effectiveFrom: new Date(data.effectiveFrom),
-        incrementPct: incrementPct ? parseFloat(incrementPct.toFixed(2)) : null,
-        reason: data.reason || null,
-      },
-    });
+      const incrementPct = currentSalary
+        ? ((newBaseSalary - Number(currentSalary.baseSalary)) / Number(currentSalary.baseSalary)) * 100
+        : null;
 
-    await prisma.auditLog.create({
-      data: {
-        tableName: 'salary_history',
-        recordId: salary.id,
-        action: 'CREATE',
-        module: 'FINANCE',
-        newValues: salary as any,
-        oldValues: currentSalary as any,
-      },
+      const newSalary = await tx.salaryHistory.create({
+        data: {
+          employeeId,
+          baseSalary: newBaseSalary,
+          currency: data.currency || 'PKR',
+          effectiveFrom: new Date(data.effectiveFrom),
+          incrementPct: incrementPct ? Math.round(incrementPct * 100) / 100 : null,
+          reason: data.reason || null,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          tableName: 'salary_history',
+          recordId: newSalary.id,
+          action: 'CREATE',
+          module: 'FINANCE',
+          newValues: newSalary as any,
+          oldValues: currentSalary as any,
+        },
+      });
+
+      return newSalary;
     });
 
     return NextResponse.json(salary, { status: 201 });
   } catch (error: any) {
+    console.error('Error creating salary record:', error);
     return NextResponse.json({ error: 'Failed to create salary record' }, { status: 500 });
   }
 }

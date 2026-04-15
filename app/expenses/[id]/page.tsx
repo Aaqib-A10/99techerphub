@@ -68,7 +68,7 @@ export default async function ExpenseDetailPage({
         actions={
           <div className="text-right" style={{ color: '#FFFFFF' }}>
             <div className="mono" style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
-              {expense.currency} {expense.amount.toLocaleString()}
+              {expense.currency} {Number(expense.amount).toLocaleString()}
             </div>
             <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.65)' }}>
               {new Date(expense.expenseDate).toLocaleDateString()}

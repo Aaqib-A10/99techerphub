@@ -101,7 +101,7 @@ export default async function AssetDetailPage({
   const currentAssignment = asset.assignments[0];
 
   const warrantyStatus = calculateWarrantyStatus(asset.warrantyExpiry);
-  const depreciation = calculateDepreciation(asset.purchasePrice, asset.purchaseDate, asset.category.code);
+  const depreciation = calculateDepreciation(Number(asset.purchasePrice), asset.purchaseDate, asset.category.code);
 
   return (
     <div className="space-y-6">
@@ -414,7 +414,7 @@ export default async function AssetDetailPage({
                   purchaseDate: asset.purchaseDate
                     ? asset.purchaseDate.toISOString().slice(0, 10)
                     : '',
-                  purchasePrice: asset.purchasePrice,
+                  purchasePrice: Number(asset.purchasePrice),
                   currency: asset.currency,
                   warrantyExpiry: asset.warrantyExpiry
                     ? asset.warrantyExpiry.toISOString().slice(0, 10)
@@ -435,7 +435,7 @@ export default async function AssetDetailPage({
               <div>
                 <p className="text-sm text-gray-600">Purchase Price</p>
                 <p className="font-semibold text-gray-900">
-                  {asset.purchasePrice.toLocaleString()} {asset.currency}
+                  {Number(asset.purchasePrice).toLocaleString()} {asset.currency}
                 </p>
               </div>
               {asset.batchId && (

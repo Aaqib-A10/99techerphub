@@ -178,9 +178,9 @@ export default function PayrollPage() {
                     <td className="font-semibold">{pr.period}</td>
                     <td>{pr.company?.name || 'All'}</td>
                     <td>{pr.items?.length || 0}</td>
-                    <td>PKR {pr.totalGross.toLocaleString()}</td>
-                    <td className="text-red-600">PKR {pr.totalDeductions.toLocaleString()}</td>
-                    <td className="font-bold text-green-700">PKR {pr.totalNet.toLocaleString()}</td>
+                    <td>PKR {Number(pr.totalGross).toLocaleString()}</td>
+                    <td className="text-red-600">PKR {Number(pr.totalDeductions).toLocaleString()}</td>
+                    <td className="font-bold text-green-700">PKR {Number(pr.totalNet).toLocaleString()}</td>
                     <td>
                       <span className={`badge ${statusColors[pr.status]}`}>{pr.status}</span>
                     </td>

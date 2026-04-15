@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { parseCurrency } from '@/lib/currency';
 
 export async function GET() {
   try {
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
     const deduction = await prisma.deduction.create({
       data: {
         employeeId: parseInt(data.employeeId),
-        amount: parseFloat(data.amount),
+        amount: parseCurrency(data.amount),
         currency: data.currency || 'PKR',
         deductionType: data.deductionType,
         description: data.description || null,
