@@ -57,7 +57,6 @@ const navStructure: NavEntry[] = [
       { name: 'All Employees', href: '/employees' },
       { name: 'Onboarding', href: '/onboarding-admin' },
       { name: 'Offer Letters', href: '/offer-letters' },
-      { name: 'Digital Access', href: '/digital-access' },
     ],
   },
   {
@@ -67,6 +66,7 @@ const navStructure: NavEntry[] = [
     requiredRoles: ['ADMIN', 'HR'],
     children: [
       { name: 'All Assets', href: '/assets' },
+      { name: 'Digital Access', href: '/digital-access' },
     ],
   },
   {

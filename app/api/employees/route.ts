@@ -73,7 +73,13 @@ export async function POST(request: NextRequest) {
       where: { id: parseInt(data.departmentId) },
     });
 
-    const deptCode = dept?.code || dept?.name?.substring(0, 3).toUpperCase() || 'GEN';
+    let deptCode = dept?.code || dept?.name?.substring(0, 3).toUpperCase() || 'GEN';
+
+    // Override prefix for E-commerce designations
+    const designation = (data.designation || '').toLowerCase();
+    if (designation.includes('e commerce') || designation.includes('e-commerce') || designation.includes('ecommerce')) {
+      deptCode = 'EC';
+    }
 
     // Find the highest existing code for this department prefix
     const lastEmployee = await prisma.employee.findFirst({
@@ -110,6 +116,18 @@ export async function POST(request: NextRequest) {
         companyId: data.companyId ? parseInt(data.companyId) : null,
         locationId: data.locationId ? parseInt(data.locationId) : null,
         designation: data.designation,
+        team: (() => {
+          const p = empCode.split('-')[0]?.toUpperCase();
+          const d = (data.designation || '').toLowerCase();
+          if (p === 'DR') return 'Decom-Robotics';
+          if (p === 'EC' || d.includes('e commerce')) return 'E commerce';
+          if (p === 'CSR' || d.includes('customer support')) return 'Customer Support';
+          if (p === 'DEV' && d.includes('ui') && d.includes('ux')) return 'UI / UX';
+          if (p === 'DEV') return 'Dev';
+          if (p === 'DM') return 'Digital Marketing';
+          if (p === 'UT') return 'UT';
+          return null;
+        })(),
         employmentStatus: data.employmentStatus,
         lifecycleStage: 'ACTIVE',
         dateOfJoining: new Date(data.dateOfJoining),

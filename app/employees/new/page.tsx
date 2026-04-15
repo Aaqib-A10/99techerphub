@@ -1,8 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHero from '@/app/components/PageHero';
+
+const DRAFT_KEY = 'emp_form_draft';
+
+function formatCnic(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 13);
+  if (digits.length <= 5) return digits;
+  if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+}
 
 interface Department { id: number; name: string; }
 interface Company { id: number; name: string; code: string; }
@@ -17,7 +26,9 @@ export default function NewEmployeePage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [activeSection, setActiveSection] = useState(0);
 
-  const [formData, setFormData] = useState({
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
+
+  const defaultFormData = {
     firstName: '',
     lastName: '',
     fatherName: '',
@@ -30,8 +41,6 @@ export default function NewEmployeePage() {
     city: '',
     country: 'Pakistan',
     bloodGroup: '',
-    passportNumber: '',
-    passportExpiry: '',
     maritalStatus: '',
     nationality: 'Pakistani',
     educationDegree: '',
@@ -58,7 +67,9 @@ export default function NewEmployeePage() {
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyContactRelation: '',
-  });
+  };
+
+  const [formData, setFormData] = useState(defaultFormData);
 
   useEffect(() => {
     fetch('/api/employees?meta=true').then((r) => r.json()).then((meta) => {
@@ -66,10 +77,38 @@ export default function NewEmployeePage() {
       setCompanies(meta.companies || []);
       setLocations(meta.locations || []);
     });
+    // Check for saved draft
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) setShowDraftPrompt(true);
+    } catch {}
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const newValue = name === 'cnic' ? formatCnic(value) : value;
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
+  };
+
+  // Auto-save draft to localStorage
+  useEffect(() => {
+    const hasData = formData.firstName || formData.lastName || formData.email || formData.cnic || formData.designation;
+    if (hasData) {
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(formData)); } catch {}
+    }
+  }, [formData]);
+
+  const restoreDraft = () => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) setFormData(JSON.parse(saved));
+    } catch {}
+    setShowDraftPrompt(false);
+  };
+
+  const discardDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch {}
+    setShowDraftPrompt(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,6 +144,7 @@ export default function NewEmployeePage() {
       }
 
       const emp = await response.json();
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
       router.push(`/employees/${emp.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -143,6 +183,22 @@ export default function NewEmployeePage() {
         title="Add New Employee"
         description="Complete onboarding form - all sections"
       />
+
+      {showDraftPrompt && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-300 rounded-lg flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-amber-800">You have an unsaved draft. Would you like to resume?</p>
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={restoreDraft} className="px-3 py-1.5 bg-brand-primary text-white rounded text-sm font-medium">
+              Resume Draft
+            </button>
+            <button type="button" onClick={discardDraft} className="px-3 py-1.5 bg-white border border-gray-300 text-gray-600 rounded text-sm font-medium">
+              Discard Draft
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">{error}</div>
@@ -192,7 +248,7 @@ export default function NewEmployeePage() {
                 </div>
                 <div>
                   <label className="form-label">CNIC *</label>
-                  <input name="cnic" value={formData.cnic} onChange={handleChange} required placeholder="XXXXX-XXXXXXX-X" className="form-input" />
+                  <input name="cnic" value={formData.cnic} onChange={handleChange} required placeholder="XXXXX-XXXXXXX-X" maxLength={15} className="form-input" />
                 </div>
                 <div>
                   <label className="form-label">Date of Birth *</label>
@@ -262,14 +318,6 @@ export default function NewEmployeePage() {
                     <option value="Widowed">Widowed</option>
                   </select>
                 </div>
-                <div>
-                  <label className="form-label">Passport Number</label>
-                  <input name="passportNumber" value={formData.passportNumber} onChange={handleChange} className="form-input" placeholder="e.g. AB1234567" />
-                </div>
-                <div>
-                  <label className="form-label">Passport Expiry</label>
-                  <input name="passportExpiry" type="date" value={formData.passportExpiry} onChange={handleChange} className="form-input" />
-                </div>
               </div>
 
               <h3 className="text-md font-bold mt-6 mb-3 text-gray-700">Education</h3>
@@ -296,9 +344,15 @@ export default function NewEmployeePage() {
                 </div>
               </div>
 
-              <h3 className="text-md font-bold mt-6 mb-3 text-gray-700">Document Upload (Coming Soon)</h3>
-              <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-500">
-                Document uploads (CNIC copy, passport, degree, resume, NDA) will be enabled in the next update.
+              <h3 className="text-md font-bold mt-6 mb-3 text-gray-700">Required Documents</h3>
+              <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-700">
+                <p className="font-medium mb-2">Upload documents after creating the employee. Required:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>CNIC Front & Back (PDF, PNG, JPG)</li>
+                  <li>Photo - Passport Size (PNG, JPG)</li>
+                  <li>Resume (PDF only)</li>
+                  <li>Degree (optional - PDF, PNG, JPG)</li>
+                </ul>
               </div>
             </div>
           </div>

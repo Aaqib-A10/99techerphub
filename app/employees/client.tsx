@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ExportButton from '@/components/ExportButton';
@@ -11,6 +11,23 @@ import DateFilter from '@/app/components/DateFilter';
 // Three-way employment lifecycle filter for the employees list.
 // Kept in URL-param form so dashboard tiles can deep-link e.g. ?status=exited.
 type LifecycleView = 'active' | 'exited' | 'all';
+
+// Auto-generate Team from emp code prefix and designation
+export function getTeam(empCode: string, designation: string): string {
+  const prefix = empCode.split('-')[0]?.toUpperCase();
+  const desig = (designation || '').toLowerCase();
+
+  if (prefix === 'DR') return 'Decom-Robotics';
+  if (prefix === 'EC' || desig.includes('e commerce')) return 'E commerce';
+  if (prefix === 'CSR' || desig.includes('customer support')) return 'Customer Support';
+  if (prefix === 'DEV' && desig.includes('ui') && desig.includes('ux')) return 'UI / UX';
+  if (prefix === 'DEV') return 'Dev';
+  if (prefix === 'DM') return 'Digital Marketing';
+  if (prefix === 'UT') return 'UT';
+  return '';
+}
+
+const STORAGE_KEY = 'emp_table_filters';
 
 interface Employee {
   id: number;
@@ -35,6 +52,7 @@ interface FilterParams {
   department: string;
   company: string;
   status: string;
+  team: string;
   lifecycleView: LifecycleView;
 }
 
@@ -53,28 +71,50 @@ export default function EmployeeListClient({
   const searchParams = useSearchParams();
   // Read initial lifecycle view from ?status= so the dashboard tile can
   // deep-link into the exited sub-list without the user touching filters.
+  // Load persisted filters from localStorage
+  const loadSavedFilters = useCallback((): FilterParams & { page?: number; perPage?: number } => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { search: '', department: '', company: '', status: '', team: '', lifecycleView: 'active' };
+  }, []);
+
   const initialLifecycleView: LifecycleView = (() => {
     const s = searchParams?.get('status');
     if (s === 'exited') return 'exited';
     if (s === 'all') return 'all';
-    return 'active';
+    // If no URL param, check localStorage
+    const saved = loadSavedFilters();
+    return saved.lifecycleView || 'active';
   })();
 
+  const savedFilters = loadSavedFilters();
+
   const [filters, setFilters] = useState<FilterParams>({
-    search: '',
-    department: '',
-    company: '',
-    status: '',
+    search: searchParams?.get('status') ? '' : (savedFilters.search || ''),
+    department: savedFilters.department || '',
+    company: savedFilters.company || '',
+    status: savedFilters.status || '',
+    team: savedFilters.team || '',
     lifecycleView: initialLifecycleView,
   });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(savedFilters.page || 1);
+  const [itemsPerPage, setItemsPerPage] = useState(savedFilters.perPage || 25);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkLoading, setBulkLoading] = useState<string | null>(null);
+
+  // Persist filters to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...filters, page: currentPage, perPage: itemsPerPage }));
+    } catch {}
+  }, [filters, currentPage, itemsPerPage]);
 
   // Keep state in sync if the URL changes while we're on the page.
   useEffect(() => {
     const s = searchParams?.get('status');
+    if (!s) return;
     const next: LifecycleView = s === 'exited' ? 'exited' : s === 'all' ? 'all' : 'active';
     setFilters((prev) => (prev.lifecycleView === next ? prev : { ...prev, lifecycleView: next }));
     setCurrentPage(1);
@@ -104,6 +144,9 @@ export default function EmployeeListClient({
         !filters.company || emp.companies?.some((c) => c.id.toString() === filters.company) || emp.company?.id.toString() === filters.company;
       const matchesStatus = !filters.status || emp.employmentStatus === filters.status;
 
+      const empTeam = getTeam(emp.empCode, emp.designation);
+      const matchesTeam = !filters.team || empTeam === filters.team;
+
       const isExited =
         !emp.isActive ||
         emp.lifecycleStage === 'EXITED' ||
@@ -124,7 +167,7 @@ export default function EmployeeListClient({
       }
 
       return (
-        matchesSearch && matchesDept && matchesCompany && matchesStatus && matchesLifecycle && matchesDate
+        matchesSearch && matchesDept && matchesCompany && matchesStatus && matchesTeam && matchesLifecycle && matchesDate
       );
     });
   }, [filters, initialEmployees, dateFrom, dateTo]);
@@ -173,9 +216,9 @@ export default function EmployeeListClient({
       if (actionKey === 'export') {
         // Build CSV from selected employees
         const selected = filteredEmployees.filter((e) => selectedIds.has(e.id));
-        const header = ['Emp Code', 'First Name', 'Last Name', 'Email', 'Department', 'Company', 'Designation', 'Status', 'Joining Date'];
+        const header = ['Emp Code', 'First Name', 'Last Name', 'Email', 'Department', 'Team', 'Company', 'Designation', 'Status', 'Joining Date'];
         const rows = selected.map((e) => [
-          e.empCode, e.firstName, e.lastName, e.email || '', e.department.name,
+          e.empCode, e.firstName, e.lastName, e.email || '', e.department.name, getTeam(e.empCode, e.designation),
           e.companies?.map((c) => c.code || c.name).join(' / ') || e.company?.name || '', e.designation, e.isActive ? e.employmentStatus : 'EXITED',
           new Date(e.dateOfJoining).toLocaleDateString(),
         ]);
@@ -296,7 +339,7 @@ export default function EmployeeListClient({
           </div>
 
           {/* Filters Row */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div>
               <label className="form-label">Department</label>
               <select
@@ -353,6 +396,27 @@ export default function EmployeeListClient({
             </div>
 
             <div>
+              <label className="form-label">Team</label>
+              <select
+                value={filters.team}
+                onChange={(e) => {
+                  setFilters({ ...filters, team: e.target.value });
+                  setCurrentPage(1);
+                }}
+                className="form-select w-full"
+              >
+                <option value="">All Teams</option>
+                <option value="Dev">Dev</option>
+                <option value="UI / UX">UI / UX</option>
+                <option value="Customer Support">Customer Support</option>
+                <option value="Digital Marketing">Digital Marketing</option>
+                <option value="E commerce">E commerce</option>
+                <option value="Decom-Robotics">Decom-Robotics</option>
+                <option value="UT">UT</option>
+              </select>
+            </div>
+
+            <div>
               <label className="form-label">Show</label>
               <select
                 value={filters.lifecycleView}
@@ -371,18 +435,21 @@ export default function EmployeeListClient({
             <div className="flex items-end">
               <button
                 onClick={() => {
-                  setFilters({
+                  const reset: FilterParams = {
                     search: '',
                     department: '',
                     company: '',
                     status: '',
+                    team: '',
                     lifecycleView: 'active',
-                  });
+                  };
+                  setFilters(reset);
                   setCurrentPage(1);
+                  try { localStorage.removeItem(STORAGE_KEY); } catch {}
                 }}
                 className="btn btn-secondary w-full justify-center"
               >
-                Reset
+                Reset Filters
               </button>
             </div>
           </div>
@@ -413,6 +480,7 @@ export default function EmployeeListClient({
                 <th>Emp Code</th>
                 <th>Name</th>
                 <th>Department</th>
+                <th>Team</th>
                 <th>Bill to</th>
                 <th>Designation</th>
                 <th>Status</th>
@@ -423,7 +491,7 @@ export default function EmployeeListClient({
             <tbody>
               {paginatedEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-12 text-gray-500">
+                  <td colSpan={10} className="text-center py-12 text-gray-500">
                     {filteredEmployees.length === 0
                       ? 'No employees found. Try adjusting your filters.'
                       : 'No employees on this page.'}
@@ -455,6 +523,26 @@ export default function EmployeeListClient({
                       {emp.email && <div className="text-xs text-gray-500">{emp.email}</div>}
                     </td>
                     <td>{emp.department.name}</td>
+                    <td>
+                      {(() => {
+                        const team = getTeam(emp.empCode, emp.designation);
+                        return team ? (
+                          <span style={{
+                            display: 'inline-block',
+                            backgroundColor: 'rgba(20, 184, 166, 0.08)',
+                            color: '#0B1F3A',
+                            fontFamily: 'JetBrains Mono, monospace',
+                            fontSize: '0.65rem',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: 9999,
+                            whiteSpace: 'nowrap',
+                          }}>
+                            {team}
+                          </span>
+                        ) : <span style={{ color: '#C4C6CE' }}>—</span>;
+                      })()}
+                    </td>
                     <td>
                       {emp.companies && emp.companies.length > 0 ? (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>

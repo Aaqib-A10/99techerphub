@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Modal from '@/components/Modal';
 import OnboardingChecklistPanel from './OnboardingChecklistPanel';
+import { getTeam } from '../client';
+
+function formatCnic(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 13);
+  if (digits.length <= 5) return digits;
+  if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+}
 
 interface EmployeeDetailClientProps {
   employee: any;
@@ -396,9 +404,11 @@ export default function EmployeeDetailClient({
                       <label className="form-label">CNIC</label>
                       <input
                         type="text"
-                        value={editFormData.cnic}
-                        onChange={(e) => setEditFormData({ ...editFormData, cnic: e.target.value })}
+                        value={editFormData.cnic || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, cnic: formatCnic(e.target.value) })}
                         className="form-input"
+                        placeholder="XXXXX-XXXXXXX-X"
+                        maxLength={15}
                       />
                     </div>
                     <div>
@@ -530,24 +540,6 @@ export default function EmployeeDetailClient({
                       />
                     </div>
                     <div>
-                      <label className="form-label">Passport Number</label>
-                      <input
-                        type="text"
-                        value={editFormData.passportNumber}
-                        onChange={(e) => setEditFormData({ ...editFormData, passportNumber: e.target.value })}
-                        className="form-input"
-                      />
-                    </div>
-                    <div>
-                      <label className="form-label">Passport Expiry</label>
-                      <input
-                        type="date"
-                        value={editFormData.passportExpiry}
-                        onChange={(e) => setEditFormData({ ...editFormData, passportExpiry: e.target.value })}
-                        className="form-input"
-                      />
-                    </div>
-                    <div>
                       <label className="form-label">Marital Status</label>
                       <select
                         value={editFormData.maritalStatus}
@@ -576,7 +568,6 @@ export default function EmployeeDetailClient({
                     <InfoRow label="Emergency Contact Name" value={employee.emergencyContactName} />
                     <InfoRow label="Emergency Contact Phone" value={employee.emergencyContactPhone} />
                     <InfoRow label="Emergency Contact Relation" value={employee.emergencyContactRelation} />
-                    <InfoRow label="Passport Number" value={employee.passportNumber} />
                     <InfoRow label="Passport Expiry" value={employee.passportExpiry ? new Date(employee.passportExpiry).toLocaleDateString() : '-'} />
                     <InfoRow label="Marital Status" value={employee.maritalStatus} />
                     <InfoRow label="Nationality" value={employee.nationality} />
@@ -825,7 +816,7 @@ export default function EmployeeDetailClient({
                   <>
                     <InfoRow label="Employee Code" value={employee.empCode} />
                     <InfoRow label="Department" value={employee.department.name} />
-                    <InfoRow label="Team" value={employee.team} />
+                    <InfoRow label="Team" value={getTeam(employee.empCode, employee.designation) || employee.team} />
                     <InfoRow
                       label="Companies"
                       value={
@@ -1499,15 +1490,20 @@ function DocumentsTab({ employee }: { employee: any }) {
   const router = useRouter();
 
   const DOCUMENT_TYPES = [
-    'CNIC',
-    'RESUME',
-    'DEGREE',
-    'CONTRACT',
-    'NDA',
-    'OFFER_LETTER',
-    'EXPERIENCE_LETTER',
-    'OTHER',
+    { value: 'CNIC_FRONT', label: 'CNIC Front *', accept: '.pdf,.png,.jpg,.jpeg', required: true },
+    { value: 'CNIC_BACK', label: 'CNIC Back *', accept: '.pdf,.png,.jpg,.jpeg', required: true },
+    { value: 'PHOTO', label: 'Photo (Passport Size) *', accept: '.png,.jpg,.jpeg', required: true },
+    { value: 'DEGREE', label: 'Degree', accept: '.pdf,.png,.jpg,.jpeg', required: false },
+    { value: 'RESUME', label: 'Resume *', accept: '.pdf', required: true },
+    { value: 'CONTRACT', label: 'Contract', accept: '.pdf,.png,.jpg,.jpeg', required: false },
+    { value: 'NDA', label: 'NDA', accept: '.pdf,.png,.jpg,.jpeg', required: false },
+    { value: 'OFFER_LETTER', label: 'Offer Letter', accept: '.pdf,.png,.jpg,.jpeg', required: false },
+    { value: 'EXPERIENCE_LETTER', label: 'Experience Letter', accept: '.pdf,.png,.jpg,.jpeg', required: false },
+    { value: 'OTHER', label: 'Other', accept: '.pdf,.png,.jpg,.jpeg', required: false },
   ];
+
+  const selectedDocType = DOCUMENT_TYPES.find(d => d.value === documentType);
+  const acceptFormats = selectedDocType?.accept || '.pdf,.png,.jpg,.jpeg';
 
   const handleUpload = async () => {
     if (!fileInput) {
@@ -1599,6 +1595,21 @@ function DocumentsTab({ employee }: { employee: any }) {
             </div>
           )}
 
+          {/* Required documents checklist */}
+          <div className="mb-4 p-3 bg-slate-50 rounded-lg">
+            <p className="text-xs font-semibold text-gray-600 mb-2">Required Documents</p>
+            <div className="flex flex-wrap gap-2">
+              {DOCUMENT_TYPES.filter(dt => dt.required).map(dt => {
+                const uploaded = documents.some((d: any) => d.documentType === dt.value);
+                return (
+                  <span key={dt.value} className={`text-xs px-2 py-1 rounded-full font-medium ${uploaded ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                    {uploaded ? '\u2713' : '\u2717'} {dt.label.replace(' *', '')}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+
           {documents.length === 0 ? (
             <p className="text-gray-500 text-center py-8">No documents uploaded yet</p>
           ) : (
@@ -1686,9 +1697,9 @@ function DocumentsTab({ employee }: { employee: any }) {
               onChange={(e) => setDocumentType(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
             >
-              {DOCUMENT_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type.replace(/_/g, ' ')}
+              {DOCUMENT_TYPES.map((dt) => (
+                <option key={dt.value} value={dt.value}>
+                  {dt.label}
                 </option>
               ))}
             </select>
@@ -1700,8 +1711,22 @@ function DocumentsTab({ employee }: { employee: any }) {
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <input
                 type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => setFileInput(e.target.files?.[0] || null)}
+                accept={acceptFormats}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  if (file) {
+                    const ext = file.name.split('.').pop()?.toLowerCase();
+                    const allowed = acceptFormats.split(',').map(f => f.replace('.', ''));
+                    if (!ext || !allowed.includes(ext)) {
+                      setUploadError(`Invalid file type. Accepted: ${acceptFormats.replace(/\./g, '').toUpperCase()}`);
+                      setFileInput(null);
+                      e.target.value = '';
+                      return;
+                    }
+                  }
+                  setUploadError('');
+                  setFileInput(file);
+                }}
                 className="w-full"
               />
               {fileInput && (
@@ -1710,7 +1735,7 @@ function DocumentsTab({ employee }: { employee: any }) {
                 </p>
               )}
               <p className="text-xs text-gray-500 mt-2">
-                Supported: PDF, JPG, PNG (Max 10MB)
+                Accepted: {acceptFormats.replace(/\./g, '').toUpperCase()} (Max 10MB)
               </p>
             </div>
           </div>
