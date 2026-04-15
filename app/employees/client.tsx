@@ -89,8 +89,10 @@ export default function EmployeeListClient({
   const filteredEmployees = useMemo(() => {
     return initialEmployees.filter((emp) => {
       const searchTerm = filters.search.toLowerCase();
+      const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
       const matchesSearch =
         emp.empCode.toLowerCase().includes(searchTerm) ||
+        fullName.includes(searchTerm) ||
         emp.firstName.toLowerCase().includes(searchTerm) ||
         emp.lastName.toLowerCase().includes(searchTerm) ||
         (emp.email && emp.email.toLowerCase().includes(searchTerm)) ||
