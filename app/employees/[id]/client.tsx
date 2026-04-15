@@ -101,10 +101,16 @@ export default function EmployeeDetailClient({
     lifecycleStage: employee.lifecycleStage,
     probationEndDate: employee.probationEndDate ? new Date(employee.probationEndDate).toISOString().split('T')[0] : '',
     reportingManagerId: employee.reportingManagerId,
+    dateOfJoining: employee.dateOfJoining ? new Date(employee.dateOfJoining).toISOString().split('T')[0] : '',
     // Banking
     bankName: employee.bankName,
     bankAccountNumber: employee.bankAccountNumber,
     bankBranch: employee.bankBranch,
+    bankAccountStatus: employee.bankAccountStatus,
+    // Background & Education
+    lastDegree: employee.lastDegree,
+    previousOrganization: employee.previousOrganization,
+    referenceCheck: employee.referenceCheck,
   });
 
   // Exit clearance state
@@ -423,7 +429,7 @@ export default function EmployeeDetailClient({
                     <div>
                       <label className="form-label">Gender</label>
                       <select
-                        value={editFormData.gender}
+                        value={editFormData.gender || ''}
                         onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
                         className="form-select"
                       >
@@ -436,7 +442,7 @@ export default function EmployeeDetailClient({
                     <div>
                       <label className="form-label">Blood Group</label>
                       <select
-                        value={editFormData.bloodGroup}
+                        value={editFormData.bloodGroup || ''}
                         onChange={(e) => setEditFormData({ ...editFormData, bloodGroup: e.target.value })}
                         className="form-select"
                       >
@@ -542,7 +548,7 @@ export default function EmployeeDetailClient({
                     <div>
                       <label className="form-label">Marital Status</label>
                       <select
-                        value={editFormData.maritalStatus}
+                        value={editFormData.maritalStatus || ''}
                         onChange={(e) => setEditFormData({ ...editFormData, maritalStatus: e.target.value })}
                         className="form-select"
                       >
@@ -577,28 +583,59 @@ export default function EmployeeDetailClient({
             </div>
           </div>
 
-          {/* Background & Banking — always read-only (populated from master inventory) */}
-          {(employee.lastDegree || employee.previousOrganization || employee.referenceCheck || employee.bankName || employee.bankAccountNumber || employee.bankAccountStatus) && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <div className="card">
-                <div className="card-header"><h3 className="section-heading">Background & Education</h3></div>
-                <div className="card-body space-y-3">
-                  <InfoRow label="Last Degree" value={employee.lastDegree} />
-                  <InfoRow label="Previous Organization" value={employee.previousOrganization} />
-                  <InfoRow label="Reference Check" value={employee.referenceCheck} />
-                </div>
-              </div>
-              <div className="card">
-                <div className="card-header"><h3 className="section-heading">Banking Details</h3></div>
-                <div className="card-body space-y-3">
-                  <InfoRow label="Bank Name" value={employee.bankName} />
-                  <InfoRow label="Account Number" value={employee.bankAccountNumber} />
-                  <InfoRow label="Account Status" value={employee.bankAccountStatus} />
-                  <InfoRow label="Branch" value={employee.bankBranch} />
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div className="card">
+              <div className="card-header"><h3 className="section-heading">Background & Education</h3></div>
+              <div className="card-body space-y-3">
+                {editingTab === 'personal' && isEditMode ? (
+                  <>
+                    <div>
+                      <label className="form-label">Last Degree</label>
+                      <input
+                        type="text"
+                        value={editFormData.lastDegree || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, lastDegree: e.target.value })}
+                        className="form-input"
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Previous Organization</label>
+                      <input
+                        type="text"
+                        value={editFormData.previousOrganization || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, previousOrganization: e.target.value })}
+                        className="form-input"
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Reference Check</label>
+                      <input
+                        type="text"
+                        value={editFormData.referenceCheck || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, referenceCheck: e.target.value })}
+                        className="form-input"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <InfoRow label="Last Degree" value={employee.lastDegree} />
+                    <InfoRow label="Previous Organization" value={employee.previousOrganization} />
+                    <InfoRow label="Reference Check" value={employee.referenceCheck} />
+                  </>
+                )}
               </div>
             </div>
-          )}
+            <div className="card">
+              <div className="card-header"><h3 className="section-heading">Banking Details</h3></div>
+              <div className="card-body space-y-3">
+                <InfoRow label="Bank Name" value={employee.bankName} />
+                <InfoRow label="Account Number" value={employee.bankAccountNumber} />
+                <InfoRow label="Account Status" value={employee.bankAccountStatus} />
+                <InfoRow label="Branch" value={employee.bankBranch} />
+              </div>
+            </div>
+          </div>
 
           {/* Exit details — only for exited employees */}
           {employee.lifecycleStage === 'EXITED' && (
@@ -786,6 +823,15 @@ export default function EmployeeDetailClient({
                       <p className="mt-1 text-xs text-gray-500">
                         To officially exit an employee with a clearance checklist, use "Initiate Exit Process" instead.
                       </p>
+                    </div>
+                    <div>
+                      <label className="form-label">Date of Joining</label>
+                      <input
+                        type="date"
+                        value={editFormData.dateOfJoining || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, dateOfJoining: e.target.value })}
+                        className="form-input"
+                      />
                     </div>
                     <div>
                       <label className="form-label">Probation End Date</label>
@@ -1220,11 +1266,26 @@ export default function EmployeeDetailClient({
                         className="form-input"
                       />
                     </div>
+                    <div>
+                      <label className="form-label">Account Status</label>
+                      <select
+                        value={editFormData.bankAccountStatus || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, bankAccountStatus: e.target.value })}
+                        className="form-select"
+                      >
+                        <option value="">Select Status</option>
+                        <option value="Valid">Valid</option>
+                        <option value="Invalid">Invalid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    </div>
                   </>
                 ) : (
                   <>
                     <InfoRow label="Bank Name" value={employee.bankName} />
                     <InfoRow label="Account Number" value={employee.bankAccountNumber} />
+                    <InfoRow label="Account Status" value={employee.bankAccountStatus} />
                     <InfoRow label="Branch" value={employee.bankBranch} />
                   </>
                 )}

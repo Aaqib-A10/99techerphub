@@ -274,10 +274,15 @@ async function handleGeneralUpdate(empId: number, data: any, existingEmployee: a
       'emergencyContactName',
       'emergencyContactPhone',
       'emergencyContactRelation',
+      'dateOfJoining',
+      'lastDegree',
+      'previousOrganization',
+      'referenceCheck',
+      'bankAccountStatus',
     ];
 
     // Field classification for input normalization
-    const dateFields = ['dateOfBirth', 'probationEndDate', 'passportExpiry'];
+    const dateFields = ['dateOfBirth', 'probationEndDate', 'passportExpiry', 'dateOfJoining'];
     const fkFields = ['departmentId', 'companyId', 'locationId', 'reportingManagerId'];
 
     // Normalize an incoming form value into a shape Prisma + the diff check both accept.
