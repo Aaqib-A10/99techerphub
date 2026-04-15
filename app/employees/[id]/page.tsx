@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import EmployeeDetailClient from './client';
+import ProfilePhotoUpload from './ProfilePhotoUpload';
 
 export default async function EmployeeDetailPage({
   params,
@@ -122,11 +123,11 @@ export default async function EmployeeDetailPage({
 
         <div className="relative z-10 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(20,184,166,0.15)', border: '2px solid rgba(20,184,166,0.3)' }}>
-              <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#14B8A6' }}>
-                {employee.firstName[0]}{employee.lastName[0]}
-              </span>
-            </div>
+            <ProfilePhotoUpload
+              employeeId={employee.id}
+              photoUrl={employee.photoUrl}
+              initials={`${employee.firstName[0]}${employee.lastName[0]}`}
+            />
             <div className="min-w-0">
               <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.1 }} className="truncate">
                 {employee.firstName} {employee.lastName}
@@ -135,23 +136,13 @@ export default async function EmployeeDetailPage({
                 <span className="mono" style={{ color: '#14B8A6' }}>{employee.empCode}</span> &middot; {employee.designation} &middot; {employee.department.name}
               </p>
               <div className="flex flex-wrap gap-2 mt-3">
-                {/* Badges on dark header need light text + semi-transparent backgrounds */}
+                {/* Lifecycle badge — combines isActive + lifecycleStage into one */}
                 <span
                   className="badge"
                   style={{
                     color: employee.isActive ? '#6EE7B7' : '#FCA5A5',
                     backgroundColor: employee.isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
                     borderColor: employee.isActive ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)',
-                  }}
-                >
-                  {employee.isActive ? 'Active' : 'Inactive'}
-                </span>
-                <span
-                  className="badge"
-                  style={{
-                    color: '#93C5FD',
-                    backgroundColor: 'rgba(59,130,246,0.15)',
-                    borderColor: 'rgba(59,130,246,0.35)',
                   }}
                 >
                   {employee.lifecycleStage.replace(/_/g, ' ')}
