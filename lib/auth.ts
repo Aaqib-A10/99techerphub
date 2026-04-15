@@ -90,6 +90,57 @@ export async function getSessionUser(): Promise<(User & { role: UserRole }) | nu
   return null;
 }
 
+// ─── Tenant Context ─────────────────────────────────
+
+export interface SessionContext {
+  user: User & { role: UserRole };
+  companyId: number | null;
+  companyIds: number[];
+}
+
+/**
+ * Get full session context including company access.
+ * ADMINs get access to all active companies.
+ * Other roles get access only to their linked companies via EmployeeCompany.
+ */
+export async function getSessionContext(): Promise<SessionContext | null> {
+  const user = await getSessionUser();
+  if (!user) return null;
+
+  const employee = user.employeeId
+    ? await prisma.employee.findUnique({
+        where: { id: user.employeeId },
+        select: {
+          companyId: true,
+          employeeCompanies: { select: { companyId: true } },
+        },
+      })
+    : null;
+
+  const primaryCompanyId = employee?.companyId ?? null;
+
+  // Admins see all active companies
+  if (user.role === 'ADMIN') {
+    const allCompanies = await prisma.company.findMany({
+      where: { isActive: true },
+      select: { id: true },
+    });
+    return {
+      user,
+      companyId: primaryCompanyId,
+      companyIds: allCompanies.map((c) => c.id),
+    };
+  }
+
+  // Non-admins see only their linked companies
+  const companyIds = employee?.employeeCompanies?.map((ec) => ec.companyId) ?? [];
+  if (primaryCompanyId && !companyIds.includes(primaryCompanyId)) {
+    companyIds.push(primaryCompanyId);
+  }
+
+  return { user, companyId: primaryCompanyId, companyIds };
+}
+
 /**
  * Require the current user to have one of the specified roles.
  * Throws if not authenticated or role doesn't match.

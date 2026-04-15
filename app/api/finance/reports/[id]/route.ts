@@ -1,15 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const id = parseInt(params.id);
+
+    // IDOR check
+    const reportCheck = await prisma.monthlyReport.findUnique({
+      where: { id },
+      select: { companyId: true },
+    });
+    if (!reportCheck) {
+      return NextResponse.json({ error: 'Report not found' }, { status: 404 });
+    }
+    if (reportCheck.companyId && !ctx.companyIds.includes(reportCheck.companyId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const data = await request.json();
     const { action } = data;
 

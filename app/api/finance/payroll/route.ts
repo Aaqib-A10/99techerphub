@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 import { toMinor, toMajor } from '@/lib/currency';
+import { tenantPrisma } from '@/lib/prisma-tenant';
 
 export async function GET() {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const payrollRuns = await prisma.payrollRun.findMany({
+    const db = tenantPrisma(ctx.companyIds);
+    const payrollRuns = await db.payrollRun.findMany({
       include: {
         company: true,
         items: {
@@ -27,8 +29,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 import { parseCurrency, validatePercentageSum } from '@/lib/currency';
+import { tenantPrisma } from '@/lib/prisma-tenant';
 
 export async function GET() {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const billingSplits = await prisma.billingSplit.findMany({
+    const db = tenantPrisma(ctx.companyIds);
+    const billingSplits = await db.billingSplit.findMany({
       include: {
         employee: true,
         company: true,
@@ -30,8 +32,8 @@ export async function GET() {
 // POST: Create/update billing splits — ATOMIC with advisory lock
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

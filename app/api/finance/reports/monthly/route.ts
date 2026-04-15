@@ -1,26 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
+import { tenantPrisma } from '@/lib/prisma-tenant';
 
 export async function GET(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const db = tenantPrisma(ctx.companyIds);
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const skip = (page - 1) * limit;
 
     const [reports, total] = await Promise.all([
-      prisma.monthlyReport.findMany({
+      db.monthlyReport.findMany({
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       }),
-      prisma.monthlyReport.count(),
+      db.monthlyReport.count(),
     ]);
 
     return NextResponse.json({
@@ -42,8 +44,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -161,8 +163,8 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

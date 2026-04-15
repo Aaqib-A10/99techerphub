@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 import { parseCurrency } from '@/lib/currency';
 
 // GET: Fetch current salary for employee(s)
 export async function GET(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
 // POST: Create salary increment — ATOMIC with advisory lock
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

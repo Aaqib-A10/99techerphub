@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 import { parseCurrency } from '@/lib/currency';
 
 export async function GET(
@@ -8,8 +8,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -46,6 +46,10 @@ export async function GET(
       );
     }
 
+    if (asset.companyId && !ctx.companyIds.includes(asset.companyId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     return NextResponse.json(asset);
   } catch (error) {
     console.error('Error fetching asset:', error);
@@ -61,8 +65,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -78,6 +82,10 @@ export async function PUT(
         { error: 'Asset not found' },
         { status: 404 }
       );
+    }
+
+    if (oldAsset.companyId && !ctx.companyIds.includes(oldAsset.companyId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Build an explicit update payload. Only fields actually present in

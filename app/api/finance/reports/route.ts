@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
+import { tenantPrisma } from '@/lib/prisma-tenant';
 
 export async function GET() {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const reports = await prisma.monthlyReport.findMany({
+    const db = tenantPrisma(ctx.companyIds);
+    const reports = await db.monthlyReport.findMany({
       orderBy: { createdAt: 'desc' },
       take: 20,
     });
@@ -21,8 +23,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

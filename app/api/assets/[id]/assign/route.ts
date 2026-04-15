@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createNotification } from '@/lib/services/notificationService';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -25,6 +25,10 @@ export async function POST(
         { error: 'Asset not found' },
         { status: 404 }
       );
+    }
+
+    if (asset.companyId && !ctx.companyIds.includes(asset.companyId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Wrap core mutations in a transaction

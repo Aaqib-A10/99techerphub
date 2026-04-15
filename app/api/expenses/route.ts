@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createNotificationsForRole } from '@/lib/services/notificationService';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 import { parseCurrency } from '@/lib/currency';
+import { tenantPrisma } from '@/lib/prisma-tenant';
 
 export async function GET(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     if (meta === 'true') {
       const [categories, companies, employees, departments] = await Promise.all([
         prisma.expenseCategory.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
-        prisma.company.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
+        prisma.company.findMany({ where: { id: { in: ctx.companyIds }, isActive: true }, orderBy: { name: 'asc' } }),
         prisma.employee.findMany({
           where: { isActive: true },
           select: { id: true, firstName: true, lastName: true, empCode: true },
@@ -28,7 +29,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ categories, companies, employees, departments });
     }
 
-    const expenses = await prisma.expense.findMany({
+    const db = tenantPrisma(ctx.companyIds);
+    const expenses = await db.expense.findMany({
       include: {
         category: true,
         company: true,
@@ -46,10 +48,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const currentUser = ctx.user;
 
     const data = await request.json();
 

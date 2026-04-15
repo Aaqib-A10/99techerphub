@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -29,6 +29,10 @@ export async function GET(
       return NextResponse.json({ error: 'Expense not found' }, { status: 404 });
     }
 
+    if (!ctx.companyIds.includes(expense.companyId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     return NextResponse.json(expense);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch expense' }, { status: 500 });
@@ -40,8 +44,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -49,6 +53,10 @@ export async function DELETE(
     const existing = await prisma.expense.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: 'Expense not found' }, { status: 404 });
+    }
+
+    if (!ctx.companyIds.includes(existing.companyId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Remove dependent rows first (approvals) to avoid FK violations

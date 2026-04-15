@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 import { parseCurrency } from '@/lib/currency';
 
 export async function GET(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -21,7 +21,16 @@ export async function GET(request: NextRequest) {
     const take = parseInt(searchParams.get('take') || '50');
 
     const where: any = {};
-    if (companyId) where.companyId = parseInt(companyId);
+    // Enforce tenant isolation: always filter by user's accessible companies
+    if (companyId) {
+      const cid = parseInt(companyId);
+      if (!ctx.companyIds.includes(cid)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      where.companyId = cid;
+    } else {
+      where.companyId = { in: ctx.companyIds };
+    }
     if (categoryId) where.categoryId = parseInt(categoryId);
     if (condition) where.condition = condition;
 
@@ -93,8 +102,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

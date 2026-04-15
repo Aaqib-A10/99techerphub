@@ -2,23 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createNotification } from '@/lib/services/notificationService';
 import { NotificationType } from '@prisma/client';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionContext } from '@/lib/auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const currentUser = await getSessionUser();
-    if (!currentUser) {
+    const ctx = await getSessionContext();
+    if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const expenseId = parseInt(params.id);
+
+    // IDOR check: verify expense belongs to caller's companies
+    const expenseCheck = await prisma.expense.findUnique({
+      where: { id: expenseId },
+      select: { companyId: true },
+    });
+    if (!expenseCheck) {
+      return NextResponse.json({ error: 'Expense not found' }, { status: 404 });
+    }
+    if (!ctx.companyIds.includes(expenseCheck.companyId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const data = await request.json();
     const action = data.action; // APPROVED, REJECTED, NEEDS_REVISION
 
-    const approvedById = currentUser.id;
+    const approvedById = ctx.user.id;
 
     // Update expense status
     const updateData: any = {
