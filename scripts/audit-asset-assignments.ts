@@ -149,18 +149,18 @@ async function main() {
 
   // 6. Multiple active assignments on same asset (impossible but check)
   header('6. MULTIPLE ACTIVE ASSIGNMENTS ON SAME ASSET (should be 0)');
-  const dupActive = await prisma.$queryRaw<Array<{ asset_id: number; count: bigint }>>`
-    SELECT asset_id, COUNT(*)::bigint as count
-    FROM asset_assignments
-    WHERE returned_date IS NULL
-    GROUP BY asset_id
-    HAVING COUNT(*) > 1
-  `;
-  console.log(`Found: ${dupActive.length}`);
-  if (dupActive.length) {
+  const grouped = await prisma.assetAssignment.groupBy({
+    by: ['assetId'],
+    where: { returnedDate: null },
+    _count: { _all: true },
+    having: { assetId: { _count: { gt: 1 } } },
+  });
+  console.log(`Found: ${grouped.length}`);
+  if (grouped.length) {
     row('AssetID', 'ActiveAssignmentCount');
-    dupActive.forEach(d => row(Number(d.asset_id), Number(d.count)));
+    grouped.forEach(d => row(d.assetId, d._count._all));
   }
+  const dupActive = grouped;
 
   // 7. Summary
   header('SUMMARY');
