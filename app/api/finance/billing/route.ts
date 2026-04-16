@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const newSplits = await prisma.$transaction(async (tx) => {
       // Advisory lock per employee — serializes concurrent billing updates
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(99003, ${empId})`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(99003, ${empId}::int4)`;
 
       // Close existing splits (inside transaction — rolls back if creates fail)
       const existingSplits = await tx.billingSplit.findMany({

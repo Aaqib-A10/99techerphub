@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     const salary = await prisma.$transaction(async (tx) => {
       // Advisory lock per employee — serializes concurrent salary updates
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(99002, ${employeeId})`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(99002, ${employeeId}::int4)`;
 
       // Close current salary record (inside transaction)
       const currentSalary = await tx.salaryHistory.findFirst({
