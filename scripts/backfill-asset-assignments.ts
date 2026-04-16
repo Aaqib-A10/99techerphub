@@ -11,11 +11,20 @@
  */
 
 import { PrismaClient, AssetCondition } from '@prisma/client';
+import { writeFileSync } from 'node:fs';
 
 const prisma = new PrismaClient();
 
 const APPLY = process.argv.includes('--apply');
 const VERBOSE = process.argv.includes('--verbose');
+
+// --export-ambiguous <path.csv>  →  write ambiguous candidates to CSV for admin review
+function getExportPath(): string | null {
+  const idx = process.argv.indexOf('--export-ambiguous');
+  if (idx === -1) return null;
+  return process.argv[idx + 1] || './ambiguous-assets.csv';
+}
+const EXPORT_PATH = getExportPath();
 
 // Score thresholds
 const AUTO_MATCH = 0.67; // ≥ this = auto-create assignment
@@ -233,6 +242,58 @@ async function main() {
   console.log(`  → Ambiguous (needs review):   ${ambiguous.length}`);
   console.log(`  → Unmatched:                  ${unmatched.length}`);
   console.log(`  → Placeholder (skipped):      ${placeholderSkipped.length}`);
+
+  // Export ambiguous to CSV for admin review
+  if (EXPORT_PATH) {
+    const esc = (s: string | number | null | undefined) => {
+      const str = String(s ?? '');
+      return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+    };
+    const header = [
+      'Asset Tag',
+      'Legacy Name',
+      'Candidate 1 EmpCode',
+      'Candidate 1 Name',
+      'Candidate 1 Active',
+      'Candidate 1 Score',
+      'Candidate 2 EmpCode',
+      'Candidate 2 Name',
+      'Candidate 2 Active',
+      'Candidate 2 Score',
+      'Candidate 3 EmpCode',
+      'Candidate 3 Name',
+      'Candidate 3 Active',
+      'Candidate 3 Score',
+      'SELECTED EmpCode (fill in)',
+      'Notes (optional)',
+    ];
+    const rows = ambiguous.map(a => {
+      const c = a.candidates.slice(0, 3);
+      return [
+        a.asset.assetTag,
+        a.asset.assignedToName,
+        c[0]?.emp.empCode,
+        c[0]?.emp.fullName,
+        c[0] ? (c[0].emp.isActive ? 'Y' : 'N') : '',
+        c[0]?.score.toFixed(2),
+        c[1]?.emp.empCode,
+        c[1]?.emp.fullName,
+        c[1] ? (c[1].emp.isActive ? 'Y' : 'N') : '',
+        c[1]?.score.toFixed(2),
+        c[2]?.emp.empCode,
+        c[2]?.emp.fullName,
+        c[2] ? (c[2].emp.isActive ? 'Y' : 'N') : '',
+        c[2]?.score.toFixed(2),
+        '',
+        '',
+      ].map(esc).join(',');
+    });
+    const csv = [header.join(','), ...rows].join('\n') + '\n';
+    writeFileSync(EXPORT_PATH, csv);
+    console.log('');
+    console.log(`✓ Exported ${ambiguous.length} ambiguous rows to ${EXPORT_PATH}`);
+    console.log(`  Admin can open in Excel, fill the "SELECTED EmpCode" column, send back.`);
+  }
 
   if (!APPLY) {
     console.log('');
