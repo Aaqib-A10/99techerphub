@@ -8,6 +8,11 @@ interface Company {
   name: string;
 }
 
+interface Location {
+  id: number;
+  name: string;
+}
+
 interface Category {
   id: number;
   name: string;
@@ -22,10 +27,12 @@ interface Employee {
 
 export default function AssetFilters({
   companies,
+  locations,
   categories,
   employees,
 }: {
   companies: Company[];
+  locations: Location[];
   categories: Category[];
   employees: Employee[];
 }) {
@@ -80,6 +87,7 @@ export default function AssetFilters({
   const hasAnyFilter =
     !!searchParams.get('assetType') ||
     !!searchParams.get('companyId') ||
+    !!searchParams.get('locationId') ||
     !!searchParams.get('categoryId') ||
     !!searchParams.get('condition') ||
     !!searchParams.get('assignment') ||
@@ -138,6 +146,22 @@ export default function AssetFilters({
             {companies.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-item">
+          <label>Location</label>
+          <select
+            value={searchParams.get('locationId') || ''}
+            onChange={(e) => updateFilter('locationId', e.target.value)}
+            className="form-select"
+          >
+            <option value="">All Locations</option>
+            {locations.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.name}
               </option>
             ))}
           </select>

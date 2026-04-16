@@ -115,27 +115,27 @@ export default async function EmployeeDetailPage({
   return (
     <div>
       {/* Header — Architectural Ledger profile card */}
-      <div className="relative rounded-xl overflow-hidden p-6 mb-6" style={{ background: 'linear-gradient(135deg, #0B1F3A 0%, #152B4C 100%)', boxShadow: '0 32px 64px -12px rgba(11,31,58,0.12)' }}>
+      <div className="relative rounded-xl overflow-hidden p-4 mb-6" style={{ background: 'linear-gradient(135deg, #0B1F3A 0%, #152B4C 100%)', boxShadow: '0 32px 64px -12px rgba(11,31,58,0.12)' }}>
         {/* Ledger Line accent */}
         <div aria-hidden style={{ position: 'absolute', left: 0, top: 16, bottom: 16, width: 2, background: '#14B8A6', borderRadius: '0 1px 1px 0' }} />
         {/* Ambient teal glow */}
         <div aria-hidden style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(20,184,166,0.15) 0%, rgba(20,184,166,0) 65%)', pointerEvents: 'none' }} />
 
         <div className="relative z-10 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <ProfilePhotoUpload
               employeeId={employee.id}
               photoUrl={employee.photoUrl}
               initials={`${employee.firstName[0]}${employee.lastName[0]}`}
             />
             <div className="min-w-0">
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.1 }} className="truncate">
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.1 }} className="truncate">
                 {employee.firstName} {employee.lastName}
               </h1>
-              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.85rem', marginTop: 4 }}>
+              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.85rem', marginTop: 2 }}>
                 <span className="mono" style={{ color: '#14B8A6' }}>{employee.empCode}</span> &middot; {employee.designation} &middot; {employee.department.name}
               </p>
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-2">
                 {/* Lifecycle badge — combines isActive + lifecycleStage into one */}
                 <span
                   className="badge"
@@ -207,7 +207,7 @@ export default async function EmployeeDetailPage({
         </div>
 
         {/* Quick-facts strip */}
-        <div className="quick-facts relative z-10" style={{ marginTop: 24 }}>
+        <div className="quick-facts relative z-10" style={{ marginTop: 12 }}>
           <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
             <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Tenure</div>
             <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>{tenureLabel}</div>

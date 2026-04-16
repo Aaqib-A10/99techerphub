@@ -51,6 +51,9 @@ export default async function AssetsPage({
   const companyId = searchParams.companyId
     ? parseInt(searchParams.companyId as string)
     : undefined;
+  const locationId = searchParams.locationId
+    ? parseInt(searchParams.locationId as string)
+    : undefined;
   const categoryId = searchParams.categoryId
     ? parseInt(searchParams.categoryId as string)
     : undefined;
@@ -84,6 +87,7 @@ export default async function AssetsPage({
   // --------------------------------------------------------------
   const where: any = {};
   if (companyId) where.companyId = companyId;
+  if (locationId) where.locationId = locationId;
   if (categoryId) where.categoryId = categoryId;
   if (assetType) where.category = { assetType };
   if (condition) where.condition = condition;
@@ -138,8 +142,9 @@ export default async function AssetsPage({
   // --------------------------------------------------------------
   const hasSpecFilter = !!(ramFilter || storageFilter || cpuFilter || gpuFilter);
 
-  const [companies, categories, activeEmployees, assignedEmployees] = await Promise.all([
+  const [companies, locations, categories, activeEmployees, assignedEmployees] = await Promise.all([
     prisma.company.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
+    prisma.location.findMany({ orderBy: { name: 'asc' } }),
     prisma.assetCategory.findMany({ orderBy: { name: 'asc' } }),
     // Active employees
     prisma.employee.findMany({
@@ -329,6 +334,7 @@ export default async function AssetsPage({
         <div className="flex-1">
           <AssetFilters
             companies={companies.map((c) => ({ id: c.id, name: c.name }))}
+            locations={locations.map((l) => ({ id: l.id, name: l.name }))}
             categories={categories.map((c) => ({ id: c.id, name: c.name }))}
             employees={employees.map((e) => ({ id: e.id, firstName: e.firstName, lastName: e.lastName, empCode: e.empCode }))}
           />
@@ -337,6 +343,7 @@ export default async function AssetsPage({
           module="assets"
           filters={{
             companyId: (searchParams.companyId as string) || '',
+            locationId: (searchParams.locationId as string) || '',
             categoryId: (searchParams.categoryId as string) || '',
             condition: (searchParams.condition as string) || '',
             assignment: assignment || '',
