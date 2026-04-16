@@ -76,6 +76,10 @@ const navStructure: NavEntry[] = [
     requiredRoles: ['ADMIN', 'ACCOUNTANT', 'MANAGER'],
     children: [
       { name: 'Overview', href: '/finance' },
+      { name: 'Salary', href: '/finance/salary' },
+      { name: 'Commissions', href: '/finance/commissions' },
+      { name: 'Deductions', href: '/finance/deductions' },
+      { name: 'Billing Splits', href: '/finance/billing' },
       { name: 'Expenses', href: '/expenses' },
       { name: 'Payroll', href: '/finance/payroll' },
       { name: 'Reports', href: '/finance/reports' },

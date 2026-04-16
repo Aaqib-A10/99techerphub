@@ -3,8 +3,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHero from '@/app/components/PageHero';
+import DocumentDropzone, { DocTypeSpec } from '@/app/components/DocumentDropzone';
 
 const DRAFT_KEY = 'emp_form_draft';
+
+const DOCUMENT_TYPES: DocTypeSpec[] = [
+  { value: 'CNIC_FRONT', label: 'CNIC Front', accept: '.pdf,.png,.jpg,.jpeg', required: true },
+  { value: 'CNIC_BACK', label: 'CNIC Back', accept: '.pdf,.png,.jpg,.jpeg', required: true },
+  { value: 'PHOTO', label: 'Passport-size Photo', accept: '.png,.jpg,.jpeg', required: true },
+  { value: 'RESUME', label: 'Resume', accept: '.pdf', required: true },
+  { value: 'DEGREE', label: 'Degree', accept: '.pdf,.png,.jpg,.jpeg' },
+  { value: 'CONTRACT', label: 'Contract', accept: '.pdf,.png,.jpg,.jpeg' },
+  { value: 'NDA', label: 'NDA', accept: '.pdf,.png,.jpg,.jpeg' },
+  { value: 'OFFER_LETTER', label: 'Offer Letter', accept: '.pdf,.png,.jpg,.jpeg' },
+  { value: 'EXPERIENCE_LETTER', label: 'Experience Letter', accept: '.pdf,.png,.jpg,.jpeg' },
+  { value: 'OTHER', label: 'Other', accept: '.pdf,.png,.jpg,.jpeg' },
+];
 
 function formatCnic(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 13);
@@ -23,6 +37,7 @@ const sectionNav = [
   { id: 'section-employment', label: 'Employment Details' },
   { id: 'section-banking', label: 'Banking & Salary' },
   { id: 'section-emergency', label: 'Emergency & References' },
+  { id: 'section-documents', label: 'Documents' },
 ];
 
 export default function NewEmployeePage() {
@@ -79,6 +94,19 @@ export default function NewEmployeePage() {
   };
 
   const [formData, setFormData] = useState(defaultFormData);
+
+  // Documents staged for upload after employee creation
+  const [stagedDocs, setStagedDocs] = useState<Record<string, File>>({});
+  const [uploadStatus, setUploadStatus] = useState<string>('');
+
+  const setStagedDoc = (type: string, file: File | null) => {
+    setStagedDocs((prev) => {
+      const next = { ...prev };
+      if (file) next[type] = file;
+      else delete next[type];
+      return next;
+    });
+  };
 
   // IntersectionObserver for sticky sidebar highlight
   useEffect(() => {
@@ -177,9 +205,46 @@ export default function NewEmployeePage() {
 
       const emp = await response.json();
       try { localStorage.removeItem(DRAFT_KEY); } catch {}
+
+      // Upload staged documents (best-effort; partial failures don't block)
+      const entries = Object.entries(stagedDocs);
+      const failed: string[] = [];
+      if (entries.length > 0) {
+        for (let i = 0; i < entries.length; i++) {
+          const [docType, file] = entries[i];
+          const label = DOCUMENT_TYPES.find((d) => d.value === docType)?.label || docType;
+          setUploadStatus(`Uploading ${label} (${i + 1}/${entries.length})...`);
+          try {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('documentType', docType);
+            const docRes = await fetch(`/api/employees/${emp.id}/documents`, {
+              method: 'POST',
+              body: fd,
+            });
+            if (!docRes.ok) {
+              const data = await docRes.json().catch(() => ({}));
+              throw new Error(data.error || 'Upload failed');
+            }
+          } catch (e) {
+            failed.push(label);
+          }
+        }
+      }
+
+      if (failed.length > 0) {
+        setUploadStatus(
+          `Employee created, but some documents failed to upload (${failed.join(', ')}). You can retry from the employee detail page.`
+        );
+        // Still navigate — employee exists, docs can be retried
+        setTimeout(() => router.push(`/employees/${emp.id}`), 2500);
+        return;
+      }
+
       router.push(`/employees/${emp.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setUploadStatus('');
     } finally {
       setLoading(false);
     }
@@ -585,9 +650,51 @@ export default function NewEmployeePage() {
               </div>
             </div>
 
+            {/* Documents (optional pre-create) */}
+            <div id="section-documents" className="card mb-6 scroll-mt-24">
+              <div className="card-header">
+                <h2 className="text-lg font-bold">Documents</h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  Drag &amp; drop files now or add them after creation. Required docs are highlighted red until staged.
+                </p>
+              </div>
+              <div className="card-body">
+                <h3 className="text-md font-bold mb-3 text-gray-700">Required</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {DOCUMENT_TYPES.filter((d) => d.required).map((dt) => (
+                    <DocumentDropzone
+                      key={dt.value}
+                      docType={dt}
+                      stagedFile={stagedDocs[dt.value] || null}
+                      onStaged={(f) => setStagedDoc(dt.value, f)}
+                      disabled={loading}
+                    />
+                  ))}
+                </div>
+                <h3 className="text-md font-bold mb-3 text-gray-700">Optional</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {DOCUMENT_TYPES.filter((d) => !d.required).map((dt) => (
+                    <DocumentDropzone
+                      key={dt.value}
+                      docType={dt}
+                      stagedFile={stagedDocs[dt.value] || null}
+                      onStaged={(f) => setStagedDoc(dt.value, f)}
+                      disabled={loading}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {uploadStatus && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-sm">
+                {uploadStatus}
+              </div>
+            )}
+
             {/* Submit & Cancel */}
             <div className="flex justify-end gap-4 pb-8">
-              <button type="button" onClick={() => router.back()} className="btn btn-secondary">Cancel</button>
+              <button type="button" onClick={() => router.back()} className="btn btn-secondary" disabled={loading}>Cancel</button>
               <button
                 type="submit"
                 disabled={loading || !isFormComplete}
@@ -595,7 +702,7 @@ export default function NewEmployeePage() {
                 title={!isFormComplete ? 'Please fill all mandatory fields across all sections' : ''}
                 style={!isFormComplete ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
               >
-                {loading ? 'Creating...' : 'Create Employee'}
+                {loading ? (uploadStatus || 'Creating...') : 'Create Employee'}
               </button>
             </div>
           </form>

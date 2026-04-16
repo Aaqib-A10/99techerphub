@@ -1315,6 +1315,97 @@ export default function EmployeeDetailClient({
               </div>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div className="card">
+              <div className="card-header flex justify-between items-center">
+                <h3 className="section-heading">Commissions</h3>
+                <a href={`/finance/commissions?employeeId=${employee.id}`} className="text-xs text-blue-600 hover:underline">Manage</a>
+              </div>
+              <div className="card-body">
+                {(!employee.commissions || employee.commissions.length === 0) ? (
+                  <p className="text-gray-500 text-center py-4">No commissions recorded</p>
+                ) : (
+                  <div className="space-y-3">
+                    {employee.commissions.map((c: any) => (
+                      <div key={c.id} className="flex justify-between items-start p-3 bg-gray-50 rounded">
+                        <div>
+                          <div className="font-semibold">{c.currency} {Number(c.amount).toLocaleString()}</div>
+                          <div className="text-xs text-gray-500">{c.description}</div>
+                          <div className="text-xs text-gray-400 mt-0.5">Period: {c.period}</div>
+                        </div>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded ${c.isPaid ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                          {c.isPaid ? 'PAID' : 'UNPAID'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header flex justify-between items-center">
+                <h3 className="section-heading">Deductions</h3>
+                <a href={`/finance/deductions?employeeId=${employee.id}`} className="text-xs text-blue-600 hover:underline">Manage</a>
+              </div>
+              <div className="card-body">
+                {(!employee.deductions || employee.deductions.length === 0) ? (
+                  <p className="text-gray-500 text-center py-4">No deductions recorded</p>
+                ) : (
+                  <div className="space-y-3">
+                    {employee.deductions.map((d: any) => (
+                      <div key={d.id} className="flex justify-between items-start p-3 bg-gray-50 rounded">
+                        <div>
+                          <div className="font-semibold">{d.currency} {Number(d.amount).toLocaleString()}</div>
+                          <div className="text-xs text-gray-500">{d.description || d.deductionType}</div>
+                          <div className="text-xs text-gray-400 mt-0.5">Period: {d.period}</div>
+                        </div>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700">
+                          {d.deductionType}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="card mt-6">
+            <div className="card-header flex justify-between items-center">
+              <h3 className="section-heading">Billing Splits</h3>
+              <a href={`/finance/billing?employeeId=${employee.id}`} className="text-xs text-blue-600 hover:underline">Manage</a>
+            </div>
+            <div className="card-body">
+              {(!employee.billingSplits || employee.billingSplits.length === 0) ? (
+                <p className="text-gray-500 text-center py-4">No billing splits configured</p>
+              ) : (
+                <div className="space-y-3">
+                  {employee.billingSplits.map((b: any) => {
+                    const active = !b.effectiveTo || new Date(b.effectiveTo) > new Date();
+                    return (
+                      <div key={b.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <div>
+                          <div className="font-semibold">{b.company?.name || `Company #${b.companyId}`}</div>
+                          <div className="text-xs text-gray-500">
+                            From {new Date(b.effectiveFrom).toLocaleDateString()}
+                            {b.effectiveTo && ` — ${new Date(b.effectiveTo).toLocaleDateString()}`}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-lg">{Number(b.percentage).toFixed(2)}%</span>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {active ? 'ACTIVE' : 'ENDED'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </>
       )}
 
@@ -1555,16 +1646,13 @@ function DocumentSlot({
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadFile = async (file: File) => {
     const ext = file.name.split('.').pop()?.toLowerCase();
     const allowed = docType.accept.split(',').map(f => f.replace('.', ''));
     if (!ext || !allowed.includes(ext)) {
       setError(`Invalid format. Accepted: ${docType.accept.replace(/\./g, '').toUpperCase()}`);
-      e.target.value = '';
       return;
     }
 
@@ -1592,8 +1680,28 @@ function DocumentSlot({
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
-      e.target.value = '';
     }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) await uploadFile(file);
+    e.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); if (!uploading) setIsDragging(true); };
+  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); };
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (uploading) return;
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    if (e.dataTransfer.files.length > 1) {
+      setError('Drop one file at a time for this slot');
+      return;
+    }
+    await uploadFile(file);
   };
 
   const handleDelete = async () => {
@@ -1648,8 +1756,13 @@ function DocumentSlot({
           </div>
         </div>
       ) : (
-        <label className="block cursor-pointer">
-          <div className={`border-2 border-dashed rounded-lg p-3 text-center transition-colors ${uploading ? 'border-gray-200 bg-gray-50' : 'border-gray-300 hover:border-brand-primary hover:bg-brand-primary/5'}`}>
+        <label
+          className="block cursor-pointer"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <div className={`border-2 border-dashed rounded-lg p-3 text-center transition-colors ${uploading ? 'border-gray-200 bg-gray-50' : isDragging ? 'border-brand-primary bg-brand-primary/10' : 'border-gray-300 hover:border-brand-primary hover:bg-brand-primary/5'}`}>
             {uploading ? (
               <p className="text-xs text-gray-500">Uploading...</p>
             ) : (
@@ -1657,7 +1770,7 @@ function DocumentSlot({
                 <svg className="w-6 h-6 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <p className="text-xs text-gray-500">Click to upload</p>
+                <p className="text-xs text-gray-500">{isDragging ? 'Drop file here' : 'Drag & drop, or click to upload'}</p>
               </>
             )}
           </div>

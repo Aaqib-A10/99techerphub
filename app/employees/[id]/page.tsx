@@ -33,6 +33,16 @@ export default async function EmployeeDetailPage({
       salaryHistory: {
         orderBy: { effectiveFrom: 'desc' },
       },
+      commissions: {
+        orderBy: { createdAt: 'desc' },
+      },
+      deductions: {
+        orderBy: { createdAt: 'desc' },
+      },
+      billingSplits: {
+        orderBy: { effectiveFrom: 'desc' },
+        include: { company: { select: { id: true, name: true, code: true } } },
+      },
       offerLetters: {
         orderBy: { offerDate: 'desc' },
       },
