@@ -250,13 +250,14 @@ async function main() {
   console.log(`  → Employee unknown:  ${empNotFound.length}`);
   console.log(`  → Already assigned:  ${skipDup.length}`);
 
+  const esc = (s: string | number | null | undefined) => {
+    const str = String(s ?? '');
+    return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+  };
+
   // Export ambiguous to CSV for admin review
   if (ambiguous.length > 0) {
     const amPath = join(__dirname, '..', 'master-ambiguous.csv');
-    const esc = (s: string | number | null | undefined) => {
-      const str = String(s ?? '');
-      return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
-    };
     const header = [
       'Asset Tag','Legacy Name',
       'Candidate 1 EmpCode','Candidate 1 Name','Candidate 1 Active','Candidate 1 Score',
@@ -277,6 +278,43 @@ async function main() {
     }
     writeFileSync(amPath, lines.join('\n') + '\n');
     console.log(`\nAmbiguous rows exported to: ${amPath}`);
+  }
+
+  // Export employee-unknown rows
+  if (empNotFound.length > 0) {
+    const outPath = join(__dirname, '..', 'master-employee-unknown.csv');
+    const header = [
+      'Asset Tag','Asset Serial','Master Says (Name)','Source','Best Guess EmpCode','Best Guess Name','Score',
+      'SELECTED EmpCode (fill in or SKIP)','Notes',
+    ];
+    const lines = [header.join(',')];
+    for (const x of empNotFound) {
+      lines.push([
+        x.asset.assetTag, x.asset.serialNumber, x.m.employeeName, x.m.source,
+        x.best?.emp.empCode, x.best?.emp.fullName, x.best?.score.toFixed(2),
+        '', '',
+      ].map(esc).join(','));
+    }
+    writeFileSync(outPath, lines.join('\n') + '\n');
+    console.log(`Employee-unknown rows exported to: ${outPath}`);
+  }
+
+  // Export assets-not-in-DB
+  if (assetNotFound.length > 0) {
+    const outPath = join(__dirname, '..', 'master-assets-missing.csv');
+    const header = [
+      'Master Asset Tag','Master Serial','Master Says (Employee)','Source','Comments',
+      'Action (import / skip)','Notes',
+    ];
+    const lines = [header.join(',')];
+    for (const m of assetNotFound) {
+      lines.push([
+        m.assetTag, m.serial, m.employeeName, m.source, m.comments,
+        '', '',
+      ].map(esc).join(','));
+    }
+    writeFileSync(outPath, lines.join('\n') + '\n');
+    console.log(`Assets-not-in-DB rows exported to: ${outPath}`);
   }
 
   if (!APPLY) {
