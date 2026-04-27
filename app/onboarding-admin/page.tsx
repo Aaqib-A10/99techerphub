@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import PageHero from '@/app/components/PageHero';
+import CopyLinkButton from './CopyLinkButton';
 
 export default async function OnboardingAdminPage() {
   const submissions = await (prisma.onboardingSubmission as any).findMany({
@@ -93,17 +94,7 @@ export default async function OnboardingAdminPage() {
                           Review
                         </Link>
                       ) : (
-                        <button
-                          onClick={() => {
-                            const appUrl = getAppUrl();
-                            const url = `${appUrl}/onboarding/${submission.token}`;
-                            navigator.clipboard.writeText(url);
-                            alert('Link copied to clipboard!');
-                          }}
-                          className="text-brand-primary hover:text-brand-dark font-medium text-sm"
-                        >
-                          Copy Link
-                        </button>
+                        <CopyLinkButton url={`${getAppUrl()}/onboarding/${submission.token}`} />
                       )}
                     </td>
                   </tr>
