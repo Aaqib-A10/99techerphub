@@ -74,6 +74,7 @@ export default function EmployeeDetailClient({
     lastName: employee.lastName,
     fatherName: employee.fatherName,
     email: employee.email,
+    workEmail: employee.workEmail,
     phone: employee.phone,
     cnic: employee.cnic,
     dateOfBirth: employee.dateOfBirth ? new Date(employee.dateOfBirth).toISOString().split('T')[0] : '',
@@ -389,13 +390,25 @@ export default function EmployeeDetailClient({
                       />
                     </div>
                     <div>
-                      <label className="form-label">Email</label>
+                      <label className="form-label">Personal Email</label>
                       <input
                         type="email"
-                        value={editFormData.email}
+                        value={editFormData.email || ''}
                         onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                         className="form-input"
+                        placeholder="personal@gmail.com"
                       />
+                    </div>
+                    <div>
+                      <label className="form-label">Organization Email</label>
+                      <input
+                        type="email"
+                        value={editFormData.workEmail || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, workEmail: e.target.value })}
+                        className="form-input"
+                        placeholder="name@99technologies.com"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Used for Google/Microsoft SSO</p>
                     </div>
                     <div>
                       <label className="form-label">Phone</label>

@@ -122,9 +122,12 @@ export async function GET(
       await audit('FAILED_LOGIN', email, null, 'NO_USER_AND_DOMAIN_NOT_ALLOWED');
       return loginError(req, 'sso_no_account');
     }
-    // Match to an Employee record by email
+    // Match to an Employee record by workEmail first (preferred for SSO),
+    // then fall back to personal email so existing records still work.
     const employee = await prisma.employee.findFirst({
-      where: { email },
+      where: {
+        OR: [{ workEmail: email }, { email }],
+      },
       select: { id: true, isActive: true },
     });
     if (!employee || !employee.isActive) {

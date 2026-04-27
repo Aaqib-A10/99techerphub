@@ -244,6 +244,7 @@ async function handleGeneralUpdate(empId: number, data: any, existingEmployee: a
       'lastName',
       'fatherName',
       'email',
+      'workEmail',
       'phone',
       'cnic',
       'dateOfBirth',

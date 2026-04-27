@@ -56,6 +56,7 @@ export default function NewEmployeePage() {
     lastName: '',
     fatherName: '',
     email: '',
+    workEmail: '',
     phone: '',
     cnic: '',
     dateOfBirth: '',
@@ -339,8 +340,13 @@ export default function NewEmployeePage() {
                     <input name="fatherName" value={formData.fatherName} onChange={handleChange} required className="form-input" />
                   </div>
                   <div>
-                    <label className="form-label">Email *</label>
-                    <input name="email" type="email" value={formData.email} onChange={handleChange} required className="form-input" />
+                    <label className="form-label">Personal Email *</label>
+                    <input name="email" type="email" value={formData.email} onChange={handleChange} required className="form-input" placeholder="personal@gmail.com" />
+                  </div>
+                  <div>
+                    <label className="form-label">Organization Email</label>
+                    <input name="workEmail" type="email" value={formData.workEmail} onChange={handleChange} className="form-input" placeholder="name@99technologies.com" />
+                    <p className="text-xs text-gray-500 mt-1">Used for Google/Microsoft SSO</p>
                   </div>
                   <div>
                     <label className="form-label">Phone *</label>

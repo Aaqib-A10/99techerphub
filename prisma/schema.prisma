@@ -189,6 +189,9 @@ model Employee {
   lastName             String
   fatherName           String?
   email                String?
+  // Organization / work email (e.g. @99technologies.com). Used for SSO
+  // matching so personal `email` can stay as personal contact.
+  workEmail            String?   @unique
   phone                String?
   cnic                 String?
   dateOfBirth          DateTime?

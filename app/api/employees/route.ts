@@ -105,6 +105,7 @@ export async function POST(request: NextRequest) {
         lastName: data.lastName,
         fatherName: data.fatherName || null,
         email: data.email || null,
+        workEmail: data.workEmail || null,
         phone: data.phone || null,
         cnic: data.cnic || null,
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
