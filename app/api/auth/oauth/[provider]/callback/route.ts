@@ -15,11 +15,26 @@ const VALID_PROVIDERS: OAuthProvider[] = ['google', 'microsoft'];
 const FALLBACK_FAILURE_URL = '/login?error=sso_failed';
 
 /**
+ * Compute the public-facing origin (e.g. https://99techerp.com) so any
+ * redirects we emit don't leak the internal localhost:3000 that nginx
+ * proxies to. Prefers OAUTH_REDIRECT_BASE_URL, then x-forwarded-host,
+ * and only falls back to req.nextUrl as a last resort.
+ */
+function publicOrigin(req: NextRequest): string {
+  const envBase = process.env.OAUTH_REDIRECT_BASE_URL?.replace(/\/$/, '');
+  if (envBase) return envBase;
+  const xfHost = req.headers.get('x-forwarded-host');
+  const xfProto = req.headers.get('x-forwarded-proto') || 'https';
+  if (xfHost) return `${xfProto}://${xfHost}`;
+  return req.nextUrl.origin;
+}
+
+/**
  * Build a redirect to the login page with a specific error code in the URL.
  * The login page can map known codes to friendlier messages.
  */
 function loginError(req: NextRequest, code: string) {
-  const url = new URL('/login', req.url);
+  const url = new URL('/login', publicOrigin(req));
   url.searchParams.set('error', code);
   return NextResponse.redirect(url);
 }
@@ -149,7 +164,7 @@ export async function GET(
   // 7. Redirect home with session cookie set
   const isHttps = req.headers.get('x-forwarded-proto') === 'https'
     || req.nextUrl.protocol === 'https:';
-  const response = NextResponse.redirect(new URL('/', req.url));
+  const response = NextResponse.redirect(new URL('/', publicOrigin(req)));
   response.cookies.set('99tech_session', token, {
     httpOnly: true,
     secure: isHttps,
