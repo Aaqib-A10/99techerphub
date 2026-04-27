@@ -191,6 +191,23 @@ export default async function OnboardingAdminPage({
                         >
                           View Employee →
                         </Link>
+                      ) : activeTab === 'PENDING_REVIEW' || activeTab === 'NEEDS_REVISION' ? (
+                        <div className="flex items-center gap-3">
+                          <Link
+                            href={`/onboarding-admin/${submission.id}`}
+                            className="text-brand-primary hover:text-brand-dark font-medium text-sm"
+                          >
+                            Review
+                          </Link>
+                          {submission.token && (
+                            <>
+                              <span className="text-gray-300">·</span>
+                              <CopyLinkButton
+                                url={`${getAppUrl()}/onboarding/${submission.token}`}
+                              />
+                            </>
+                          )}
+                        </div>
                       ) : (
                         <Link
                           href={`/onboarding-admin/${submission.id}`}

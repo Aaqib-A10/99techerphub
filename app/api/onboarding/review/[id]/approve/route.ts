@@ -88,6 +88,50 @@ export async function POST(
 
     const designation = overrideDesignation || submission.position || '';
 
+    // Validate dates from candidate submission — reject obvious typos like
+    // year 32003 that Prisma would later refuse to encode.
+    const parseEmployeeDate = (
+      raw: unknown,
+      label: string,
+      opts: { min?: Date; max?: Date } = {}
+    ): { ok: true; value: Date | undefined } | { ok: false; error: string } => {
+      if (!raw) return { ok: true, value: undefined };
+      const d = new Date(String(raw));
+      if (Number.isNaN(d.getTime())) {
+        return { ok: false, error: `Invalid ${label} on submission: "${String(raw)}"` };
+      }
+      const year = d.getFullYear();
+      if (year < 1900 || year > 2200) {
+        return {
+          ok: false,
+          error: `${label} year ${year} is out of range — please ask the candidate to correct their submission.`,
+        };
+      }
+      if (opts.min && d < opts.min) {
+        return { ok: false, error: `${label} is before the allowed minimum.` };
+      }
+      if (opts.max && d > opts.max) {
+        return { ok: false, error: `${label} is after the allowed maximum.` };
+      }
+      return { ok: true, value: d };
+    };
+
+    const dobResult = parseEmployeeDate(personalDetails.dateOfBirth, 'date of birth', {
+      min: new Date('1900-01-01'),
+      max: new Date(),
+    });
+    if (!dobResult.ok) {
+      return NextResponse.json({ error: dobResult.error }, { status: 400 });
+    }
+
+    const passportExpiryResult = parseEmployeeDate(
+      personalDetails.passportExpiry,
+      'passport expiry'
+    );
+    if (!passportExpiryResult.ok) {
+      return NextResponse.json({ error: passportExpiryResult.error }, { status: 400 });
+    }
+
     // Generate employee ID
     const empCode = await generateEmployeeId(department.code);
 
@@ -109,17 +153,13 @@ export async function POST(
           empCode: empCode,
           dateOfJoining: new Date(),
           cnic: personalDetails.cnic || '',
-          dateOfBirth: personalDetails.dateOfBirth
-            ? new Date(personalDetails.dateOfBirth)
-            : undefined,
+          dateOfBirth: dobResult.value,
           gender: personalDetails.gender || '',
           nationality: personalDetails.nationality || '',
           maritalStatus: personalDetails.maritalStatus || '',
           bloodGroup: personalDetails.bloodGroup || '',
           passportNumber: personalDetails.passportNumber || '',
-          passportExpiry: personalDetails.passportExpiry
-            ? new Date(personalDetails.passportExpiry)
-            : undefined,
+          passportExpiry: passportExpiryResult.value,
           fatherName: personalDetails.fatherName || '',
           address: personalDetails.address || '',
           city: personalDetails.city || '',
@@ -232,8 +272,15 @@ export async function POST(
     );
   } catch (error: any) {
     console.error('Error approving onboarding submission:', error);
+    const isPrismaDateError =
+      error?.message?.includes('Could not convert argument value') &&
+      error?.message?.includes('DateTime');
     return NextResponse.json(
-      { error: 'Failed to approve onboarding submission' },
+      {
+        error: isPrismaDateError
+          ? 'One of the dates on the submission is out of range. Ask the candidate to correct their submission and resubmit.'
+          : 'Failed to approve onboarding submission',
+      },
       { status: 500 }
     );
   }

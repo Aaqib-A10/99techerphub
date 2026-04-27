@@ -94,6 +94,7 @@ export default function OnboardingForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeSection, setActiveSection] = useState(0);
+  const today = new Date().toISOString().split('T')[0];
 
   const [formData, setFormData] = useState<FormData>({
     fullName: initialSubmission.candidateName || '',
@@ -231,6 +232,19 @@ export default function OnboardingForm({
       if (cnicDigits.length !== 13) {
         setError('CNIC must be exactly 13 digits.');
         return false;
+      }
+      const dob = new Date(formData.dateOfBirth);
+      const dobYear = dob.getFullYear();
+      if (Number.isNaN(dob.getTime()) || dobYear < 1900 || dob > new Date()) {
+        setError('Please enter a valid date of birth (year between 1900 and today).');
+        return false;
+      }
+      if (formData.passportExpiry) {
+        const exp = new Date(formData.passportExpiry);
+        if (Number.isNaN(exp.getTime()) || exp < new Date(today)) {
+          setError('Passport expiry must be today or later.');
+          return false;
+        }
       }
     }
 
@@ -400,6 +414,8 @@ export default function OnboardingForm({
                       value={formData.dateOfBirth}
                       onChange={handleChange}
                       required
+                      min="1900-01-01"
+                      max={today}
                       className="form-input"
                     />
                   </div>
@@ -475,6 +491,7 @@ export default function OnboardingForm({
                       type="date"
                       value={formData.passportExpiry}
                       onChange={handleChange}
+                      min={today}
                       className="form-input"
                     />
                   </div>
