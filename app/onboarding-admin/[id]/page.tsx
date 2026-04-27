@@ -58,7 +58,9 @@ interface Submission {
   candidateName: string;
   candidateEmail: string;
   position: string;
+  companyId: number | null;
   companyName: string;
+  departmentId: number | null;
   personalDetails: PersonalDetails;
   bankDetails: BankDetails;
   emergencyContact: EmergencyContact;
@@ -68,6 +70,13 @@ interface Submission {
   reviewStatus: string;
   reviewNotes: string | null;
   submittedAt: string;
+}
+
+interface OrgOption {
+  id: number;
+  code: string;
+  name: string;
+  isActive: boolean;
 }
 
 export default function ReviewOnboardingPage({ params }: { params: { id: string } }) {
@@ -80,6 +89,12 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
   const [revisionNotes, setRevisionNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
 
+  const [companies, setCompanies] = useState<OrgOption[]>([]);
+  const [departments, setDepartments] = useState<OrgOption[]>([]);
+  const [overrideCompanyId, setOverrideCompanyId] = useState<string>('');
+  const [overrideDepartmentId, setOverrideDepartmentId] = useState<string>('');
+  const [overrideDesignation, setOverrideDesignation] = useState<string>('');
+
   useEffect(() => {
     const fetchSubmission = async () => {
       try {
@@ -87,6 +102,11 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
         if (!response.ok) throw new Error('Failed to fetch submission');
         const data = await response.json();
         setSubmission(data);
+        setOverrideCompanyId(data.companyId ? String(data.companyId) : '');
+        setOverrideDepartmentId(
+          data.departmentId ? String(data.departmentId) : ''
+        );
+        setOverrideDesignation(data.position || '');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load submission');
       }
@@ -94,7 +114,43 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
     fetchSubmission();
   }, [id]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const loadOptions = async () => {
+      try {
+        const [cRes, dRes] = await Promise.all([
+          fetch('/api/companies'),
+          fetch('/api/departments'),
+        ]);
+        if (!cRes.ok || !dRes.ok) return;
+        const [c, d] = await Promise.all([cRes.json(), dRes.json()]);
+        if (cancelled) return;
+        setCompanies((c as OrgOption[]).filter((x) => x.isActive));
+        setDepartments((d as OrgOption[]).filter((x) => x.isActive));
+      } catch {
+        // non-fatal — page already shows submission data
+      }
+    };
+    loadOptions();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleApprove = async () => {
+    if (!overrideCompanyId) {
+      setError('Please select a company before approving');
+      return;
+    }
+    if (!overrideDepartmentId) {
+      setError('Please select a department before approving');
+      return;
+    }
+    if (!overrideDesignation.trim()) {
+      setError('Please enter a designation before approving');
+      return;
+    }
+
     const confirmed = confirm(
       `Are you sure you want to approve ${submission?.candidateName}'s onboarding? This will create an employee record and generate temporary credentials.`
     );
@@ -106,6 +162,11 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
       const response = await fetch(`/api/onboarding/review/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyId: parseInt(overrideCompanyId),
+          departmentId: parseInt(overrideDepartmentId),
+          designation: overrideDesignation.trim(),
+        }),
       });
 
       if (!response.ok) {
@@ -443,6 +504,58 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
             <h2 className="section-heading">Review Actions</h2>
           </div>
           <div className="card-body space-y-4">
+            {/* Employment Assignment — confirm/override before approval */}
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Employment Assignment
+              </h3>
+              <p className="text-xs text-gray-600 mb-3">
+                Confirm or change company, department, and designation before approving.
+                These will be saved on the employee record.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="form-label">Company *</label>
+                  <select
+                    value={overrideCompanyId}
+                    onChange={(e) => setOverrideCompanyId(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="">Select Company</option>
+                    {companies.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Department *</label>
+                  <select
+                    value={overrideDepartmentId}
+                    onChange={(e) => setOverrideDepartmentId(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="form-label">Designation *</label>
+                  <input
+                    value={overrideDesignation}
+                    onChange={(e) => setOverrideDesignation(e.target.value)}
+                    className="form-input"
+                    placeholder="e.g. Software Engineer"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Approve */}
             <div>
               <button

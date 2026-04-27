@@ -1,15 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
+
+interface Company {
+  id: number;
+  code: string;
+  name: string;
+  isActive: boolean;
+}
+
+interface Department {
+  id: number;
+  code: string;
+  name: string;
+  isActive: boolean;
+}
 
 interface FormData {
   candidateName: string;
   candidateEmail: string;
   position: string;
-  companyName: string;
+  companyId: string;
+  departmentId: string;
   expiryDays: string;
 }
 
@@ -20,13 +35,45 @@ export default function NewOnboardingPage() {
   const [success, setSuccess] = useState(false);
   const [onboardingUrl, setOnboardingUrl] = useState('');
 
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+
   const [formData, setFormData] = useState<FormData>({
     candidateName: '',
     candidateEmail: '',
     position: '',
-    companyName: '',
+    companyId: '',
+    departmentId: '',
     expiryDays: '7',
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const [cRes, dRes] = await Promise.all([
+          fetch('/api/companies'),
+          fetch('/api/departments'),
+        ]);
+        if (!cRes.ok || !dRes.ok) throw new Error('Failed to load options');
+        const [c, d] = await Promise.all([cRes.json(), dRes.json()]);
+        if (cancelled) return;
+        setCompanies((c as Company[]).filter((x) => x.isActive));
+        setDepartments((d as Department[]).filter((x) => x.isActive));
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load options');
+        }
+      } finally {
+        if (!cancelled) setOptionsLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -45,7 +92,13 @@ export default function NewOnboardingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
+          candidateName: formData.candidateName,
+          candidateEmail: formData.candidateEmail,
+          position: formData.position,
+          companyId: parseInt(formData.companyId),
+          departmentId: formData.departmentId
+            ? parseInt(formData.departmentId)
+            : null,
           expiryDays: parseInt(formData.expiryDays),
         }),
       });
@@ -115,7 +168,8 @@ export default function NewOnboardingPage() {
                     candidateName: '',
                     candidateEmail: '',
                     position: '',
-                    companyName: '',
+                    companyId: '',
+                    departmentId: '',
                     expiryDays: '7',
                   });
                 }}
@@ -188,20 +242,45 @@ export default function NewOnboardingPage() {
               <div>
                 <label className="form-label">Company *</label>
                 <select
-                  name="companyName"
-                  value={formData.companyName}
+                  name="companyId"
+                  value={formData.companyId}
                   onChange={handleChange}
                   required
+                  disabled={optionsLoading}
                   className="form-select"
                 >
-                  <option value="">Select Company</option>
-                  <option value="MNC">MNC</option>
-                  <option value="SJ">SJ</option>
-                  <option value="PCMART">PCMART</option>
-                  <option value="RTI">RTI</option>
-                  <option value="LRI">LRI</option>
-                  <option value="Green Loop">Green Loop</option>
+                  <option value="">
+                    {optionsLoading ? 'Loading...' : 'Select Company'}
+                  </option>
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.code})
+                    </option>
+                  ))}
                 </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="form-label">Department</label>
+                <select
+                  name="departmentId"
+                  value={formData.departmentId}
+                  onChange={handleChange}
+                  disabled={optionsLoading}
+                  className="form-select"
+                >
+                  <option value="">
+                    {optionsLoading ? 'Loading...' : 'Select Department (optional)'}
+                  </option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Can be confirmed or changed at approval time
+                </p>
               </div>
 
               <div className="md:col-span-2">
@@ -230,7 +309,7 @@ export default function NewOnboardingPage() {
             </Link>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || optionsLoading}
               className="btn btn-primary"
             >
               {loading ? 'Creating...' : 'Create & Send'}

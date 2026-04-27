@@ -145,6 +145,7 @@ model Company {
   payrollRuns      PayrollRun[]
   billingSplits    BillingSplit[]
   employeeCompanies EmployeeCompany[]
+  onboardingSubmissions OnboardingSubmission[]
 
   @@map("companies")
 }
@@ -160,6 +161,7 @@ model Department {
   employees Employee[]
   expenses  Expense[]
   expenseCategories ExpenseCategory[]
+  onboardingSubmissions OnboardingSubmission[]
 
   @@map("departments")
 }
@@ -223,6 +225,8 @@ model Employee {
   bankAccountNumber    String?
   bankAccountStatus    String?
   bankBranch           String?
+  iban                 String?
+  bankAccountTitle     String?
 
   // Extended personal info
   bloodGroup           String?
@@ -330,6 +334,11 @@ model OnboardingSubmission {
   candidateEmail    String?
   position          String?
   companyName       String?
+  // Structured org links — set by admin when creating the invite
+  companyId         Int?
+  departmentId      Int?
+  company           Company?    @relation(fields: [companyId], references: [id])
+  department        Department? @relation(fields: [departmentId], references: [id])
   // Submitted data
   personalDetails   Json?     // Full personal details submitted by employee
   bankDetails       Json?     // Bank info submitted

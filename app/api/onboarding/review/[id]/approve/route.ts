@@ -15,6 +15,14 @@ export async function POST(
 
     const submissionId = parseInt(params.id);
 
+    const body = await request.json().catch(() => ({}));
+    const overrideCompanyId: number | undefined =
+      typeof body?.companyId === 'number' ? body.companyId : undefined;
+    const overrideDepartmentId: number | undefined =
+      typeof body?.departmentId === 'number' ? body.departmentId : undefined;
+    const overrideDesignation: string | undefined =
+      typeof body?.designation === 'string' ? body.designation.trim() : undefined;
+
     // Fetch the onboarding submission
     const submission = await (prisma.onboardingSubmission as any).findUnique({
       where: { id: submissionId },
@@ -44,31 +52,41 @@ export async function POST(
     const [firstName, ...lastNameParts] = fullName.split(' ');
     const lastName = lastNameParts.join(' ') || 'N/A';
 
-    // Get the company by name
-    const company = await prisma.company.findFirst({
-      where: {
-        name: submission.companyName || undefined,
-      },
-    });
-
+    // Resolve company: prefer admin override, then submission.companyId
+    const companyId = overrideCompanyId ?? submission.companyId ?? null;
+    if (!companyId) {
+      return NextResponse.json(
+        { error: 'Company is required — please select one in the review page' },
+        { status: 400 }
+      );
+    }
+    const company = await prisma.company.findUnique({ where: { id: companyId } });
     if (!company) {
       return NextResponse.json(
-        { error: `Company "${submission.companyName}" not found` },
+        { error: `Company id ${companyId} not found` },
         { status: 400 }
       );
     }
 
-    // Default department - could be enhanced to parse from submission
-    const department = await prisma.department.findFirst({
-      where: { isActive: true },
+    // Resolve department: prefer admin override, then submission.departmentId
+    const departmentId = overrideDepartmentId ?? submission.departmentId ?? null;
+    if (!departmentId) {
+      return NextResponse.json(
+        { error: 'Department is required — please select one in the review page' },
+        { status: 400 }
+      );
+    }
+    const department = await prisma.department.findUnique({
+      where: { id: departmentId },
     });
-
     if (!department) {
       return NextResponse.json(
-        { error: 'No default department found' },
+        { error: `Department id ${departmentId} not found` },
         { status: 400 }
       );
     }
+
+    const designation = overrideDesignation || submission.position || '';
 
     // Generate employee ID
     const empCode = await generateEmployeeId(department.code);
@@ -85,7 +103,7 @@ export async function POST(
           lastName: lastName,
           email: submission.candidateEmail || '',
           phone: personalDetails.phone || '',
-          designation: submission.position || '',
+          designation: designation,
           departmentId: department.id,
           companyId: company.id,
           empCode: empCode,
@@ -112,6 +130,8 @@ export async function POST(
           bankName: bankDetails.bankName || '',
           bankAccountNumber: bankDetails.accountNumber || '',
           bankBranch: bankDetails.branch || '',
+          iban: bankDetails.iban || null,
+          bankAccountTitle: bankDetails.accountTitle || null,
           employmentStatus: 'PROBATION',
           lifecycleStage: 'ONBOARDING',
           isActive: true,
@@ -131,6 +151,10 @@ export async function POST(
         where: { id: submissionId },
         data: {
           employeeId: emp.id,
+          companyId: company.id,
+          departmentId: department.id,
+          companyName: company.name,
+          position: designation,
           reviewStatus: 'APPROVED',
           reviewedAt: new Date(),
           reviewedBy: currentUser.id,

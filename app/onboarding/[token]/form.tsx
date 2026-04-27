@@ -3,6 +3,17 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+function formatCnic(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 13);
+  if (digits.length <= 5) return digits;
+  if (digits.length <= 12) return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12)}`;
+}
+
+function formatIban(value: string): string {
+  return value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 24);
+}
+
 interface OnboardingSubmission {
   id: number;
   candidateName: string | null;
@@ -32,9 +43,9 @@ interface FormData {
   emergencyContactPhone: string;
   emergencyContactRelation: string;
   // Section 3: Banking
-  bankName: string;
+  iban: string;
   accountNumber: string;
-  branch: string;
+  bankName: string;
   accountTitle: string;
   // Section 4: Education
   educationHistory: Array<{
@@ -103,9 +114,9 @@ export default function OnboardingForm({
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyContactRelation: '',
-    bankName: '',
+    iban: '',
     accountNumber: '',
-    branch: '',
+    bankName: '',
     accountTitle: '',
     educationHistory: [{ degree: '', institution: '', year: '', gpa: '' }],
     workHistory: [{ company: '', position: '', from: '', to: '', reasonForLeaving: '' }],
@@ -122,9 +133,12 @@ export default function OnboardingForm({
         ...formData,
         [name]: (e.target as HTMLInputElement).checked,
       });
-    } else {
-      setFormData({ ...formData, [name]: value });
+      return;
     }
+    let nextValue = value;
+    if (name === 'cnic') nextValue = formatCnic(value);
+    else if (name === 'iban') nextValue = formatIban(value);
+    setFormData({ ...formData, [name]: nextValue });
   };
 
   const handleEducationChange = (index: number, field: string, value: string) => {
@@ -197,7 +211,7 @@ export default function OnboardingForm({
     const requiredFields = {
       0: ['fullName', 'cnic', 'dateOfBirth', 'gender'],
       1: ['personalEmail', 'phone', 'currentAddress', 'city'],
-      2: ['bankName', 'accountNumber', 'branch'],
+      2: ['iban', 'bankName', 'accountTitle'],
       3: [],
       4: [],
       5: [],
@@ -210,6 +224,19 @@ export default function OnboardingForm({
         setError(`Please fill in all required fields before proceeding.`);
         return false;
       }
+    }
+
+    if (section === 0) {
+      const cnicDigits = formData.cnic.replace(/\D/g, '');
+      if (cnicDigits.length !== 13) {
+        setError('CNIC must be exactly 13 digits.');
+        return false;
+      }
+    }
+
+    if (section === 2 && formData.iban.length !== 24) {
+      setError('IBAN must be exactly 24 characters.');
+      return false;
     }
     return true;
   };
@@ -257,9 +284,9 @@ export default function OnboardingForm({
           relationship: formData.emergencyContactRelation,
         },
         bankDetails: {
-          bankName: formData.bankName,
+          iban: formData.iban,
           accountNumber: formData.accountNumber,
-          branch: formData.branch,
+          bankName: formData.bankName,
           accountTitle: formData.accountTitle,
         },
         educationHistory: formData.educationHistory.filter((e) => e.degree),
@@ -361,6 +388,7 @@ export default function OnboardingForm({
                       onChange={handleChange}
                       required
                       placeholder="XXXXX-XXXXXXX-X"
+                      maxLength={15}
                       className="form-input"
                     />
                   </div>
@@ -560,6 +588,30 @@ export default function OnboardingForm({
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Banking Details</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="form-label">IBAN *</label>
+                    <input
+                      name="iban"
+                      value={formData.iban}
+                      onChange={handleChange}
+                      required
+                      placeholder="PK00AAAA0000000000000000"
+                      maxLength={24}
+                      className="form-input font-mono tracking-wide"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Must be exactly 24 characters. {formData.iban.length}/24 entered.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="form-label">Account Number</label>
+                    <input
+                      name="accountNumber"
+                      value={formData.accountNumber}
+                      onChange={handleChange}
+                      className="form-input"
+                    />
+                  </div>
                   <div>
                     <label className="form-label">Bank Name *</label>
                     <input
@@ -570,33 +622,15 @@ export default function OnboardingForm({
                       className="form-input"
                     />
                   </div>
-                  <div>
-                    <label className="form-label">Account Number *</label>
-                    <input
-                      name="accountNumber"
-                      value={formData.accountNumber}
-                      onChange={handleChange}
-                      required
-                      className="form-input"
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label">Branch *</label>
-                    <input
-                      name="branch"
-                      value={formData.branch}
-                      onChange={handleChange}
-                      required
-                      className="form-input"
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label">Account Title</label>
+                  <div className="md:col-span-2">
+                    <label className="form-label">Account Title *</label>
                     <input
                       name="accountTitle"
                       value={formData.accountTitle}
                       onChange={handleChange}
+                      required
                       className="form-input"
+                      placeholder="Name as it appears on the account"
                     />
                   </div>
                 </div>
@@ -880,13 +914,23 @@ export default function OnboardingForm({
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <h3 className="font-semibold text-gray-900 mb-3">Banking Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      <p className="md:col-span-2">
+                        <span className="font-medium">IBAN:</span>{' '}
+                        <span className="font-mono">{formData.iban}</span>
+                      </p>
                       <p>
                         <span className="font-medium">Bank:</span> {formData.bankName}
                       </p>
                       <p>
-                        <span className="font-medium">Account Number:</span>{' '}
-                        {formData.accountNumber}
+                        <span className="font-medium">Account Title:</span>{' '}
+                        {formData.accountTitle}
                       </p>
+                      {formData.accountNumber && (
+                        <p className="md:col-span-2">
+                          <span className="font-medium">Account Number:</span>{' '}
+                          {formData.accountNumber}
+                        </p>
+                      )}
                     </div>
                   </div>
 

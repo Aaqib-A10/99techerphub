@@ -38,14 +38,35 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { candidateName, candidateEmail, position, companyName, expiryDays = 7 } = body;
+    const {
+      candidateName,
+      candidateEmail,
+      position,
+      companyId,
+      departmentId,
+      expiryDays = 7,
+    } = body;
 
-    // Validate required fields
-    if (!candidateName || !candidateEmail || !position || !companyName) {
+    if (!candidateName || !candidateEmail || !position || !companyId) {
       return NextResponse.json(
-        { error: 'Missing required fields: candidateName, candidateEmail, position, companyName' },
+        {
+          error:
+            'Missing required fields: candidateName, candidateEmail, position, companyId',
+        },
         { status: 400 }
       );
+    }
+
+    const company = await prisma.company.findUnique({ where: { id: companyId } });
+    if (!company) {
+      return NextResponse.json({ error: 'Invalid companyId' }, { status: 400 });
+    }
+
+    if (departmentId != null) {
+      const dept = await prisma.department.findUnique({ where: { id: departmentId } });
+      if (!dept) {
+        return NextResponse.json({ error: 'Invalid departmentId' }, { status: 400 });
+      }
     }
 
     // Generate a random 32-char token
@@ -55,13 +76,14 @@ export async function POST(request: NextRequest) {
     const tokenExpiresAt = new Date();
     tokenExpiresAt.setDate(tokenExpiresAt.getDate() + expiryDays);
 
-    // Create the submission
     const submission = await (prisma.onboardingSubmission as any).create({
       data: {
         candidateName,
         candidateEmail,
         position,
-        companyName,
+        companyId,
+        departmentId: departmentId ?? null,
+        companyName: company.name,
         token,
         tokenExpiresAt,
         reviewStatus: 'PENDING',
