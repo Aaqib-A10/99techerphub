@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 // 99 Hub ERP — Login
@@ -43,7 +43,7 @@ const SSO_ERROR_MESSAGES: Record<string, string> = {
   sso_inactive: 'Your account is inactive. Contact an administrator.',
 };
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
@@ -709,6 +709,16 @@ export default function LoginPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+// useSearchParams() must live inside a <Suspense> boundary for static
+// prerender to succeed. The exported component wraps the inner one.
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
   );
 }
 
