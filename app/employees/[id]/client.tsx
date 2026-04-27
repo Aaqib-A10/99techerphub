@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Modal from '@/components/Modal';
 import OnboardingChecklistPanel from './OnboardingChecklistPanel';
+import EmployeePicker from '@/app/components/EmployeePicker';
 import { getTeam } from '../client';
 
 function formatCnic(value: string): string {
@@ -857,18 +858,15 @@ export default function EmployeeDetailClient({
                     </div>
                     <div>
                       <label className="form-label">Reporting Manager</label>
-                      <select
-                        value={editFormData.reportingManagerId || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, reportingManagerId: e.target.value ? parseInt(e.target.value) : null })}
-                        className="form-select"
-                      >
-                        <option value="">None</option>
-                        {allEmployees.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.firstName} {emp.lastName} ({emp.empCode})
-                          </option>
-                        ))}
-                      </select>
+                      <EmployeePicker
+                        employees={allEmployees}
+                        value={editFormData.reportingManagerId}
+                        onChange={(id) =>
+                          setEditFormData({ ...editFormData, reportingManagerId: id })
+                        }
+                        excludeIds={[employee.id]}
+                        placeholder="Search by name, code, designation…"
+                      />
                     </div>
                   </>
                 ) : (
