@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { sendEmail } from '@/lib/services/emailService';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://99techerp.com';
 
 export async function POST(
   request: NextRequest,
@@ -23,43 +26,54 @@ export async function POST(
       );
     }
 
-    // Fetch the onboarding submission
     const submission = await (prisma.onboardingSubmission as any).findUnique({
       where: { id: submissionId },
     });
-
     if (!submission) {
-      return NextResponse.json(
-        { error: 'Onboarding submission not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Onboarding submission not found' }, { status: 404 });
     }
 
-    // Update the submission
     const updated = await (prisma.onboardingSubmission as any).update({
       where: { id: submissionId },
       data: {
         reviewStatus: 'NEEDS_REVISION',
         reviewedAt: new Date(),
-        reviewedBy: 1, // In production, get from session
+        reviewedBy: currentUser.id,
         reviewNotes: notes,
       },
     });
 
-    // Create notification for the candidate
-    try {
-      await prisma.notification.create({
-        data: {
-          userId: 1,
-          type: 'GENERAL',
-          title: 'Onboarding Revision Requested',
-          message: `Your onboarding submission requires revision. Please review the feedback and resubmit.`,
-          link: `/onboarding/${submission.token}`,
-        },
-      });
-    } catch {}
+    // Email the candidate with the resubmit link
+    if (submission.candidateEmail) {
+      try {
+        const candidateName = submission.candidateName || 'Candidate';
+        const company = submission.companyName || '99 Technologies';
+        const resubmitUrl = submission.token ? `${APP_URL}/onboarding/${submission.token}` : null;
+        await sendEmail({
+          to: submission.candidateEmail,
+          subject: `Action needed: please update your onboarding form for ${company}`,
+          templateKey: 'ONBOARDING_NEEDS_REVISION',
+          bodyHtml: `
+            <p>Hi ${candidateName},</p>
+            <p>Thanks for completing the onboarding form. Before we can finalize, the team has asked for a few updates.</p>
+            <p><strong>What to update:</strong></p>
+            <blockquote style="border-left: 3px solid #ddd; padding-left: 12px; color: #444;">
+              ${String(notes).replace(/\n/g, '<br/>')}
+            </blockquote>
+            ${
+              resubmitUrl
+                ? `<p>Click below to open the form (your previous answers are saved — just edit what's flagged):</p>
+                   <p><a href="${resubmitUrl}" style="display:inline-block;padding:10px 18px;background:#0B1F3A;color:#fff;text-decoration:none;border-radius:6px">Update my onboarding form</a></p>`
+                : '<p>Please contact HR for next steps.</p>'
+            }
+            <p>— ${company} HR</p>
+          `,
+        });
+      } catch (e) {
+        console.error('[onboarding/request-changes] email failed', e);
+      }
+    }
 
-    // Log to audit trail
     try {
       await prisma.auditLog.create({
         data: {
@@ -67,6 +81,7 @@ export async function POST(
           recordId: updated.id,
           action: 'UPDATE',
           module: 'ONBOARDING',
+          changedById: currentUser.id,
           newValues: { reviewStatus: 'NEEDS_REVISION', reviewNotes: notes } as any,
         },
       });
@@ -75,9 +90,6 @@ export async function POST(
     return NextResponse.json(updated, { status: 200 });
   } catch (error: any) {
     console.error('Error requesting revision:', error);
-    return NextResponse.json(
-      { error: 'Failed to request revision' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to request revision' }, { status: 500 });
   }
 }

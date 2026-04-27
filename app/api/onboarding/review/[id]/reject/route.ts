@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
+import { sendEmail } from '@/lib/services/emailService';
 
 export async function POST(
   request: NextRequest,
@@ -23,43 +24,50 @@ export async function POST(
       );
     }
 
-    // Fetch the onboarding submission
     const submission = await (prisma.onboardingSubmission as any).findUnique({
       where: { id: submissionId },
     });
-
     if (!submission) {
-      return NextResponse.json(
-        { error: 'Onboarding submission not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Onboarding submission not found' }, { status: 404 });
     }
 
-    // Update the submission
     const updated = await (prisma.onboardingSubmission as any).update({
       where: { id: submissionId },
       data: {
         reviewStatus: 'REJECTED',
         reviewedAt: new Date(),
-        reviewedBy: 1, // In production, get from session
+        reviewedBy: currentUser.id,
         reviewNotes: notes,
       },
     });
 
-    // Create notification for the candidate
-    try {
-      await prisma.notification.create({
-        data: {
-          userId: 1,
-          type: 'GENERAL',
-          title: 'Onboarding Rejected',
-          message: `Your onboarding submission has been rejected. Please contact HR for more information.`,
-          link: `/onboarding-admin/${submission.id}`,
-        },
-      });
-    } catch {}
+    // Email the candidate (no User account yet — in-app notification useless)
+    if (submission.candidateEmail) {
+      try {
+        const candidateName = submission.candidateName || 'Candidate';
+        const position = submission.position ? ` for the ${submission.position} role` : '';
+        const company = submission.companyName || '99 Technologies';
+        await sendEmail({
+          to: submission.candidateEmail,
+          subject: `Update on your application${position} at ${company}`,
+          templateKey: 'ONBOARDING_REJECTED',
+          bodyHtml: `
+            <p>Hi ${candidateName},</p>
+            <p>Thank you for your interest in joining ${company}${position}.</p>
+            <p>After careful review, we are not able to progress your application at this time.</p>
+            <p><strong>Reason:</strong></p>
+            <blockquote style="border-left: 3px solid #ddd; padding-left: 12px; color: #444;">
+              ${String(notes).replace(/\n/g, '<br/>')}
+            </blockquote>
+            <p>We appreciate the time you put into your application and wish you the best in your search.</p>
+            <p>— ${company} HR</p>
+          `,
+        });
+      } catch (e) {
+        console.error('[onboarding/reject] email failed', e);
+      }
+    }
 
-    // Log to audit trail
     try {
       await prisma.auditLog.create({
         data: {
@@ -67,6 +75,7 @@ export async function POST(
           recordId: updated.id,
           action: 'UPDATE',
           module: 'ONBOARDING',
+          changedById: currentUser.id,
           newValues: { reviewStatus: 'REJECTED', reviewNotes: notes } as any,
         },
       });
@@ -75,9 +84,6 @@ export async function POST(
     return NextResponse.json(updated, { status: 200 });
   } catch (error: any) {
     console.error('Error rejecting submission:', error);
-    return NextResponse.json(
-      { error: 'Failed to reject submission' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to reject submission' }, { status: 500 });
   }
 }

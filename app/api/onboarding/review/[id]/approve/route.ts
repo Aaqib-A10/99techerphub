@@ -168,6 +168,35 @@ export async function POST(
       });
     } catch {}
 
+    // Welcome email to the candidate (now an employee)
+    if (employee.email) {
+      try {
+        const { sendEmail } = await import('@/lib/services/emailService');
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://99techerp.com';
+        const company = submission.companyName || '99 Technologies';
+        await sendEmail({
+          to: employee.email,
+          subject: `Welcome to ${company}, ${employee.firstName}!`,
+          templateKey: 'ONBOARDING_APPROVED',
+          bodyHtml: `
+            <p>Hi ${employee.firstName},</p>
+            <p>Your application has been approved and you've been added to the ${company} ERP.</p>
+            <p><strong>Your details:</strong></p>
+            <ul>
+              <li>Employee Code: <strong>${empCode}</strong></li>
+              <li>Designation: ${employee.designation || '—'}</li>
+              <li>Status: ${employee.employmentStatus}</li>
+            </ul>
+            <p>You can sign in at <a href="${appUrl}/login">${appUrl}/login</a> using your work email and the temporary password sent to you separately. Or just use Google / Microsoft SSO with your work email.</p>
+            <p>Welcome aboard!</p>
+            <p>— ${company} HR</p>
+          `,
+        });
+      } catch (e) {
+        console.error('[onboarding/approve] welcome email failed', e);
+      }
+    }
+
     return NextResponse.json(
       {
         success: true,
