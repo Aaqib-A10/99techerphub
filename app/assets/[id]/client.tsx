@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Modal from '@/components/Modal';
 import { Asset, Employee, AssetCondition } from '@prisma/client';
+import EmployeePicker from '@/app/components/EmployeePicker';
 
 interface AssetDetailClientProps {
   asset: Asset & { assignments: any[]; transfers: any[] };
@@ -159,20 +160,15 @@ export default function AssetDetailClient({
         <div className="space-y-4">
           <div>
             <label className="form-label">Select Employee</label>
-            <select
+            <EmployeePicker
+              employees={employees}
               value={assignData.employeeId}
-              onChange={(e) =>
-                setAssignData({ ...assignData, employeeId: e.target.value })
+              onChange={(id) =>
+                setAssignData({ ...assignData, employeeId: id ? String(id) : '' })
               }
-              className="form-select"
-            >
-              <option value="">Choose an employee</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.firstName} {emp.lastName} - {emp.department.name}
-                </option>
-              ))}
-            </select>
+              showInactive={false}
+              placeholder="Search by name, code, designation…"
+            />
           </div>
           <div>
             <label className="form-label">Notes</label>

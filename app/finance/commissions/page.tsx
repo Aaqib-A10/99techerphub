@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
+import EmployeePicker from '@/app/components/EmployeePicker';
 
 export default function CommissionsPage() {
   const [commissions, setCommissions] = useState<any[]>([]);
@@ -74,12 +75,13 @@ export default function CommissionsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="form-label">Employee *</label>
-                  <select value={formData.employeeId} onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })} required className="form-select">
-                    <option value="">Select Employee</option>
-                    {employees.map((emp: any) => (
-                      <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} ({emp.empCode})</option>
-                    ))}
-                  </select>
+                  <EmployeePicker
+                    employees={employees}
+                    value={formData.employeeId}
+                    onChange={(id) => setFormData({ ...formData, employeeId: id ? String(id) : '' })}
+                    required
+                    showInactive={false}
+                  />
                 </div>
                 <div>
                   <label className="form-label">Amount *</label>

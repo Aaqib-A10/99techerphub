@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
+import EmployeePicker from '@/app/components/EmployeePicker';
 
 interface Employee {
   id: number;
@@ -86,10 +87,13 @@ export default function NewDigitalAccessPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Employee *</label>
               {employeesLoading ? <p className="text-gray-500">Loading employees...</p> : (
-                <select value={formData.employeeId} onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent">
-                  <option value="">Select an employee...</option>
-                  {employees.map((emp) => <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName} ({emp.empCode})</option>)}
-                </select>
+                <EmployeePicker
+                  employees={employees}
+                  value={formData.employeeId}
+                  onChange={(id) => setFormData({ ...formData, employeeId: id ? String(id) : '' })}
+                  required
+                  showInactive={false}
+                />
               )}
             </div>
             <div>

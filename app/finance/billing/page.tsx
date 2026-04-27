@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
+import EmployeePicker from '@/app/components/EmployeePicker';
 
 interface Employee {
   id: number;
@@ -83,13 +84,10 @@ export default function BillingSplitPage() {
     fetchData();
   }, []);
 
-  const handleEmployeeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const empId = e.target.value;
-    const emp = employees.find((e) => e.id === parseInt(empId));
-
+  const handleEmployeePick = (id: number | null) => {
     setFormData({
-      employeeId: empId,
-      splits: companies.map((c) => ({ companyId: c.id.toString(), percentage: '' })),
+      employeeId: id ? String(id) : '',
+      splits: id ? companies.map((c) => ({ companyId: c.id.toString(), percentage: '' })) : [],
     });
   };
 
@@ -237,19 +235,13 @@ export default function BillingSplitPage() {
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
                 <label className="form-label">Select Employee *</label>
-                <select
+                <EmployeePicker
+                  employees={employees}
                   value={formData.employeeId}
-                  onChange={handleEmployeeChange}
+                  onChange={handleEmployeePick}
                   required
-                  className="form-input"
-                >
-                  <option value="">Choose an employee...</option>
-                  {employees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.firstName} {emp.lastName} ({emp.empCode})
-                    </option>
-                  ))}
-                </select>
+                  showInactive={false}
+                />
               </div>
 
               {formData.employeeId && formData.splits.length > 0 && (
