@@ -49,6 +49,12 @@ const navStructure: NavEntry[] = [
     icon: ICON_DASHBOARD,
   },
   {
+    type: 'link',
+    name: 'Org Chart',
+    href: '/org-chart',
+    icon: ICON_PEOPLE,
+  },
+  {
     type: 'group',
     name: 'Employees',
     icon: ICON_PEOPLE,
