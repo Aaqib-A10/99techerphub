@@ -19,6 +19,14 @@ interface OnboardingSubmission {
   candidateName: string | null;
   candidateEmail: string | null;
   token: string | null;
+  reviewStatus?: string | null;
+  reviewNotes?: string | null;
+  personalDetails?: any;
+  bankDetails?: any;
+  emergencyContact?: any;
+  educationHistory?: any;
+  workHistory?: any;
+  references?: any;
 }
 
 interface FormData {
@@ -96,32 +104,47 @@ export default function OnboardingForm({
   const [activeSection, setActiveSection] = useState(0);
   const today = new Date().toISOString().split('T')[0];
 
+  const prior = initialSubmission;
+  const pd = prior.personalDetails || {};
+  const bd = prior.bankDetails || {};
+  const ec = prior.emergencyContact || {};
+  const isRevision = prior.reviewStatus === 'NEEDS_REVISION';
+
   const [formData, setFormData] = useState<FormData>({
-    fullName: initialSubmission.candidateName || '',
-    fatherName: '',
-    cnic: '',
-    dateOfBirth: '',
-    gender: '',
-    maritalStatus: '',
-    nationality: '',
-    bloodGroup: '',
-    passportNumber: '',
-    passportExpiry: '',
-    personalEmail: initialSubmission.candidateEmail || '',
-    phone: '',
-    currentAddress: '',
-    city: '',
-    country: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    emergencyContactRelation: '',
-    iban: '',
-    accountNumber: '',
-    bankName: '',
-    accountTitle: '',
-    educationHistory: [{ degree: '', institution: '', year: '', gpa: '' }],
-    workHistory: [{ company: '', position: '', from: '', to: '', reasonForLeaving: '' }],
-    references: [{ name: '', relationship: '', phone: '', email: '' }],
+    fullName: pd.fullName || initialSubmission.candidateName || '',
+    fatherName: pd.fatherName || '',
+    cnic: pd.cnic || '',
+    dateOfBirth: pd.dateOfBirth || '',
+    gender: pd.gender || '',
+    maritalStatus: pd.maritalStatus || '',
+    nationality: pd.nationality || '',
+    bloodGroup: pd.bloodGroup || '',
+    passportNumber: pd.passportNumber || '',
+    passportExpiry: pd.passportExpiry || '',
+    personalEmail: pd.personalEmail || initialSubmission.candidateEmail || '',
+    phone: pd.phone || '',
+    currentAddress: pd.currentAddress || pd.address || '',
+    city: pd.city || '',
+    country: pd.country || '',
+    emergencyContactName: ec.name || '',
+    emergencyContactPhone: ec.phone || '',
+    emergencyContactRelation: ec.relationship || '',
+    iban: bd.iban || '',
+    accountNumber: bd.accountNumber || '',
+    bankName: bd.bankName || '',
+    accountTitle: bd.accountTitle || '',
+    educationHistory:
+      Array.isArray(prior.educationHistory) && prior.educationHistory.length > 0
+        ? prior.educationHistory
+        : [{ degree: '', institution: '', year: '', gpa: '' }],
+    workHistory:
+      Array.isArray(prior.workHistory) && prior.workHistory.length > 0
+        ? prior.workHistory
+        : [{ company: '', position: '', from: '', to: '', reasonForLeaving: '' }],
+    references:
+      Array.isArray(prior.references) && prior.references.length > 0
+        ? prior.references
+        : [{ name: '', relationship: '', phone: '', email: '' }],
     certifyCorrective: false,
   });
 
@@ -336,6 +359,24 @@ export default function OnboardingForm({
           <h1 className="text-3xl font-bold text-brand-primary">99 Technologies</h1>
           <p className="text-gray-600 mt-2">Candidate Onboarding Form</p>
         </div>
+
+        {/* Revision banner */}
+        {isRevision && (
+          <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <p className="text-sm font-semibold text-orange-900 mb-1">
+              The HR team has asked for a few updates
+            </p>
+            {prior.reviewNotes ? (
+              <p className="text-sm text-orange-800 whitespace-pre-wrap">
+                {prior.reviewNotes}
+              </p>
+            ) : null}
+            <p className="text-xs text-orange-700 mt-2">
+              Your previous answers are filled in below — just edit what's flagged
+              and resubmit.
+            </p>
+          </div>
+        )}
 
         {/* Progress Indicator */}
         <div className="mb-8">

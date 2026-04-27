@@ -39,7 +39,9 @@ export default async function OnboardingPage({ params }: { params: { token: stri
       );
     }
 
-    if (submission.isComplete) {
+    // If candidate has submitted AND admin hasn't asked for changes, show thank-you.
+    // If reviewStatus === 'NEEDS_REVISION', let them back into the form to edit.
+    if (submission.isComplete && submission.reviewStatus !== 'NEEDS_REVISION') {
       return (
         <div className="min-h-screen bg-brand-light flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
