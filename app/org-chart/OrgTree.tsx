@@ -27,6 +27,45 @@ function fullName(n: OrgNode): string {
   return `${n.firstName} ${n.lastName}`;
 }
 
+type Tier = 'EXEC' | 'MANAGER' | 'LEAD' | 'IC';
+
+interface TierStyle {
+  label: string;
+  className: string;
+}
+
+const TIER_STYLES: Record<Tier, TierStyle> = {
+  EXEC: { label: 'Exec', className: 'bg-purple-100 text-purple-700 border-purple-200' },
+  MANAGER: { label: 'Manager', className: 'bg-blue-100 text-blue-700 border-blue-200' },
+  LEAD: { label: 'Lead', className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  IC: { label: 'IC', className: 'bg-gray-100 text-gray-600 border-gray-200' },
+};
+
+/**
+ * Infer a seniority tier from the designation string. Used purely for
+ * visual hint chips in the tree — doesn't affect permissions.
+ */
+function inferTier(node: OrgNode): Tier {
+  const d = (node.designation || '').toLowerCase();
+  // Executive level
+  if (/(\b|^)(c[eo]o|ceo|cfo|cto|cmo|coo|chief|founder|president|vp|vice president|head of)/.test(d)) {
+    return 'EXEC';
+  }
+  // Manager / director
+  if (/\b(manager|director|head|controller)\b/.test(d)) {
+    return 'MANAGER';
+  }
+  // If they have at least one direct report, treat as a manager regardless
+  // of the title. Lots of senior ICs have "Engineer" titles but lead teams.
+  if (node.reports.length > 0) {
+    return /(\b)(lead|senior|principal|architect|sr\.?)\b/.test(d) ? 'LEAD' : 'MANAGER';
+  }
+  if (/\b(lead|senior|principal|architect|sr\.?)\b/.test(d)) {
+    return 'LEAD';
+  }
+  return 'IC';
+}
+
 function matches(node: OrgNode, q: string): boolean {
   const haystack = `${fullName(node)} ${node.empCode} ${node.designation ?? ''} ${node.departmentName ?? ''}`.toLowerCase();
   return haystack.includes(q);
@@ -238,17 +277,30 @@ function NodeView({
         </div>
 
         <div className="min-w-0 flex-1">
-          <Link
-            href={`/employees/${node.id}`}
-            className="text-sm font-semibold text-gray-900 hover:text-brand-primary truncate block"
-          >
-            {highlight(fullName(node), query)}
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/employees/${node.id}`}
+              className="text-sm font-semibold text-gray-900 hover:text-brand-primary truncate"
+            >
+              {highlight(fullName(node), query)}
+            </Link>
+            {(() => {
+              const tier = inferTier(node);
+              const style = TIER_STYLES[tier];
+              return (
+                <span
+                  className={`text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded border flex-shrink-0 ${style.className}`}
+                >
+                  {style.label}
+                </span>
+              );
+            })()}
             {isFocus && (
-              <span className="ml-2 text-[10px] uppercase tracking-wider text-brand-primary font-bold">
+              <span className="text-[10px] uppercase tracking-wider text-brand-primary font-bold">
                 You
               </span>
             )}
-          </Link>
+          </div>
           <p className="text-xs text-gray-500 truncate">
             <span className="mono">{highlight(node.empCode, query)}</span>
             {node.designation ? <> · {highlight(node.designation, query)}</> : null}
