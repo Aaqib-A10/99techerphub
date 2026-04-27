@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import EmployeeDetailClient from './client';
 import ProfilePhotoUpload from './ProfilePhotoUpload';
+import RelativeTime from '@/app/components/RelativeTime';
 
 export default async function EmployeeDetailPage({
   params,
@@ -105,7 +106,7 @@ export default async function EmployeeDetailPage({
     `);
   const employeeCompanies = employeeCompanyRows.map((r) => ({ id: r.companyId, code: r.companyCode, name: r.companyName }));
 
-  const [departments, companies, locations] = await Promise.all([
+  const [departments, companies, locations, lastEdit] = await Promise.all([
     prisma.department.findMany({
       where: { isActive: true },
       select: { id: true, code: true, name: true },
@@ -120,7 +121,37 @@ export default async function EmployeeDetailPage({
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     }),
+    // Most recent audit entry for this employee (excluding the initial CREATE).
+    // Used by the "last edited by" chip in the header.
+    prisma.auditLog.findFirst({
+      where: {
+        tableName: 'employees',
+        recordId: employeeId,
+        action: { in: ['UPDATE', 'DELETE'] },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        action: true,
+        createdAt: true,
+        changedBy: {
+          select: {
+            email: true,
+            employee: { select: { firstName: true, lastName: true } },
+          },
+        },
+      },
+    }),
   ]);
+
+  const lastEditInfo = lastEdit
+    ? {
+        action: lastEdit.action,
+        at: lastEdit.createdAt.toISOString(),
+        byName: lastEdit.changedBy?.employee
+          ? `${lastEdit.changedBy.employee.firstName} ${lastEdit.changedBy.employee.lastName}`
+          : lastEdit.changedBy?.email || 'system',
+      }
+    : null;
 
   return (
     <div>
@@ -195,6 +226,16 @@ export default async function EmployeeDetailPage({
                   </span>
                 ) : null}
               </div>
+              {lastEditInfo && (
+                <p
+                  className="mt-2"
+                  style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.7rem' }}
+                  title={new Date(lastEditInfo.at).toLocaleString()}
+                >
+                  Last edited <RelativeTime iso={lastEditInfo.at} /> by{' '}
+                  <span style={{ color: 'rgba(255,255,255,0.7)' }}>{lastEditInfo.byName}</span>
+                </p>
+              )}
             </div>
           </div>
 
