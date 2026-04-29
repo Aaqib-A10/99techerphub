@@ -33,12 +33,18 @@ export interface OrgNode {
   reports: OrgNode[];
 }
 
+export interface DottedLink {
+  managerId: number;
+  employeeId: number;
+}
+
 interface Props {
   roots: OrgNode[];
   ancestry: OrgNode[];
   focusEmployeeId: number | null;
   searchable: boolean;
   totalActive: number;
+  dottedLinks?: DottedLink[];
 }
 
 // ---------------------------------------------------------------------------
@@ -211,7 +217,7 @@ const OrgCard = memo(function OrgCard({ data }: NodeProps<OrgNodeData>) {
           data-org-caret
           aria-label={isExpanded ? 'Collapse subtree' : 'Expand subtree'}
           title={isExpanded ? 'Collapse team' : `Show ${directsCount} report${directsCount === 1 ? '' : 's'}`}
-          className={`flex h-7 shrink-0 items-center gap-1 rounded-md px-1.5 text-[11px] font-semibold tabular-nums transition-colors ${
+          className={`flex h-8 min-w-[40px] shrink-0 items-center justify-center gap-1 rounded-md px-2 text-[12px] font-semibold tabular-nums transition-colors ${
             isExpanded
               ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
               : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
@@ -315,9 +321,10 @@ function layout(flat: FlatNode[]): { nodes: Node[]; edges: Edge[] } {
 // ---------------------------------------------------------------------------
 // The chart
 // ---------------------------------------------------------------------------
-function OrgChartInner({ roots, ancestry, focusEmployeeId, searchable, totalActive }: Props) {
+function OrgChartInner({ roots, ancestry, focusEmployeeId, searchable, totalActive, dottedLinks = [] }: Props) {
   const router = useRouter();
   const { fitView, setCenter } = useReactFlow();
+  const canvasRef = useRef<HTMLDivElement>(null);
   // Track the last toggled node id so we can center the camera on it AFTER
   // the new layout commits. Avoids the "expand a 18-wide subtree → camera
   // fits everything → cards become tiny" problem.
@@ -369,7 +376,33 @@ function OrgChartInner({ roots, ancestry, focusEmployeeId, searchable, totalActi
 
   const flat = useMemo(() => flatten(forest, collapsed), [forest, collapsed]);
 
-  const { nodes: layoutNodes, edges } = useMemo(() => layout(flat), [flat]);
+  const { nodes: layoutNodes, edges: solidEdges } = useMemo(() => layout(flat), [flat]);
+
+  // Dotted-line / matrix edges. Only render when both endpoints are currently
+  // visible (otherwise the edge would point to a node that isn't mounted, and
+  // ReactFlow drops it). The dashed amber styling distinguishes them from the
+  // solid grey reporting-line edges produced by dagre.
+  const edges = useMemo(() => {
+    if (dottedLinks.length === 0) return solidEdges;
+    const visible = new Set(flat.map((f) => f.node.id));
+    const extras: Edge[] = [];
+    for (const link of dottedLinks) {
+      if (!visible.has(link.managerId) || !visible.has(link.employeeId)) continue;
+      extras.push({
+        id: `dotted-${link.managerId}-${link.employeeId}`,
+        source: String(link.managerId),
+        target: String(link.employeeId),
+        type: 'smoothstep',
+        style: { stroke: '#f59e0b', strokeWidth: 1.5, strokeDasharray: '4 4' },
+        label: 'dotted',
+        labelStyle: { fill: '#92400e', fontSize: 9, fontWeight: 600 },
+        labelBgStyle: { fill: '#fef3c7' },
+        labelBgPadding: [4, 2] as [number, number],
+        labelBgBorderRadius: 4,
+      });
+    }
+    return [...solidEdges, ...extras];
+  }, [solidEdges, dottedLinks, flat]);
 
   const handleToggle = useCallback((id: number) => {
     setExpanded((prev) => {
@@ -444,18 +477,38 @@ function OrgChartInner({ roots, ancestry, focusEmployeeId, searchable, totalActi
     lastToggledRef.current = null;
   }, [layoutNodes, setCenter]);
 
+  // Refit on container resize. ReactFlow's `fitView` prop only fires once on
+  // mount, so toggling the sidebar or rotating a tablet leaves the chart
+  // misaligned. ResizeObserver + rAF dedupe gives us one fit per resize burst.
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) return;
+    let frame = 0;
+    const obs = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        fitView({ padding: 0.2, duration: 200, minZoom: 0.15, maxZoom: 1.0 });
+      });
+    });
+    obs.observe(el);
+    return () => {
+      cancelAnimationFrame(frame);
+      obs.disconnect();
+    };
+  }, [fitView]);
+
+  // Bulk actions need a delay before fitView because ReactFlow's internal
+  // node store updates in its own useEffect, AFTER React commits our new
+  // nodes prop. setTimeout(120) lands well past that commit on both dev
+  // (with strict-mode double-renders) and prod. rAF chains weren't enough.
   const expandAll = useCallback(() => {
     setExpanded(new Set(allNodeIds));
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => fitView({ padding: 0.2, duration: 400 }))
-    );
+    setTimeout(() => fitView({ padding: 0.2, duration: 400, minZoom: 0.15, maxZoom: 1.0 }), 120);
   }, [allNodeIds, fitView]);
 
   const collapseAll = useCallback(() => {
     setExpanded(new Set());
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => fitView({ padding: 0.2, duration: 400 }))
-    );
+    setTimeout(() => fitView({ padding: 0.2, duration: 400, minZoom: 0.15, maxZoom: 1.0 }), 120);
   }, [fitView]);
 
   return (
@@ -490,14 +543,14 @@ function OrgChartInner({ roots, ancestry, focusEmployeeId, searchable, totalActi
       </div>
 
       {/* Canvas */}
-      <div className="relative h-[calc(100vh-220px)] min-h-[560px] w-full overflow-hidden rounded-lg ring-1 ring-[rgba(228,228,231,0.85)] bg-zinc-50">
+      <div ref={canvasRef} className="relative h-[calc(100vh-220px)] min-h-[560px] w-full overflow-hidden rounded-lg ring-1 ring-[rgba(228,228,231,0.85)] bg-zinc-50">
         <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
           fitView
-          fitViewOptions={{ padding: 0.2, minZoom: 0.55, maxZoom: 1.0 }}
-          minZoom={0.2}
+          fitViewOptions={{ padding: 0.2, minZoom: 0.15, maxZoom: 1.0 }}
+          minZoom={0.15}
           maxZoom={1.5}
           panOnScroll
           zoomOnScroll

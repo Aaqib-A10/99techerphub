@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
-import OrgChart, { OrgNode } from './OrgChart';
+import OrgChart, { OrgNode, DottedLink } from './OrgChart';
 import PageHero from '@/app/components/PageHero';
 
 export const dynamic = 'force-dynamic';
@@ -106,6 +106,23 @@ export default async function OrgChartPage() {
     activeAssetCount: r._count.assetAssignments,
   }));
 
+  // Currently-active matrix / dotted-line assignments. Solid lines come from
+  // Employee.reportingManagerId (the denormalised cache); dotted lines have to
+  // be queried separately because they don't fit the single-manager column.
+  const now = new Date();
+  const activeIds = new Set(rows.map((r) => r.id));
+  const dottedRows = await prisma.orgAssignment.findMany({
+    where: {
+      relationshipType: 'DOTTED',
+      validFrom: { lte: now },
+      OR: [{ validTo: null }, { validTo: { gt: now } }],
+    },
+    select: { employeeId: true, managerId: true },
+  });
+  const dottedLinks: DottedLink[] = dottedRows.filter(
+    (r) => activeIds.has(r.employeeId) && activeIds.has(r.managerId)
+  );
+
   // Decide what tree to show
   const isOrgWide = ORG_VIEW_ROLES.has(user.role);
   let roots: OrgNode[];
@@ -161,6 +178,7 @@ export default async function OrgChartPage() {
         focusEmployeeId={focusEmployeeId}
         searchable={isOrgWide}
         totalActive={rows.length}
+        dottedLinks={dottedLinks}
       />
     </div>
   );
