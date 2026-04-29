@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
-import OrgTree, { OrgNode } from './OrgTree';
+import OrgChart, { OrgNode } from './OrgChart';
 import PageHero from '@/app/components/PageHero';
 
 export const dynamic = 'force-dynamic';
@@ -151,11 +151,11 @@ export default async function OrgChartPage() {
         title="Organization Chart"
         description={
           isOrgWide
-            ? 'Top-down view of the entire active org.'
-            : 'Your reporting line up to leadership and your direct reports below.'
+            ? 'Left-to-right view of the entire active org. Click a card to open the profile, or the count chip to expand the team.'
+            : 'Your reporting line and direct reports. Click a card to open the profile, or the count chip to expand a team.'
         }
       />
-      <OrgTree
+      <OrgChart
         roots={roots}
         ancestry={ancestry}
         focusEmployeeId={focusEmployeeId}
