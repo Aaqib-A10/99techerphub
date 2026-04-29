@@ -66,10 +66,12 @@ function initials(n: OrgNode): string {
 type Tier = 'EXEC' | 'MANAGER' | 'LEAD' | 'IC';
 
 const TIER_BADGE: Record<Tier, { label: string; className: string }> = {
-  EXEC: { label: 'Exec', className: 'bg-violet-50 text-violet-700 ring-violet-200' },
-  MANAGER: { label: 'Manager', className: 'bg-blue-50 text-blue-700 ring-blue-200' },
-  LEAD: { label: 'Lead', className: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
-  IC: { label: 'IC', className: 'bg-zinc-50 text-zinc-600 ring-zinc-200' },
+  // Saturated palette with consistent value steps — gold > indigo > emerald
+  // > zinc reads as a clear hierarchy at a glance, even on the small chip.
+  EXEC: { label: 'Exec', className: 'bg-amber-100 text-amber-900 ring-amber-300' },
+  MANAGER: { label: 'Manager', className: 'bg-indigo-100 text-indigo-800 ring-indigo-300' },
+  LEAD: { label: 'Lead', className: 'bg-emerald-100 text-emerald-800 ring-emerald-300' },
+  IC: { label: 'IC', className: 'bg-zinc-100 text-zinc-700 ring-zinc-300' },
 };
 
 function inferTier(node: OrgNode): Tier {
@@ -80,10 +82,15 @@ function inferTier(node: OrgNode): Tier {
   if (/\b(manager|director|head|controller)\b/.test(d)) {
     return 'MANAGER';
   }
+  // Reports → manager-by-default. Only senior/principal/architect titles
+  // bump to LEAD. We deliberately don't match the bare word "lead" here
+  // because at 99 Tech it appears in sub-team labels like "Lead Gen
+  // Executive" or "Team Lead" — those are roles within a department,
+  // not a seniority tier. Real lead-tier ICs use senior/principal/etc.
   if (node.reports.length > 0) {
-    return /(\b)(lead|senior|principal|architect|sr\.?)\b/.test(d) ? 'LEAD' : 'MANAGER';
+    return /\b(senior|principal|architect|sr\.?)\b/.test(d) ? 'LEAD' : 'MANAGER';
   }
-  if (/\b(lead|senior|principal|architect|sr\.?)\b/.test(d)) {
+  if (/\b(senior|principal|architect|sr\.?)\b/.test(d)) {
     return 'LEAD';
   }
   return 'IC';
