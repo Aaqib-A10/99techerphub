@@ -7,6 +7,7 @@ import ExportButton from '@/components/ExportButton';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
 import DateFilter from '@/app/components/DateFilter';
+import FilterChip from '@/app/components/FilterChip';
 
 // Three-way employment lifecycle filter for the employees list.
 // Kept in URL-param form so dashboard tiles can deep-link e.g. ?status=exited.
@@ -303,15 +304,122 @@ export default function EmployeeListClient({
         </div>
       </div>
 
-      {/* Date Filter */}
-      <div className="mb-6 flex justify-end">
-        <DateFilter />
-      </div>
+      {/* Compact toolbar — search + chip filters + export */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* Search */}
+        <div className="group relative flex h-8 min-w-[220px] flex-1 items-center rounded-md border border-zinc-200/95 bg-white pl-2.5 pr-2 transition-all duration-150 hover:border-zinc-300 focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)] sm:max-w-[280px]">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="flex-shrink-0 text-zinc-400">
+            <path d="M21 21l-4.35-4.35 M11 19a8 8 0 100-16 8 8 0 000 16z" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search employees…"
+            value={filters.search}
+            onChange={(e) => {
+              setFilters({ ...filters, search: e.target.value });
+              setCurrentPage(1);
+            }}
+            className="ml-2 flex-1 bg-transparent text-[12.5px] text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+          />
+        </div>
 
-      {/* Search and Filter with Export */}
-      <div className="card mb-6">
-        <div className="card-header flex justify-between items-center">
-          <h3 className="section-heading">Filters</h3>
+        <FilterChip
+          value={filters.department}
+          onChange={(v) => {
+            setFilters({ ...filters, department: v });
+            setCurrentPage(1);
+          }}
+          options={initialDepartments.map((d) => ({ value: d.id.toString(), label: d.name }))}
+          placeholder="All Departments"
+        />
+
+        <FilterChip
+          value={filters.company}
+          onChange={(v) => {
+            setFilters({ ...filters, company: v });
+            setCurrentPage(1);
+          }}
+          options={initialCompanies.map((c) => ({ value: c.id.toString(), label: c.name }))}
+          placeholder="All Companies"
+        />
+
+        <FilterChip
+          value={filters.status}
+          onChange={(v) => {
+            setFilters({ ...filters, status: v });
+            setCurrentPage(1);
+          }}
+          options={[
+            { value: 'PERMANENT', label: 'Permanent' },
+            { value: 'PROBATION', label: 'Probation' },
+            { value: 'CONSULTANT', label: 'Consultant' },
+          ]}
+          placeholder="All Status"
+        />
+
+        <FilterChip
+          value={filters.team}
+          onChange={(v) => {
+            setFilters({ ...filters, team: v });
+            setCurrentPage(1);
+          }}
+          options={[
+            { value: 'Dev', label: 'Dev' },
+            { value: 'UI / UX', label: 'UI / UX' },
+            { value: 'Customer Support', label: 'Customer Support' },
+            { value: 'Digital Marketing', label: 'Digital Marketing' },
+            { value: 'E commerce', label: 'E commerce' },
+            { value: 'Decom-Robotics', label: 'Decom-Robotics' },
+            { value: 'UT', label: 'UT' },
+          ]}
+          placeholder="All Teams"
+        />
+
+        <FilterChip
+          value={filters.lifecycleView === 'active' ? '' : filters.lifecycleView}
+          onChange={(v) => {
+            setFilters({ ...filters, lifecycleView: (v || 'active') as LifecycleView });
+            setCurrentPage(1);
+          }}
+          options={[
+            { value: 'exited', label: 'Exited only' },
+            { value: 'all', label: 'All (active + exited)' },
+          ]}
+          placeholder="Active only"
+        />
+
+        {/* Clear (only when something is set) */}
+        {(filters.search ||
+          filters.department ||
+          filters.company ||
+          filters.status ||
+          filters.team ||
+          filters.lifecycleView !== 'active') && (
+          <button
+            onClick={() => {
+              setFilters({
+                search: '',
+                department: '',
+                company: '',
+                status: '',
+                team: '',
+                lifecycleView: 'active',
+              });
+              setCurrentPage(1);
+              try { localStorage.removeItem(STORAGE_KEY); } catch {}
+            }}
+            className="ml-1 inline-flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6L6 18 M6 6l12 12" />
+            </svg>
+            Clear
+          </button>
+        )}
+
+        {/* Spacer pushes the right group */}
+        <div className="ml-auto flex items-center gap-1.5">
+          <DateFilter />
           <ExportButton
             module="employees"
             filters={{
@@ -321,138 +429,6 @@ export default function EmployeeListClient({
               activeOnly: filters.lifecycleView === 'active',
             }}
           />
-        </div>
-        <div className="card-body space-y-4">
-          {/* Search Bar */}
-          <div>
-            <label className="form-label">Search</label>
-            <input
-              type="text"
-              placeholder="Search by name, emp code, email, or phone..."
-              value={filters.search}
-              onChange={(e) => {
-                setFilters({ ...filters, search: e.target.value });
-                setCurrentPage(1);
-              }}
-              className="form-input w-full"
-            />
-          </div>
-
-          {/* Filters Row */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <div>
-              <label className="form-label">Department</label>
-              <select
-                value={filters.department}
-                onChange={(e) => {
-                  setFilters({ ...filters, department: e.target.value });
-                  setCurrentPage(1);
-                }}
-                className="form-select w-full"
-              >
-                <option value="">All Departments</option>
-                {initialDepartments.map((dept) => (
-                  <option key={dept.id} value={dept.id.toString()}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="form-label">Company</label>
-              <select
-                value={filters.company}
-                onChange={(e) => {
-                  setFilters({ ...filters, company: e.target.value });
-                  setCurrentPage(1);
-                }}
-                className="form-select w-full"
-              >
-                <option value="">All Companies</option>
-                {initialCompanies.map((comp) => (
-                  <option key={comp.id} value={comp.id.toString()}>
-                    {comp.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="form-label">Employment Status</label>
-              <select
-                value={filters.status}
-                onChange={(e) => {
-                  setFilters({ ...filters, status: e.target.value });
-                  setCurrentPage(1);
-                }}
-                className="form-select w-full"
-              >
-                <option value="">All Status</option>
-                <option value="PERMANENT">Permanent</option>
-                <option value="PROBATION">Probation</option>
-                <option value="CONSULTANT">Consultant</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="form-label">Team</label>
-              <select
-                value={filters.team}
-                onChange={(e) => {
-                  setFilters({ ...filters, team: e.target.value });
-                  setCurrentPage(1);
-                }}
-                className="form-select w-full"
-              >
-                <option value="">All Teams</option>
-                <option value="Dev">Dev</option>
-                <option value="UI / UX">UI / UX</option>
-                <option value="Customer Support">Customer Support</option>
-                <option value="Digital Marketing">Digital Marketing</option>
-                <option value="E commerce">E commerce</option>
-                <option value="Decom-Robotics">Decom-Robotics</option>
-                <option value="UT">UT</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="form-label">Show</label>
-              <select
-                value={filters.lifecycleView}
-                onChange={(e) => {
-                  setFilters({ ...filters, lifecycleView: e.target.value as LifecycleView });
-                  setCurrentPage(1);
-                }}
-                className="form-select w-full"
-              >
-                <option value="active">Active only</option>
-                <option value="exited">Exited only</option>
-                <option value="all">All (active + exited)</option>
-              </select>
-            </div>
-
-            <div className="flex items-end">
-              <button
-                onClick={() => {
-                  const reset: FilterParams = {
-                    search: '',
-                    department: '',
-                    company: '',
-                    status: '',
-                    team: '',
-                    lifecycleView: 'active',
-                  };
-                  setFilters(reset);
-                  setCurrentPage(1);
-                  try { localStorage.removeItem(STORAGE_KEY); } catch {}
-                }}
-                className="btn btn-secondary w-full justify-center"
-              >
-                Reset Filters
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 

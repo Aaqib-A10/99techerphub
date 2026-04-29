@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import FilterChip from '@/app/components/FilterChip';
 
 interface Company {
   id: number;
@@ -45,10 +46,12 @@ export default function AssetFilters({
   const [storage, setStorage] = useState(searchParams.get('storage') || '');
   const [cpu, setCpu] = useState(searchParams.get('cpu') || '');
   const [gpu, setGpu] = useState(searchParams.get('gpu') || '');
+  const [advancedOpen, setAdvancedOpen] = useState(
+    !!(searchParams.get('ram') || searchParams.get('storage') || searchParams.get('cpu') || searchParams.get('gpu'))
+  );
+  const advancedRef = useRef<HTMLDivElement>(null);
 
-  // Debounced URL update when typing in search / spec filters.
-  // We reset the page back to 1 any time a filter changes so the user
-  // isn't stuck on page 5 of an empty result set.
+  // Debounced URL update for text inputs
   useEffect(() => {
     const t = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
@@ -77,7 +80,6 @@ export default function AssetFilters({
     setStorage('');
     setCpu('');
     setGpu('');
-    // Preserve pageSize when clearing filters so the user's preference sticks.
     const pageSize = searchParams.get('pageSize');
     const params = new URLSearchParams();
     if (pageSize) params.set('pageSize', pageSize);
@@ -98,197 +100,188 @@ export default function AssetFilters({
     !!cpu ||
     !!gpu;
 
+  const specFilterCount = [ram, storage, cpu, gpu].filter(Boolean).length;
+
+  // Outside-click to close advanced popover
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (advancedRef.current && !advancedRef.current.contains(e.target as Node)) {
+        setAdvancedOpen(false);
+      }
+    };
+    if (advancedOpen) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [advancedOpen]);
+
   return (
-    <div className="space-y-3">
-      {/* Row 0 — global search across tag / model / manufacturer / serial */}
-      <div className="relative">
-        <svg
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <div className="flex flex-wrap items-center gap-2">
+      {/* Search */}
+      <div className="group relative flex h-8 min-w-[260px] flex-1 items-center rounded-md border border-zinc-200/95 bg-white pl-2.5 pr-2 transition-all duration-150 hover:border-zinc-300 focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)] sm:max-w-[340px]">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="flex-shrink-0 text-zinc-400" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 21l-4.35-4.35 M11 19a8 8 0 100-16 8 8 0 000 16z" />
         </svg>
         <input
           type="search"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search asset tag, model, manufacturer, serial, or holder…"
-          className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm shadow-sm focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary/20"
+          placeholder="Search tag, model, serial, holder…"
+          className="ml-2 flex-1 bg-transparent text-[12.5px] text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
         />
       </div>
 
-      {/* Row 1 — classification filters */}
-      <div className="filter-bar">
-        <div className="filter-item">
-          <label>Type</label>
-          <select
-            value={searchParams.get('assetType') || ''}
-            onChange={(e) => updateFilter('assetType', e.target.value)}
-            className="form-select"
-          >
-            <option value="">All Types</option>
-            <option value="HARDWARE">Hardware</option>
-            <option value="SOFTWARE">Software</option>
-          </select>
-        </div>
+      <FilterChip
+        value={searchParams.get('assetType') || ''}
+        onChange={(v) => updateFilter('assetType', v)}
+        options={[
+          { value: 'HARDWARE', label: 'Hardware' },
+          { value: 'SOFTWARE', label: 'Software' },
+        ]}
+        placeholder="All Types"
+      />
 
-        <div className="filter-item">
-          <label>Company</label>
-          <select
-            value={searchParams.get('companyId') || ''}
-            onChange={(e) => updateFilter('companyId', e.target.value)}
-            className="form-select"
-          >
-            <option value="">All Companies</option>
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <FilterChip
+        value={searchParams.get('companyId') || ''}
+        onChange={(v) => updateFilter('companyId', v)}
+        options={companies.map((c) => ({ value: c.id.toString(), label: c.name }))}
+        placeholder="All Companies"
+      />
 
-        <div className="filter-item">
-          <label>Location</label>
-          <select
-            value={searchParams.get('locationId') || ''}
-            onChange={(e) => updateFilter('locationId', e.target.value)}
-            className="form-select"
-          >
-            <option value="">All Locations</option>
-            {locations.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <FilterChip
+        value={searchParams.get('locationId') || ''}
+        onChange={(v) => updateFilter('locationId', v)}
+        options={locations.map((l) => ({ value: l.id.toString(), label: l.name }))}
+        placeholder="All Locations"
+      />
 
-        <div className="filter-item">
-          <label>Category</label>
-          <select
-            value={searchParams.get('categoryId') || ''}
-            onChange={(e) => updateFilter('categoryId', e.target.value)}
-            className="form-select"
-          >
-            <option value="">All Categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <FilterChip
+        value={searchParams.get('categoryId') || ''}
+        onChange={(v) => updateFilter('categoryId', v)}
+        options={categories.map((c) => ({ value: c.id.toString(), label: c.name }))}
+        placeholder="All Categories"
+      />
 
-        <div className="filter-item">
-          <label>Condition</label>
-          <select
-            value={searchParams.get('condition') || ''}
-            onChange={(e) => updateFilter('condition', e.target.value)}
-            className="form-select"
-          >
-            <option value="">All Conditions</option>
-            <option value="NEW">New</option>
-            <option value="WORKING">Working</option>
-            <option value="DAMAGED">Damaged</option>
-            <option value="IN_REPAIR">In Repair</option>
-            <option value="LOST">Lost</option>
-            <option value="RETIRED">Retired</option>
-          </select>
-        </div>
+      <FilterChip
+        value={searchParams.get('condition') || ''}
+        onChange={(v) => updateFilter('condition', v)}
+        options={[
+          { value: 'NEW', label: 'New' },
+          { value: 'WORKING', label: 'Working' },
+          { value: 'DAMAGED', label: 'Damaged' },
+          { value: 'IN_REPAIR', label: 'In Repair' },
+          { value: 'LOST', label: 'Lost' },
+          { value: 'RETIRED', label: 'Retired' },
+        ]}
+        placeholder="All Conditions"
+      />
 
-        <div className="filter-item">
-          <label>Status</label>
-          <select
-            value={searchParams.get('assignment') || ''}
-            onChange={(e) => updateFilter('assignment', e.target.value)}
-            className="form-select"
-          >
-            <option value="">All Assets</option>
-            <option value="assigned">Assigned</option>
-            <option value="unassigned">Un-assigned</option>
-          </select>
-        </div>
+      <FilterChip
+        value={searchParams.get('assignment') || ''}
+        onChange={(v) => updateFilter('assignment', v)}
+        options={[
+          { value: 'assigned', label: 'Assigned' },
+          { value: 'unassigned', label: 'Un-assigned' },
+        ]}
+        placeholder="All Assets"
+      />
 
-        <div className="filter-item">
-          <label>Assigned Employee</label>
-          <select
-            value={searchParams.get('employeeId') || ''}
-            onChange={(e) => updateFilter('employeeId', e.target.value)}
-            className="form-select"
-          >
-            <option value="">All Employees</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {emp.firstName} {emp.lastName} ({emp.empCode})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <FilterChip
+        value={searchParams.get('employeeId') || ''}
+        onChange={(v) => updateFilter('employeeId', v)}
+        options={employees.map((e) => ({
+          value: e.id.toString(),
+          label: `${e.firstName} ${e.lastName} (${e.empCode})`,
+        }))}
+        placeholder="All Holders"
+      />
 
-      {/* Row 2 — hardware specification filters */}
-      <div className="filter-bar">
-        <div className="filter-item">
-          <label>RAM</label>
-          <input
-            type="text"
-            value={ram}
-            onChange={(e) => setRam(e.target.value)}
-            placeholder="e.g. 16"
-            className="form-input"
-          />
-        </div>
+      {/* Advanced specs popover */}
+      <div ref={advancedRef} className="relative inline-block">
+        <button
+          type="button"
+          onClick={() => setAdvancedOpen((v) => !v)}
+          className={`inline-flex h-8 items-center gap-1.5 rounded-md border bg-white pl-2.5 pr-2 text-[12.5px] font-medium transition-all duration-150 ${
+            specFilterCount > 0
+              ? 'border-zinc-300 text-zinc-900 shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]'
+              : 'border-zinc-200/95 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'
+          }`}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-zinc-400" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
+          </svg>
+          Specs
+          {specFilterCount > 0 && (
+            <span className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-zinc-900 px-1 text-[10px] font-semibold text-white tabular-nums">
+              {specFilterCount}
+            </span>
+          )}
+        </button>
 
-        <div className="filter-item">
-          <label>Storage / SSD</label>
-          <input
-            type="text"
-            value={storage}
-            onChange={(e) => setStorage(e.target.value)}
-            placeholder="e.g. 512"
-            className="form-input"
-          />
-        </div>
-
-        <div className="filter-item">
-          <label>Processor</label>
-          <input
-            type="text"
-            value={cpu}
-            onChange={(e) => setCpu(e.target.value)}
-            placeholder="e.g. i7"
-            className="form-input"
-          />
-        </div>
-
-        <div className="filter-item">
-          <label>GPU</label>
-          <input
-            type="text"
-            value={gpu}
-            onChange={(e) => setGpu(e.target.value)}
-            placeholder="e.g. RTX"
-            className="form-input"
-          />
-        </div>
-
-        {hasAnyFilter && (
-          <div className="filter-item flex items-end">
-            <button
-              type="button"
-              onClick={clearAll}
-              className="text-sm text-gray-600 hover:text-red-600 underline"
-            >
-              Clear all filters
-            </button>
+        {advancedOpen && (
+          <div className="absolute right-0 top-full z-30 mt-1 w-72 rounded-md border border-zinc-200/85 bg-white p-3 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
+            <div className="grid grid-cols-2 gap-2.5">
+              <SpecInput label="RAM" value={ram} onChange={setRam} placeholder="e.g. 16" />
+              <SpecInput label="Storage" value={storage} onChange={setStorage} placeholder="e.g. 512" />
+              <SpecInput label="Processor" value={cpu} onChange={setCpu} placeholder="e.g. i7" />
+              <SpecInput label="GPU" value={gpu} onChange={setGpu} placeholder="e.g. RTX" />
+            </div>
+            {specFilterCount > 0 && (
+              <div className="mt-2.5 flex justify-end">
+                <button
+                  onClick={() => {
+                    setRam('');
+                    setStorage('');
+                    setCpu('');
+                    setGpu('');
+                  }}
+                  className="text-[11.5px] font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+                >
+                  Clear specs
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {hasAnyFilter && (
+        <button
+          onClick={clearAll}
+          className="ml-1 inline-flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6L6 18 M6 6l12 12" />
+          </svg>
+          Clear
+        </button>
+      )}
     </div>
+  );
+}
+
+function SpecInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+        {label}
+      </span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="h-7 w-full rounded border border-zinc-200 bg-white px-2 text-[12px] text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
+      />
+    </label>
   );
 }
 

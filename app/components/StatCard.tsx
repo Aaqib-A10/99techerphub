@@ -14,12 +14,14 @@ export default function StatCard({
   return (
     <div className="stat-card">
       <div className="flex items-start justify-between">
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="stat-label">{title}</p>
           <p className="stat-value">{value}</p>
           {description && <p className="stat-change">{description}</p>}
         </div>
-        <div className="text-3xl opacity-20">{icon}</div>
+        <div className="ml-2 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-500">
+          <span className="text-[15px] leading-none opacity-70">{icon}</span>
+        </div>
       </div>
     </div>
   );

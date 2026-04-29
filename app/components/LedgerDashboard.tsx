@@ -220,302 +220,250 @@ export default async function LedgerDashboard({
     year: 'numeric',
   });
 
+  const greeting = (() => {
+    const h = new Date().getHours();
+    return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  })();
+  const scopeLabel =
+    selectedCompany === 'all'
+      ? 'All companies'
+      : companyRows.find((c) => c.id === companyId)?.name || 'All';
+
+  const expenseTotal = expenseStatusData.reduce((a, e) => a + e.amount, 0);
+
   return (
-    <div style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif' }}>
-      {/* ============ HERO HEADER ============ */}
-      <div
-        className="flex flex-col sm:flex-row items-start sm:justify-between gap-4 mb-10 pb-6"
-        style={{ borderBottom: '1px solid rgba(196,198,206,0.3)' }}
-      >
-        <div className="flex items-start gap-4">
-          <div style={{ width: 2, height: 40, backgroundColor: TEAL }} />
-          <div>
-            <h1
-              className="text-[22px] sm:text-[28px] font-black tracking-tight leading-none"
-              style={{ color: NAVY }}
-            >
-              {(() => {
-                const h = new Date().getHours();
-                return h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
-              })()}
-            </h1>
-            <p
-              className="text-[11px] font-bold uppercase mt-2"
-              style={{ color: OUTLINE, fontFamily: MONO, letterSpacing: '0.12em' }}
-            >
-              {today}
-            </p>
-          </div>
+    <div className="font-sans text-zinc-900 antialiased">
+      {/* Hero — quiet greeting + scope chip */}
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-[22px] font-semibold tracking-tight text-zinc-900">
+            {greeting}
+          </h1>
+          <p className="mt-1 text-[13px] text-zinc-500">{today}</p>
         </div>
-        <div
-          className="px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2"
-          style={{ backgroundColor: NAVY, color: '#FFFFFF' }}
-        >
-          <span>Viewing: {selectedCompany === 'all' ? 'All Companies' : companyRows.find((c) => c.id === companyId)?.name || 'All'}</span>
-          <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" />
-          </svg>
-        </div>
+        <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-200/85 bg-white px-3 text-[11.5px] font-medium text-zinc-700">
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: '#14B8A6' }}
+          />
+          Viewing · {scopeLabel}
+        </span>
       </div>
 
-      {/* ============ KPI STRIP (5-up) ============ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
-        <KpiCard
+      {/* KPI strip */}
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <KpiTile
           href="/employees"
-          label="Total Employees"
-          value={totalEmployees.toString().padStart(3, '0')}
-          chip={<span style={{ color: TEAL }}>{(totalEmployees - exitedEmployees)} active</span>}
-          chipBg="rgba(20, 184, 166, 0.1)"
+          label="Total employees"
+          value={totalEmployees}
+          delta={`${totalEmployees - exitedEmployees} active`}
+          deltaTone="neutral"
         />
-        <KpiCard
+        <KpiTile
           href="/employees?status=exited"
           label="Exited"
-          value={exitedEmployees.toString().padStart(3, '0')}
-          valueColor={ROSE}
-          chip={<span style={{ color: ROSE }}>{totalEmployees > 0 ? Math.round((exitedEmployees / totalEmployees) * 100) : 0}%</span>}
-          chipBg="rgba(225, 29, 72, 0.08)"
+          value={exitedEmployees}
+          delta={`${totalEmployees > 0 ? Math.round((exitedEmployees / totalEmployees) * 100) : 0}% of total`}
+          deltaTone="negative"
         />
-        <KpiCard
+        <KpiTile
           href="/assets"
-          label="Assets Under Custody"
-          value={assetsCount.toString().padStart(3, '0')}
-          chip={<span style={{ color: OUTLINE, fontFamily: MONO }}>{fmtMoney(assetsValue)}</span>}
-          chipBg="transparent"
-          noBg
+          label="Assets under custody"
+          value={assetsCount}
+          delta={fmtMoney(assetsValue)}
+          deltaTone="neutral"
         />
-        <KpiCard
+        <KpiTile
           href="/expenses?status=PENDING"
-          label="Pending Approvals"
-          value={pendingApprovalsCount.toString().padStart(2, '0')}
-          chip={<span style={{ color: ROSE, fontFamily: MONO }}>{fmtMoney(pendingApprovalsSum)}</span>}
-          chipBg="rgba(225, 29, 72, 0.08)"
+          label="Pending approvals"
+          value={pendingApprovalsCount}
+          delta={fmtMoney(pendingApprovalsSum)}
+          deltaTone={pendingApprovalsCount > 0 ? 'warning' : 'neutral'}
         />
-        <KpiCard
+        <KpiTile
           href="/assets"
-          label="Overdue Returns"
-          value={overdueReturnsCount.toString().padStart(2, '0')}
-          valueColor={overdueReturnsCount > 0 ? ROSE : NAVY}
-          chip={
-            <div
-              className="w-8 h-8 flex items-center justify-center rounded-lg"
-              style={{
-                backgroundColor: overdueReturnsCount > 0 ? 'rgba(225,29,72,0.1)' : SURFACE_LOW,
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={overdueReturnsCount > 0 ? ROSE : OUTLINE} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-            </div>
-          }
-          chipBg="transparent"
-          noBg
+          label="Overdue returns"
+          value={overdueReturnsCount}
+          delta={overdueReturnsCount > 0 ? 'Action needed' : 'All clear'}
+          deltaTone={overdueReturnsCount > 0 ? 'negative' : 'positive'}
         />
       </div>
 
-      {/* ============ RECENT ACTIVITY + RIGHT RAIL ============ */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* LEFT: Recent Activity */}
-        <Card className="lg:col-span-7">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-lg font-black flex items-center gap-2" style={{ color: NAVY }}>
-              Recent activity
-              <span
-                className="inline-block w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: TEAL }}
-              />
-            </h2>
-            <Link
-              href="/audit"
-              className="text-xs font-bold hover:underline"
-              style={{ color: TEAL }}
-            >
-              View All
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {activity.length === 0 && (
-              <p className="text-sm" style={{ color: OUTLINE }}>
-                No recent activity yet.
-              </p>
-            )}
-            {activity.map((item) => (
-              <div
-                key={item.key}
-                className="flex items-center gap-4 p-4 rounded-xl transition-all group"
-                style={{
-                  ...(item.kind === 'ASSIGNMENT' && item.verb === 'returned'
-                    ? { borderLeft: `3px solid ${TEAL}` }
-                    : {}),
-                }}
+      {/* Recent activity + right rail */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        {/* Recent Activity */}
+        <SurfaceCard className="lg:col-span-7">
+          <SurfaceHeader
+            title="Recent activity"
+            action={
+              <Link
+                href="/audit"
+                className="inline-flex items-center gap-1 text-[12px] font-medium text-zinc-500 transition-colors hover:text-zinc-900"
               >
-                <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-bold"
-                  style={{
-                    backgroundColor:
-                      item.kind === 'EXPENSE'
-                        ? 'rgba(20, 184, 166, 0.12)'
-                        : 'rgba(11, 31, 58, 0.08)',
-                    color: item.kind === 'EXPENSE' ? TEAL : NAVY,
-                    fontFamily: MONO,
-                    fontSize: 12,
-                  }}
-                >
-                  {initialsOf(item.who)}
+                View all
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14 M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+            }
+          />
+          <div>
+            {activity.length === 0 ? (
+              <div className="flex flex-col items-center px-6 py-10 text-center">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v4 M12 16h.01" />
+                  </svg>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-4">
-                    <p className="text-sm font-bold truncate" style={{ color: INK }}>
-                      {item.who}{' '}
-                      <span className="font-normal" style={{ color: INK_MUTED }}>
-                        {item.verb}
-                      </span>{' '}
-                      {item.what}
-                    </p>
-                    <span
-                      className="text-[10px] uppercase whitespace-nowrap"
-                      style={{
-                        color: OUTLINE,
-                        fontFamily: MONO,
-                        letterSpacing: '0.05em',
-                      }}
-                    >
-                      {fmtRelative(item.time)}
-                    </span>
-                  </div>
-                  <p className="text-xs mt-1" style={{ color: INK_MUTED, fontFamily: MONO }}>
-                    {item.meta}
-                  </p>
-                </div>
+                <p className="mt-2 text-[12.5px] text-zinc-500">
+                  No recent activity yet.
+                </p>
               </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* RIGHT RAIL */}
-        <div className="lg:col-span-5 space-y-8">
-          {/* Expenses Overview */}
-          <Card>
-            <h3
-              className="text-sm font-black uppercase mb-6"
-              style={{ color: NAVY, letterSpacing: '0.08em' }}
-            >
-              Expenses Overview
-            </h3>
-
-            {/* Stacked bar */}
-            <div className="h-6 w-full flex rounded-full overflow-hidden mb-6">
-              {expenseStatusData.map((s) => {
-                const pct = (s.amount / expenseTotalAmount) * 100;
-                if (pct === 0) return null;
-                return (
-                  <div
-                    key={s.label}
-                    style={{
-                      backgroundColor: s.color,
-                      width: `${pct}%`,
-                    }}
-                    title={`${s.label}: ${fmtMoney(s.amount)}`}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Legend */}
-            <div className="space-y-3">
-              {expenseStatusData.map((s) => (
-                <div key={s.label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+            ) : (
+              <ul>
+                {activity.map((item, i) => (
+                  <li
+                    key={item.key}
+                    className={`flex items-start gap-3 px-4 py-3 ${
+                      i > 0 ? 'border-t border-zinc-100' : ''
+                    }`}
+                  >
                     <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: s.color }}
-                    />
-                    <span className="text-[11px] font-bold" style={{ color: INK }}>
-                      {s.label}
+                      className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
+                        item.kind === 'EXPENSE'
+                          ? 'bg-amber-50 text-amber-700'
+                          : item.verb === 'returned'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-zinc-100 text-zinc-700'
+                      }`}
+                    >
+                      {initialsOf(item.who)}
                     </span>
-                    <span className="text-[10px]" style={{ color: OUTLINE, fontFamily: MONO }}>
-                      ({s.count})
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-bold" style={{ fontFamily: MONO, color: INK }}>
-                    {fmtMoney(s.amount)}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Total */}
-            <div
-              className="mt-4 pt-4 flex items-center justify-between"
-              style={{ borderTop: '1px solid rgba(196,198,206,0.3)' }}
-            >
-              <span className="text-xs font-bold uppercase" style={{ color: OUTLINE, letterSpacing: '0.08em' }}>
-                Total
-              </span>
-              <span className="text-sm font-black" style={{ fontFamily: MONO, color: NAVY }}>
-                {fmtMoney(expenseStatusData.reduce((a, e) => a + e.amount, 0))}
-              </span>
-            </div>
-          </Card>
-
-          {/* Burn by category */}
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h3
-                className="text-sm font-black uppercase"
-                style={{ color: NAVY, letterSpacing: '0.08em' }}
-              >
-                This month&apos;s burn by category
-              </h3>
-              <span
-                className="text-[10px] px-2 py-1 rounded-full font-bold"
-                style={{
-                  backgroundColor: SURFACE_LOW,
-                  color: OUTLINE,
-                  fontFamily: MONO,
-                }}
-              >
-                {now.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }).toUpperCase()}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-8">
-              {/* Donut */}
-              <BurnDonut total={burnTotal} slices={burnByCategory} />
-
-              {/* Legend */}
-              <div className="flex-1 space-y-3">
-                {burnByCategory.length === 0 && (
-                  <p className="text-xs" style={{ color: OUTLINE }}>
-                    No approved expenses this month yet.
-                  </p>
-                )}
-                {burnByCategory.map((b, i) => {
-                  const amount = Number(b._sum.amount) || 0;
-                  const pct = burnTotal > 0 ? Math.round((amount / burnTotal) * 100) : 0;
-                  return (
-                    <div key={b.categoryId || i} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{
-                            backgroundColor: [NAVY, TEAL, AMBER, '#364764', OUTLINE][i % 5],
-                          }}
-                        />
-                        <span className="text-[11px]" style={{ color: INK_MUTED }}>
-                          {catName(b.categoryId)}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-[13px] text-zinc-800">
+                          <span className="font-medium text-zinc-900">{item.who}</span>{' '}
+                          <span className="text-zinc-500">{item.verb}</span>{' '}
+                          <span className="text-zinc-800">{item.what}</span>
+                        </p>
+                        <span className="flex-shrink-0 text-[10.5px] tabular-nums text-zinc-400">
+                          {fmtRelative(item.time)}
                         </span>
                       </div>
-                      <span className="text-[11px] font-bold" style={{ fontFamily: MONO, color: INK }}>
-                        {pct}%
-                      </span>
+                      {item.meta && (
+                        <p className="mt-0.5 text-[11.5px] text-zinc-500 tabular-nums">
+                          {item.meta}
+                        </p>
+                      )}
                     </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </SurfaceCard>
+
+        {/* Right rail */}
+        <div className="space-y-4 lg:col-span-5">
+          {/* Expenses overview */}
+          <SurfaceCard>
+            <SurfaceHeader title="Expenses overview" />
+            <div className="px-4 pb-4">
+              {/* Stacked bar */}
+              <div className="mb-4 flex h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+                {expenseStatusData.map((s) => {
+                  const pct = (s.amount / (expenseTotalAmount || 1)) * 100;
+                  if (pct === 0) return null;
+                  return (
+                    <div
+                      key={s.label}
+                      className={EXPENSE_TINT_BAR[s.label] || 'bg-zinc-300'}
+                      style={{ width: `${pct}%` }}
+                      title={`${s.label}: ${fmtMoney(s.amount)}`}
+                    />
                   );
                 })}
               </div>
+
+              {/* Legend */}
+              <div className="space-y-2">
+                {expenseStatusData.map((s) => (
+                  <div
+                    key={s.label}
+                    className="flex items-center justify-between text-[12.5px]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${EXPENSE_TINT_DOT[s.label] || 'bg-zinc-400'}`}
+                      />
+                      <span className="font-medium text-zinc-800">{s.label}</span>
+                      <span className="text-[10.5px] tabular-nums text-zinc-400">
+                        {s.count}
+                      </span>
+                    </div>
+                    <span className="font-medium tabular-nums text-zinc-900">
+                      {fmtMoney(s.amount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Total */}
+              <div className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-3">
+                <span className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+                  Total
+                </span>
+                <span className="text-[13px] font-semibold tabular-nums text-zinc-900">
+                  {fmtMoney(expenseTotal)}
+                </span>
+              </div>
             </div>
-          </Card>
+          </SurfaceCard>
+
+          {/* Burn by category */}
+          <SurfaceCard>
+            <SurfaceHeader
+              title="Burn this month"
+              action={
+                <span className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+                  {now.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
+                </span>
+              }
+            />
+            <div className="flex items-center gap-5 px-4 pb-4">
+              <BurnDonut total={burnTotal} slices={burnByCategory} />
+              <div className="flex-1 space-y-2">
+                {burnByCategory.length === 0 ? (
+                  <p className="text-[12px] text-zinc-500">
+                    No approved expenses this month yet.
+                  </p>
+                ) : (
+                  burnByCategory.map((b, i) => {
+                    const amount = Number(b._sum.amount) || 0;
+                    const pct = burnTotal > 0 ? Math.round((amount / burnTotal) * 100) : 0;
+                    return (
+                      <div
+                        key={b.categoryId || i}
+                        className="flex items-center justify-between text-[12px]"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="h-1.5 w-1.5 rounded-full"
+                            style={{ backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }}
+                          />
+                          <span className="text-zinc-700">{catName(b.categoryId)}</span>
+                        </div>
+                        <span className="font-medium tabular-nums text-zinc-900">
+                          {pct}%
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </SurfaceCard>
         </div>
       </div>
     </div>
@@ -523,76 +471,97 @@ export default async function LedgerDashboard({
 }
 
 // ============================================================================
-// Helper components
+// Local helpers (new aesthetic)
 // ============================================================================
+const EXPENSE_TINT_BAR: Record<string, string> = {
+  Approved: 'bg-emerald-500',
+  Pending: 'bg-amber-500',
+  Rejected: 'bg-rose-500',
+  Draft: 'bg-zinc-400',
+};
+const EXPENSE_TINT_DOT: Record<string, string> = {
+  Approved: 'bg-emerald-500',
+  Pending: 'bg-amber-500',
+  Rejected: 'bg-rose-500',
+  Draft: 'bg-zinc-400',
+};
+const DONUT_COLORS = ['#0B1F3A', '#71717A', '#14B8A6', '#F59E0B', '#A1A1AA'];
 
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function SurfaceCard({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div
-      className={`rounded-xl p-8 ${className}`}
-      style={{
-        backgroundColor: '#FFFFFF',
-        boxShadow: '0 8px 16px -6px rgba(11, 31, 58, 0.06)',
-      }}
+      className={`overflow-hidden rounded-lg border border-zinc-200/85 bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] ${className}`}
     >
       {children}
     </div>
   );
 }
 
-function KpiCard({
+function SurfaceHeader({
+  title,
+  action,
+}: {
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
+      <h2 className="text-[13px] font-semibold text-zinc-900">{title}</h2>
+      {action}
+    </div>
+  );
+}
+
+function KpiTile({
   href,
   label,
   value,
-  chip,
-  chipBg,
-  valueColor,
-  noBg,
+  delta,
+  deltaTone = 'neutral',
 }: {
   href: string;
   label: string;
-  value: string;
-  chip: React.ReactNode;
-  chipBg: string;
-  valueColor?: string;
-  noBg?: boolean;
+  value: number | string;
+  delta?: string;
+  deltaTone?: 'neutral' | 'positive' | 'negative' | 'warning';
 }) {
-  const inner = (
-    <div
-      className="p-6 rounded-xl transition-all hover:scale-[1.01] h-full"
-      style={{
-        backgroundColor: '#FFFFFF',
-        boxShadow: '0 4px 10px -4px rgba(11, 31, 58, 0.06)',
-      }}
+  const toneClass =
+    deltaTone === 'positive'
+      ? 'text-emerald-600'
+      : deltaTone === 'negative'
+        ? 'text-rose-600'
+        : deltaTone === 'warning'
+          ? 'text-amber-700'
+          : 'text-zinc-500';
+  return (
+    <Link
+      href={href}
+      className="group block rounded-lg border border-zinc-200/85 bg-white p-4 transition-all duration-200 hover:border-zinc-300 hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]"
     >
-      <p
-        className="text-[10px] uppercase font-bold mb-3"
-        style={{ color: '#75777E', letterSpacing: '0.14em' }}
-      >
+      <p className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
         {label}
       </p>
-      <div className="flex items-end justify-between">
-        <span
-          className="text-4xl font-black"
-          style={{
-            color: valueColor || '#0B1F3A',
-            fontFamily: MONO,
-            lineHeight: 1,
-          }}
-        >
+      <div className="mt-2.5 flex items-baseline justify-between gap-2">
+        <span className="text-[24px] font-semibold tracking-tight tabular-nums text-zinc-900 leading-none">
           {value}
         </span>
-        <span
-          className={`text-xs font-bold px-2 py-0.5 rounded-full mb-1 flex items-center ${noBg ? '' : ''}`}
-          style={{ backgroundColor: noBg ? 'transparent' : chipBg }}
-        >
-          {chip}
-        </span>
+        {delta && (
+          <span className={`text-[11px] font-medium ${toneClass}`}>{delta}</span>
+        )}
       </div>
-    </div>
+    </Link>
   );
-  return <Link href={href} className="block h-full">{inner}</Link>;
 }
+
+// ============================================================================
+// Helper components
+// ============================================================================
 
 function BurnDonut({
   total,
@@ -601,21 +570,21 @@ function BurnDonut({
   total: number;
   slices: { categoryId: number | null; _sum: { amount: any } }[];
 }) {
-  const colors = [NAVY, TEAL, AMBER, '#364764', OUTLINE];
+  const colors = DONUT_COLORS;
   const radius = 16;
   const circ = 2 * Math.PI * radius;
   let offset = 0;
 
   return (
-    <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0">
-      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+    <div className="relative flex h-24 w-24 flex-shrink-0 items-center justify-center">
+      <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 36 36">
         <circle
           cx="18"
           cy="18"
           r={radius}
           fill="none"
-          stroke={SURFACE_LOW}
-          strokeWidth="4"
+          stroke="#F4F4F5"
+          strokeWidth="3"
         />
         {total > 0 &&
           slices.map((s, i) => {
@@ -631,9 +600,10 @@ function BurnDonut({
                 r={radius}
                 fill="none"
                 stroke={colors[i % colors.length]}
-                strokeWidth="4"
+                strokeWidth="3"
                 strokeDasharray={`${dash} ${gap}`}
                 strokeDashoffset={-offset}
+                strokeLinecap="butt"
               />
             );
             offset += dash;
@@ -641,16 +611,10 @@ function BurnDonut({
           })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span
-          className="text-xs font-black"
-          style={{ color: NAVY, fontFamily: MONO }}
-        >
+        <span className="text-[12px] font-semibold tabular-nums text-zinc-900">
           {fmtMoney(total)}
         </span>
-        <span
-          className="text-[8px] font-bold uppercase"
-          style={{ color: OUTLINE, letterSpacing: '0.1em' }}
-        >
+        <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-zinc-500">
           Total
         </span>
       </div>
@@ -681,10 +645,10 @@ function fmtRelative(d: Date): string {
   const mins = Math.floor(diff / 60000);
   const hrs = Math.floor(mins / 60);
   const days = Math.floor(hrs / 24);
-  if (mins < 1) return 'NOW';
-  if (mins < 60) return `${mins}M AGO`;
-  if (hrs < 24) return `${hrs}H AGO`;
-  if (days === 1) return 'YESTERDAY';
-  if (days < 7) return `${days}D AGO`;
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+  if (mins < 1) return 'now';
+  if (mins < 60) return `${mins}m ago`;
+  if (hrs < 24) return `${hrs}h ago`;
+  if (days === 1) return 'yesterday';
+  if (days < 7) return `${days}d ago`;
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }

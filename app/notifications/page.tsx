@@ -14,26 +14,75 @@ interface Notification {
   createdAt: string;
 }
 
-const notificationIcons: Record<string, string> = {
-  ASSET_ASSIGNED: '📦',
-  ASSET_RETURNED: '↩️',
-  ASSET_RETIRED: '🗑️',
-  EXPENSE_SUBMITTED: '💰',
-  EXPENSE_APPROVED: '✅',
-  EXPENSE_REJECTED: '❌',
-  EXPENSE_REVISION: '📝',
-  PAYROLL_FINALIZED: '📋',
-  PAYROLL_PAID: '💵',
-  EMPLOYEE_ONBOARDED: '🎉',
-  EMPLOYEE_EXIT: '🚪',
-  SYSTEM_ALERT: '⚠️',
-  GENERAL: '🔔',
+const TYPE_ICONS: Record<string, string> = {
+  ASSET_ASSIGNED:
+    'M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z M3.27 6.96 12 12.01l8.73-5.05 M12 22.08V12',
+  ASSET_RETURNED: 'M3 7l9 6 9-6 M3 7v10l9 6 M21 7v10l-9 6',
+  ASSET_RETIRED: 'M3 6h18 M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2 M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6',
+  EXPENSE_SUBMITTED: 'M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6',
+  EXPENSE_APPROVED: 'M5 13l4 4L19 7',
+  EXPENSE_REJECTED: 'M18 6L6 18 M6 6l12 12',
+  EXPENSE_REVISION:
+    'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7 M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z',
+  PAYROLL_FINALIZED:
+    'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8',
+  PAYROLL_PAID: 'M12 1v22 M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6',
+  EMPLOYEE_ONBOARDED:
+    'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z M19 8v6 M22 11h-6',
+  EMPLOYEE_EXIT:
+    'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4 M16 17l5-5-5-5 M21 12H9',
+  SYSTEM_ALERT:
+    'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4 M12 17h.01',
+  GENERAL: 'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 01-3.46 0',
 };
+
+const TYPE_TINT: Record<string, string> = {
+  ASSET_ASSIGNED: 'bg-blue-50 text-blue-600',
+  ASSET_RETURNED: 'bg-zinc-100 text-zinc-600',
+  ASSET_RETIRED: 'bg-zinc-100 text-zinc-600',
+  EXPENSE_SUBMITTED: 'bg-amber-50 text-amber-700',
+  EXPENSE_APPROVED: 'bg-emerald-50 text-emerald-600',
+  EXPENSE_REJECTED: 'bg-rose-50 text-rose-600',
+  EXPENSE_REVISION: 'bg-amber-50 text-amber-700',
+  PAYROLL_FINALIZED: 'bg-violet-50 text-violet-600',
+  PAYROLL_PAID: 'bg-emerald-50 text-emerald-600',
+  EMPLOYEE_ONBOARDED: 'bg-emerald-50 text-emerald-600',
+  EMPLOYEE_EXIT: 'bg-zinc-100 text-zinc-600',
+  SYSTEM_ALERT: 'bg-amber-50 text-amber-700',
+  GENERAL: 'bg-zinc-100 text-zinc-600',
+};
+
+function relativeTime(iso: string): string {
+  const d = new Date(iso);
+  const diff = Date.now() - d.getTime();
+  const secs = Math.floor(diff / 1000);
+  if (secs < 60) return `${secs}s ago`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function dateLabel(iso: string): string {
+  const d = new Date(iso);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const isToday = d.toDateString() === today.toDateString();
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  if (isToday) return 'Today';
+  if (isYesterday) return 'Yesterday';
+  return d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+}
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -77,16 +126,15 @@ export default function NotificationsPage() {
     }
   };
 
-  const filteredNotifications = selectedType
-    ? notifications.filter((n) => n.type === selectedType)
-    : notifications;
+  const visible = notifications
+    .filter((n) => (selectedType ? n.type === selectedType : true))
+    .filter((n) => (filter === 'unread' ? !n.isRead : true));
 
-  // Group notifications by date
-  const groupedByDate = filteredNotifications.reduce(
+  const groupedByDate = visible.reduce(
     (acc, notif) => {
-      const date = new Date(notif.createdAt).toLocaleDateString();
-      if (!acc[date]) acc[date] = [];
-      acc[date].push(notif);
+      const key = dateLabel(notif.createdAt);
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(notif);
       return acc;
     },
     {} as Record<string, Notification[]>
@@ -95,117 +143,177 @@ export default function NotificationsPage() {
   const uniqueTypes = Array.from(new Set(notifications.map((n) => n.type)));
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-3xl mx-auto">
       <PageHero
         eyebrow="System / Inbox"
         title="Notifications"
         description={
           unreadCount > 0
-            ? `You have ${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}`
-            : 'All notifications read'
+            ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}`
+            : 'You\u2019re all caught up.'
         }
         actions={
-          <div className="flex gap-3">
-            {unreadCount > 0 && (
-              <button onClick={markAllRead} className="btn btn-accent">
-                Mark All Read
-              </button>
-            )}
-            <button onClick={fetchNotifications} className="btn btn-secondary">
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={fetchNotifications}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-200/95 bg-white px-2.5 text-[12.5px] font-medium text-zinc-700 transition-all hover:border-zinc-300 hover:bg-zinc-50"
+              title="Refresh"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+                <path d="M23 4v6h-6 M1 20v-6h6 M3.51 9a9 9 0 0114.85-3.36L23 10 M20.49 15a9 9 0 01-14.85 3.36L1 14" />
+              </svg>
               Refresh
             </button>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllRead}
+                className="inline-flex h-8 items-center rounded-md bg-[#0B1F3A] px-3 text-[12.5px] font-medium text-white transition-opacity hover:opacity-95"
+              >
+                Mark all read
+              </button>
+            )}
           </div>
         }
       />
 
-      {/* Type Filter */}
-      {uniqueTypes.length > 0 && (
-        <div className="mb-6">
-          <div className="tab-bar">
-            <button
-              onClick={() => setSelectedType(null)}
-              className={`tab-btn ${selectedType === null ? 'active' : ''}`}
-            >
-              All
-            </button>
-            {uniqueTypes.map((type) => (
-              <button
-                key={type}
-                onClick={() => setSelectedType(type)}
-                className={`tab-btn ${selectedType === type ? 'active' : ''}`}
-              >
-                {notificationIcons[type]} {type.replace(/_/g, ' ')}
-              </button>
-            ))}
-          </div>
+      {/* Filter row — read/unread + type chip */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="inline-flex h-8 items-center gap-0.5 rounded-md border border-zinc-200/95 bg-white p-0.5">
+          <button
+            onClick={() => setFilter('all')}
+            className={`inline-flex h-7 items-center rounded px-3 text-[12px] font-medium transition-all ${
+              filter === 'all'
+                ? 'bg-zinc-100 text-zinc-900'
+                : 'text-zinc-500 hover:text-zinc-900'
+            }`}
+          >
+            All
+            <span className="ml-1.5 text-[10.5px] tabular-nums text-zinc-400">
+              {notifications.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setFilter('unread')}
+            className={`inline-flex h-7 items-center rounded px-3 text-[12px] font-medium transition-all ${
+              filter === 'unread'
+                ? 'bg-zinc-100 text-zinc-900'
+                : 'text-zinc-500 hover:text-zinc-900'
+            }`}
+          >
+            Unread
+            <span className="ml-1.5 text-[10.5px] tabular-nums text-zinc-400">
+              {unreadCount}
+            </span>
+          </button>
         </div>
-      )}
 
-      {/* Notifications List */}
+        {uniqueTypes.length > 0 && (
+          <select
+            value={selectedType || ''}
+            onChange={(e) => setSelectedType(e.target.value || null)}
+            className="h-8 rounded-md border border-zinc-200/95 bg-white pl-2.5 pr-8 text-[12.5px] font-medium text-zinc-700 transition-all hover:border-zinc-300 focus:border-zinc-400 focus:outline-none"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717A' stroke-width='1.6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 8px center',
+              backgroundSize: '13px',
+              appearance: 'none',
+            }}
+          >
+            <option value="">All types</option>
+            {uniqueTypes.map((t) => (
+              <option key={t} value={t}>
+                {t.replace(/_/g, ' ').toLowerCase().replace(/^./, (m) => m.toUpperCase())}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      {/* List */}
       {loading ? (
-        <div className="text-center py-12">
-          <p style={{ color: '#75777E', fontFamily: 'var(--font-jetbrains-mono), monospace', fontSize: '0.8rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Loading notifications...
-          </p>
+        <div className="rounded-lg border border-zinc-200/85 bg-white p-12 text-center text-[12.5px] text-zinc-500">
+          Loading notifications…
         </div>
-      ) : filteredNotifications.length === 0 ? (
-        <div className="card">
-          <div className="card-body text-center py-12">
-            <div style={{ fontSize: 48, color: 'rgba(11,31,58,0.15)', marginBottom: 12 }}>🔔</div>
-            <p style={{ color: '#0B1F3A', fontWeight: 700 }}>No notifications yet</p>
-            <p style={{ color: '#75777E', fontSize: '0.85rem', marginTop: 6 }}>
-              {selectedType
-                ? `No notifications of type "${selectedType}"`
-                : 'Check back later for updates'}
-            </p>
+      ) : visible.length === 0 ? (
+        <div className="rounded-lg border border-zinc-200/85 bg-white p-12 text-center">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            </svg>
           </div>
+          <p className="mt-3 text-[13px] font-medium text-zinc-900">
+            {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
+          </p>
+          <p className="mt-0.5 text-[12px] text-zinc-500">
+            {selectedType
+              ? `Nothing matches the "${selectedType.replace(/_/g, ' ').toLowerCase()}" filter.`
+              : 'Updates from across the system will appear here.'}
+          </p>
         </div>
       ) : (
         <div className="space-y-6">
-          {Object.entries(groupedByDate).map(([date, notifs]) => (
+          {Object.entries(groupedByDate).map(([date, group]) => (
             <div key={date}>
-              <div className="date-separator">{date}</div>
-              <div className="space-y-3">
-                {notifs.map((notif) => (
-                  <div
-                    key={notif.id}
-                    onClick={() => {
-                      if (!notif.isRead) markAsRead(notif.id);
-                      if (notif.link) window.location.href = notif.link;
-                    }}
-                    className={`notification-card cursor-pointer ${!notif.isRead ? 'unread' : ''}`}
-                  >
-                    <div className="flex items-start gap-4">
-                      <span className="text-2xl flex-shrink-0">
-                        {notificationIcons[notif.type] || '🔔'}
+              <h2 className="mb-2 px-1 text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+                {date}
+              </h2>
+              <div className="overflow-hidden rounded-lg border border-zinc-200/85 bg-white">
+                {group.map((notif, i) => {
+                  const tint = TYPE_TINT[notif.type] || TYPE_TINT.GENERAL;
+                  const iconPath = TYPE_ICONS[notif.type] || TYPE_ICONS.GENERAL;
+                  return (
+                    <div
+                      key={notif.id}
+                      onClick={() => {
+                        if (!notif.isRead) markAsRead(notif.id);
+                        if (notif.link) window.location.href = notif.link;
+                      }}
+                      className={`group flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-zinc-50 ${
+                        i > 0 ? 'border-t border-zinc-100' : ''
+                      } ${!notif.isRead ? 'bg-zinc-50/40' : ''}`}
+                    >
+                      <span
+                        className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md ${tint}`}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                          <path d={iconPath} />
+                        </svg>
                       </span>
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h3 style={{ color: '#0B1F3A', fontWeight: 700, fontSize: '0.95rem' }}>{notif.title}</h3>
-                            <p style={{ color: '#44474D', marginTop: 4, fontSize: '0.875rem' }}>{notif.message}</p>
-                            <p className="mono" style={{ color: '#75777E', marginTop: 8, fontSize: '0.7rem', letterSpacing: '0.04em' }}>
-                              {new Date(notif.createdAt).toLocaleString()}
-                            </p>
-                          </div>
-                          {!notif.isRead && (
-                            <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#14B8A6', flexShrink: 0, marginTop: 8 }} />
-                          )}
+                          <p className={`text-[13px] ${
+                            !notif.isRead ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-800'
+                          }`}>
+                            {notif.title}
+                          </p>
+                          <span className="flex-shrink-0 text-[10.5px] tabular-nums text-zinc-400">
+                            {relativeTime(notif.createdAt)}
+                          </span>
                         </div>
+                        <p className="mt-0.5 text-[12.5px] text-zinc-600">
+                          {notif.message}
+                        </p>
                         {notif.link && (
-                          <div style={{ marginTop: 12 }}>
-                            <Link
-                              href={notif.link}
-                              style={{ fontSize: '0.8rem', fontWeight: 600, color: '#14B8A6' }}
-                            >
-                              View Details →
-                            </Link>
-                          </div>
+                          <Link
+                            href={notif.link}
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+                          >
+                            Open
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M5 12h14 M12 5l7 7-7 7" />
+                            </svg>
+                          </Link>
                         )}
                       </div>
+                      {!notif.isRead && (
+                        <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-zinc-900" />
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}

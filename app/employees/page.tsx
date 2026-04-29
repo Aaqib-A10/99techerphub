@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
-import Link from 'next/link';
 import EmployeeListClient from './client';
 import PageHero from '@/app/components/PageHero';
+import SplitButton from '@/app/components/SplitButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,26 +98,39 @@ export default async function EmployeesPage() {
         title="Employees"
         description="Manage employee lifecycle from offer to exit"
         actions={
-          <>
-            <Link href="/offer-letters/new" className="btn btn-secondary">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Offer Letter
-            </Link>
-            <Link href="/employees/import" className="btn btn-secondary">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Bulk Import
-            </Link>
-            <Link href="/employees/new" className="btn btn-accent">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Employee
-            </Link>
-          </>
+          <SplitButton
+            primary={{
+              label: 'Add Employee',
+              href: '/employees/new',
+              icon: (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14 M5 12h14" />
+                </svg>
+              ),
+            }}
+            actions={[
+              {
+                label: 'Bulk Import',
+                href: '/employees/import',
+                description: 'Import employees from a CSV or Excel file',
+                icon: (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M17 8l-5-5-5 5 M12 3v12" />
+                  </svg>
+                ),
+              },
+              {
+                label: 'Send Offer Letter',
+                href: '/offer-letters/new',
+                description: 'Draft and send a new candidate offer',
+                icon: (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" />
+                  </svg>
+                ),
+              },
+            ]}
+          />
         }
       />
 

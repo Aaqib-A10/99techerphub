@@ -7,7 +7,7 @@ import Topbar from './Topbar';
 import PageBack from './PageBack';
 
 // Routes that should render full-bleed without the sidebar/topbar chrome.
-const CHROMELESS_ROUTES = ['/login', '/forgot-password', '/reset-password', '/expenses/capture'];
+const CHROMELESS_ROUTES = ['/login', '/forgot-password', '/reset-password', '/expenses/capture', '/labs'];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';

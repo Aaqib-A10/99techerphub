@@ -260,28 +260,31 @@ export default function SalaryManagementPage() {
         </div>
       </div>
 
-      {/* Info Card */}
+      {/* How it works */}
       <div className="card mt-6">
         <div className="card-header">
-          <h2 className="section-heading">How Salary Updates Work</h2>
+          <h2 className="section-heading">How salary updates work</h2>
         </div>
         <div className="card-body">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {[
-              { step: '01', title: 'Select Employee', desc: 'Choose the employee whose salary needs updating' },
-              { step: '02', title: 'Enter New Salary', desc: 'The system auto-calculates the increment percentage' },
-              { step: '03', title: 'Audit Trail', desc: 'Previous salary is closed and new record created with full history' },
+              { step: '1', title: 'Select employee', desc: 'Choose the employee whose salary needs updating.' },
+              { step: '2', title: 'Enter new salary', desc: 'The system auto-calculates the increment percentage.' },
+              { step: '3', title: 'Audit trail', desc: 'Previous salary is closed and a new record is created with full history.' },
             ].map((item) => (
-              <div key={item.step} className="relative p-5 rounded-xl" style={{ backgroundColor: '#F8F9FF', border: '1px solid rgba(196, 198, 206, 0.25)' }}>
-                <div
-                  aria-hidden
-                  style={{ position: 'absolute', left: 0, top: 16, bottom: 16, width: 2, backgroundColor: '#14B8A6', borderRadius: '0 1px 1px 0' }}
-                />
-                <div className="mono text-[10px] font-bold uppercase mb-2" style={{ color: '#14B8A6', letterSpacing: '0.14em' }}>
-                  Step {item.step}
+              <div
+                key={item.step}
+                className="rounded-lg border border-zinc-200/85 bg-zinc-50/40 p-4"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10.5px] font-semibold text-white tabular-nums">
+                    {item.step}
+                  </span>
+                  <h3 className="text-[13px] font-semibold text-zinc-900">
+                    {item.title}
+                  </h3>
                 </div>
-                <h3 className="text-sm font-bold mb-1" style={{ color: '#0B1F3A' }}>{item.title}</h3>
-                <p className="text-xs" style={{ color: '#44474D' }}>{item.desc}</p>
+                <p className="mt-2 text-[12.5px] text-zinc-500">{item.desc}</p>
               </div>
             ))}
           </div>

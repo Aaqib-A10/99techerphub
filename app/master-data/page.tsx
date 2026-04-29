@@ -54,78 +54,44 @@ export default async function MasterDataPage() {
         description="Manage core lookup tables used across the system"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {cards.map((card) => (
           <Link
             key={card.href}
             href={card.href}
-            className="card group relative overflow-hidden p-6 transition-all"
-            style={{ textDecoration: 'none' }}
+            className="group flex items-center justify-between gap-6 rounded-lg border border-zinc-200/85 bg-white p-5 transition-all duration-200 hover:border-zinc-300 hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]"
           >
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 24,
-                bottom: 24,
-                width: 2,
-                backgroundColor: '#14B8A6',
-                borderRadius: '0 1px 1px 0',
-              }}
-            />
-            <div className="flex items-start justify-between gap-6">
-              <div className="flex-1 min-w-0">
-                <div
-                  className="text-[10px] font-bold uppercase mb-2"
-                  style={{
-                    color: '#14B8A6',
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    letterSpacing: '0.14em',
-                  }}
-                >
-                  Lookup Table
-                </div>
-                <h3
-                  className="text-2xl font-black mb-2"
-                  style={{ color: '#0B1F3A', letterSpacing: '-0.02em' }}
-                >
-                  {card.title}
-                </h3>
-                <p className="text-sm mb-4" style={{ color: '#44474D' }}>
-                  {card.description}
-                </p>
-                <div
-                  className="text-xs font-semibold inline-flex items-center gap-1"
-                  style={{ color: '#14B8A6' }}
-                >
-                  Manage
-                  <span aria-hidden>→</span>
-                </div>
-              </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+                Lookup table
+              </p>
+              <h3 className="mt-1 text-[15px] font-semibold tracking-tight text-zinc-900">
+                {card.title}
+              </h3>
+              <p className="mt-1 text-[12.5px] text-zinc-500">{card.description}</p>
+            </div>
+            <div className="flex items-center gap-3">
               <div className="text-right">
-                <div
-                  className="text-5xl font-black"
-                  style={{
-                    color: '#0B1F3A',
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    letterSpacing: '-0.04em',
-                    fontFeatureSettings: '"tnum" 1',
-                  }}
-                >
+                <div className="text-[22px] font-semibold tabular-nums text-zinc-900 leading-none">
                   {card.count}
                 </div>
-                <div
-                  className="text-[10px] uppercase mt-1"
-                  style={{
-                    color: '#44474D',
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    letterSpacing: '0.14em',
-                  }}
-                >
-                  Records
-                </div>
+                <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.06em] text-zinc-400">
+                  records
+                </p>
               </div>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.6}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-zinc-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-zinc-600"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
             </div>
           </Link>
         ))}

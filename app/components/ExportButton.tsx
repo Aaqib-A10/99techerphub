@@ -67,44 +67,52 @@ export default function ExportButton({ module, filters = {} }: ExportButtonProps
       <button
         onClick={() => setOpen((o) => !o)}
         disabled={isLoading !== null}
-        className="inline-flex items-center gap-2 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-secondary hover:shadow active:scale-95 disabled:opacity-60"
+        className="inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-200/95 bg-white pl-2.5 pr-2 text-[12.5px] font-medium text-zinc-700 transition-all duration-150 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-60"
         title="Export the currently filtered data"
       >
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-zinc-400" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3" />
         </svg>
         {loadingLabel || 'Export'}
-        <svg className="h-3 w-3 opacity-80" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        <svg
+          width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}
+          className={`text-zinc-400 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          strokeLinecap="round" strokeLinejoin="round"
+        >
+          <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
 
       {open && (
-        <div className="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute right-0 top-full z-30 mt-1 w-52 overflow-hidden rounded-md border border-zinc-200/85 bg-white shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
           <button
             type="button"
             onClick={() => handleExport('xlsx')}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-[12.5px] text-zinc-700 transition-colors hover:bg-zinc-50"
           >
-            <span className="text-base">📊</span>
-            <div>
-              <div className="font-semibold">Excel (.xlsx)</div>
-              <div className="text-[11px] text-gray-500">Formatted spreadsheet</div>
+            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded bg-emerald-50 text-emerald-600">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M8 13h2 M14 13h2 M8 17h2 M14 17h2" />
+              </svg>
+            </span>
+            <div className="min-w-0">
+              <div className="font-medium text-zinc-900">Excel (.xlsx)</div>
+              <div className="text-[10.5px] text-zinc-500">Formatted spreadsheet</div>
             </div>
           </button>
           <button
             type="button"
             onClick={() => handleExport('csv')}
-            className="flex w-full items-center gap-3 border-t border-gray-100 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"
+            className="flex w-full items-center gap-2.5 border-t border-zinc-100 px-3 py-2 text-left text-[12.5px] text-zinc-700 transition-colors hover:bg-zinc-50"
           >
-            <span className="text-base">📄</span>
-            <div>
-              <div className="font-semibold">CSV (.csv)</div>
-              <div className="text-[11px] text-gray-500">Plain text, any tool</div>
+            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded bg-zinc-100 text-zinc-600">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6" />
+              </svg>
+            </span>
+            <div className="min-w-0">
+              <div className="font-medium text-zinc-900">CSV (.csv)</div>
+              <div className="text-[10.5px] text-zinc-500">Plain text, any tool</div>
             </div>
           </button>
         </div>

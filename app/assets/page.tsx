@@ -1,10 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import Link from 'next/link';
 import AssetFilters from '@/components/AssetFilters';
 import ExportButton from '@/components/ExportButton';
 import Pagination from '@/components/Pagination';
 import AssetTable from './AssetTable';
 import DateFilter from '@/app/components/DateFilter';
+import PageHero from '@/app/components/PageHero';
+import SplitButton from '@/app/components/SplitButton';
 
 /**
  * Extract a spec value from the JSON blob using case-insensitive
@@ -251,87 +252,51 @@ export default async function AssetsPage({
   });
 
   return (
-    <div style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif', color: '#0B1C30' }}>
-      {/* Hero header — Architectural Ledger style */}
-      <div
-        className="mb-8 pb-6 flex flex-wrap items-center justify-between gap-4"
-        style={{ borderBottom: '1px solid rgba(196,198,206,0.3)' }}
-      >
-        <div className="flex items-start gap-4">
-          {/* Ledger Line accent */}
-          <div style={{ width: 2, height: 56, backgroundColor: '#14B8A6' }} />
-          <div>
-            <p
-              className="text-[11px] font-bold uppercase mb-2"
-              style={{
-                color: '#75777E',
-                letterSpacing: '0.12em',
-                fontFamily: 'var(--font-jetbrains-mono), monospace',
-              }}
-            >
-              Asset Management
-            </p>
-            <h1
-              className="text-4xl font-black tracking-tighter leading-none"
-              style={{ color: '#0B1F3A' }}
-            >
-              Assets List
-            </h1>
-            <p className="mt-2 text-sm" style={{ color: '#44474D' }}>
-              Track every device, scan QR labels, and assign hardware to employees.
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/assets/scan"
-            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all"
-            style={{
-              border: '1px solid rgba(196,198,206,0.4)',
-              color: '#0B1C30',
-              backgroundColor: '#FFFFFF',
+    <div>
+      <PageHero
+        eyebrow="Asset Management"
+        title="Assets"
+        description="Track every device, scan QR labels, and assign hardware to employees."
+        actions={
+          <SplitButton
+            primary={{
+              label: 'Add Asset',
+              href: '/assets/new',
+              icon: (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14 M5 12h14" />
+                </svg>
+              ),
             }}
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h4V4H4v2zm0 6h4v-2H4v2zm0 6h4v-2H4v2zm6-12h10V4H10v2zm0 6h10v-2H10v2zm0 6h10v-2H10v2z" />
-            </svg>
-            Scan Asset
-          </Link>
-          <Link
-            href="/assets/import"
-            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all"
-            style={{
-              border: '1px solid rgba(196,198,206,0.4)',
-              color: '#0B1C30',
-              backgroundColor: '#FFFFFF',
-            }}
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4m0 0L8 8m4-4l4 4" />
-            </svg>
-            Bulk Import
-          </Link>
-          <Link
-            href="/assets/new"
-            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all active:scale-95"
-            style={{ backgroundColor: '#0B1F3A', color: '#FFFFFF' }}
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            Add Asset
-          </Link>
-        </div>
-      </div>
+            actions={[
+              {
+                label: 'Scan Asset',
+                href: '/assets/scan',
+                description: 'Scan a QR label with the camera',
+                icon: (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 7V5a2 2 0 012-2h2 M17 3h2a2 2 0 012 2v2 M21 17v2a2 2 0 01-2 2h-2 M7 21H5a2 2 0 01-2-2v-2 M7 12h10" />
+                  </svg>
+                ),
+              },
+              {
+                label: 'Bulk Import',
+                href: '/assets/import',
+                description: 'Import assets from a CSV or Excel file',
+                icon: (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M17 8l-5-5-5 5 M12 3v12" />
+                  </svg>
+                ),
+              },
+            ]}
+          />
+        }
+      />
 
-      {/* Date Filter */}
-      <div className="mb-6 flex justify-end">
-        <DateFilter />
-      </div>
-
-      {/* Filters - Client Component */}
-      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex-1">
+      {/* Compact toolbar — chip filters live inside AssetFilters; date + export sit on the right */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="flex-1 min-w-0">
           <AssetFilters
             companies={companies.map((c) => ({ id: c.id, name: c.name }))}
             locations={locations.map((l) => ({ id: l.id, name: l.name }))}
@@ -339,35 +304,30 @@ export default async function AssetsPage({
             employees={employees.map((e) => ({ id: e.id, firstName: e.firstName, lastName: e.lastName, empCode: e.empCode }))}
           />
         </div>
-        <ExportButton
-          module="assets"
-          filters={{
-            companyId: (searchParams.companyId as string) || '',
-            locationId: (searchParams.locationId as string) || '',
-            categoryId: (searchParams.categoryId as string) || '',
-            condition: (searchParams.condition as string) || '',
-            assignment: assignment || '',
-            employeeId: (searchParams.employeeId as string) || '',
-            q: q || '',
-            ram: ramFilter || '',
-            storage: storageFilter || '',
-            cpu: cpuFilter || '',
-            gpu: gpuFilter || '',
-          }}
-        />
+        <div className="flex items-center gap-1.5">
+          <DateFilter />
+          <ExportButton
+            module="assets"
+            filters={{
+              companyId: (searchParams.companyId as string) || '',
+              locationId: (searchParams.locationId as string) || '',
+              categoryId: (searchParams.categoryId as string) || '',
+              condition: (searchParams.condition as string) || '',
+              assignment: assignment || '',
+              employeeId: (searchParams.employeeId as string) || '',
+              q: q || '',
+              ram: ramFilter || '',
+              storage: storageFilter || '',
+              cpu: cpuFilter || '',
+              gpu: gpuFilter || '',
+            }}
+          />
+        </div>
       </div>
 
-      {/* Assets Table — Ledger style */}
-      <div
-        className="overflow-hidden rounded-xl"
-        style={{
-          backgroundColor: '#FFFFFF',
-          boxShadow: '0 8px 16px -6px rgba(11, 31, 58, 0.06)',
-        }}
-      >
+      {/* Assets Table */}
+      <div className="overflow-hidden rounded-lg bg-white border border-zinc-200/85 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
         <AssetTable assets={JSON.parse(JSON.stringify(assets))} />
-
-        {/* Pagination footer */}
         <Pagination
           page={safePage}
           pageSize={pageSize}

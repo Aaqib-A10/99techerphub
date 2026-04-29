@@ -89,7 +89,7 @@ export default async function FinancePage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           { href: '/finance/payroll', title: 'Payroll Runs', sub: 'Process monthly payroll' },
           { href: '/finance/salary', title: 'Salary Management', sub: 'Increments & adjustments' },
@@ -99,37 +99,15 @@ export default async function FinancePage() {
           <Link
             key={q.href}
             href={q.href}
-            className="card group relative overflow-hidden p-5 transition-all"
-            style={{ textDecoration: 'none' }}
+            className="group flex flex-col rounded-lg border border-zinc-200/85 bg-white p-4 transition-all duration-200 hover:border-zinc-300 hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]"
           >
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: 20,
-                bottom: 20,
-                width: 2,
-                backgroundColor: '#14B8A6',
-                borderRadius: '0 1px 1px 0',
-                opacity: 0.8,
-              }}
-            />
-            <div
-              className="text-[10px] font-bold uppercase mb-2"
-              style={{
-                color: '#14B8A6',
-                fontFamily: 'var(--font-jetbrains-mono), monospace',
-                letterSpacing: '0.14em',
-              }}
-            >
-              Quick Action
-            </div>
-            <div className="text-base font-bold" style={{ color: '#0B1F3A', letterSpacing: '-0.01em' }}>
+            <p className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+              Quick action
+            </p>
+            <h3 className="mt-1 text-[14px] font-semibold tracking-tight text-zinc-900">
               {q.title}
-            </div>
-            <div className="text-xs mt-1" style={{ color: '#44474D' }}>
-              {q.sub}
-            </div>
+            </h3>
+            <p className="mt-0.5 text-[12px] text-zinc-500">{q.sub}</p>
           </Link>
         ))}
       </div>

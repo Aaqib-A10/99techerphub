@@ -26,7 +26,7 @@ export default async function Dashboard({
   // Personal dashboard for non-admin roles linked to an Employee record
   if (user && user.employeeId && !ORG_VIEW_ROLES.has(user.role)) {
     return (
-      <div style={{ backgroundColor: '#F8F9FF', minHeight: '100vh' }}>
+      <div style={{ minHeight: '100vh' }}>
         <div className="max-w-7xl mx-auto px-6 py-6">
           <Suspense
             fallback={
@@ -65,7 +65,7 @@ export default async function Dashboard({
   ]);
 
   return (
-    <div style={{ backgroundColor: '#F8F9FF', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="mb-4 flex justify-end">
           <DashboardFilterBar
