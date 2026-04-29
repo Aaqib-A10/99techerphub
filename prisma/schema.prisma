@@ -87,6 +87,19 @@ enum NotificationType {
   GENERAL
 }
 
+enum OrgRelationshipType {
+  SOLID
+  DOTTED
+}
+
+enum JobTier {
+  EXECUTIVE
+  DIRECTOR
+  MANAGER
+  LEAD
+  IC
+}
+
 // ========================
 // USER & AUTH
 // ========================
@@ -102,11 +115,12 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  employee     Employee? @relation(fields: [employeeId], references: [id])
-  sessions     Session[]
-  notifications Notification[]
-  expenseApprovals ExpenseApproval[]
-  auditLogs    AuditLog[] @relation("AuditUser")
+  employee              Employee?         @relation(fields: [employeeId], references: [id])
+  sessions              Session[]
+  notifications         Notification[]
+  expenseApprovals      ExpenseApproval[]
+  auditLogs             AuditLog[]        @relation("AuditUser")
+  orgAssignmentsCreated OrgAssignment[]   @relation("AssignmentCreatedBy")
 
   @@map("users")
 }
@@ -118,7 +132,7 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
   @@map("sessions")
@@ -129,50 +143,50 @@ model Session {
 // ========================
 
 model Company {
-  id        Int       @id @default(autoincrement())
-  code      String    @unique
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
   name      String
   country   String
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  assets           Asset[]
-  assetsFrom       AssetTransfer[] @relation("FromCompany")
-  assetsTo         AssetTransfer[] @relation("ToCompany")
-  employees        Employee[]
-  expenses         Expense[]
-  payrollRuns      PayrollRun[]
-  billingSplits    BillingSplit[]
-  employeeCompanies EmployeeCompany[]
+  assets                Asset[]
+  assetsFrom            AssetTransfer[]        @relation("FromCompany")
+  assetsTo              AssetTransfer[]        @relation("ToCompany")
+  employees             Employee[]
+  expenses              Expense[]
+  payrollRuns           PayrollRun[]
+  billingSplits         BillingSplit[]
+  employeeCompanies     EmployeeCompany[]
   onboardingSubmissions OnboardingSubmission[]
 
   @@map("companies")
 }
 
 model Department {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  code      String    @unique @default("")
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  code      String   @unique @default("")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  employees Employee[]
-  expenses  Expense[]
-  expenseCategories ExpenseCategory[]
+  employees             Employee[]
+  expenses              Expense[]
+  expenseCategories     ExpenseCategory[]
   onboardingSubmissions OnboardingSubmission[]
 
   @@map("departments")
 }
 
 model Location {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
   address   String?
   country   String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   assets    Asset[]
   employees Employee[]
@@ -185,48 +199,49 @@ model Location {
 // ========================
 
 model Employee {
-  id                   Int       @id @default(autoincrement())
-  empCode              String    @unique
-  firstName            String
-  lastName             String
-  fatherName           String?
-  email                String?
+  id                       Int       @id @default(autoincrement())
+  empCode                  String    @unique
+  firstName                String
+  lastName                 String
+  fatherName               String?
+  email                    String?
   // Organization / work email (e.g. @99technologies.com). Used for SSO
   // matching so personal `email` can stay as personal contact.
-  workEmail            String?   @unique
-  phone                String?
-  cnic                 String?
-  dateOfBirth          DateTime?
-  gender               String?
-  address              String?
-  permanentAddress     String?
-  city                 String?
-  country              String?
-  emergencyContactName String?
-  emergencyContactPhone String?
+  workEmail                String?   @unique
+  phone                    String?
+  cnic                     String?
+  dateOfBirth              DateTime?
+  gender                   String?
+  address                  String?
+  permanentAddress         String?
+  city                     String?
+  country                  String?
+  emergencyContactName     String?
+  emergencyContactPhone    String?
   emergencyContactRelation String?
 
   // Employment details
-  departmentId         Int
-  companyId            Int?
-  locationId           Int?
-  designation          String
-  team                 String?
-  employmentStatus     EmploymentStatus
-  lifecycleStage       EmployeeLifecycleStage @default(ACTIVE)
-  dateOfJoining        DateTime
-  dateOfLeaving        DateTime?
-  probationEndDate     DateTime?
-  exitReason           String?
-  reportingManagerId   Int?
+  departmentId       Int
+  companyId          Int?
+  locationId         Int?
+  designation        String
+  team               String?
+  jobTier            JobTier?
+  employmentStatus   EmploymentStatus
+  lifecycleStage     EmployeeLifecycleStage @default(ACTIVE)
+  dateOfJoining      DateTime
+  dateOfLeaving      DateTime?
+  probationEndDate   DateTime?
+  exitReason         String?
+  reportingManagerId Int?
 
   // Banking
-  bankName             String?
-  bankAccountNumber    String?
-  bankAccountStatus    String?
-  bankBranch           String?
-  iban                 String?
-  bankAccountTitle     String?
+  bankName          String?
+  bankAccountNumber String?
+  bankAccountStatus String?
+  bankBranch        String?
+  iban              String?
+  bankAccountTitle  String?
 
   // Extended personal info
   bloodGroup           String?
@@ -237,26 +252,28 @@ model Employee {
   lastDegree           String?
   previousOrganization String?
   referenceCheck       String?
-  education            Json?     // { degree, institution, year, gpa }
-  references           Json?     // [{ name, relation, phone, email }]
+  education            Json? // { degree, institution, year, gpa }
+  references           Json? // [{ name, relation, phone, email }]
 
   // Digital photo
-  photoUrl             String?
+  photoUrl String?
 
-  isActive             Boolean   @default(true)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  department           Department @relation(fields: [departmentId], references: [id])
-  company              Company?   @relation(fields: [companyId], references: [id])
-  location             Location?  @relation(fields: [locationId], references: [id])
-  reportingManager     Employee?  @relation("ReportingManager", fields: [reportingManagerId], references: [id])
-  directReports        Employee[] @relation("ReportingManager")
+  department                  Department      @relation(fields: [departmentId], references: [id])
+  company                     Company?        @relation(fields: [companyId], references: [id])
+  location                    Location?       @relation(fields: [locationId], references: [id])
+  reportingManager            Employee?       @relation("ReportingManager", fields: [reportingManagerId], references: [id])
+  directReports               Employee[]      @relation("ReportingManager")
+  orgAssignmentsAsSubordinate OrgAssignment[] @relation("AssignmentSubordinate")
+  orgAssignmentsAsManager     OrgAssignment[] @relation("AssignmentManager")
 
   user                 User?
   assetAssignments     AssetAssignment[]
-  assetAssignmentsByMe AssetAssignment[] @relation("AssignedBy")
-  assetTransfers       AssetTransfer[] @relation("TransferredBy")
+  assetAssignmentsByMe AssetAssignment[]     @relation("AssignedBy")
+  assetTransfers       AssetTransfer[]       @relation("TransferredBy")
   offerLetters         OfferLetter[]
   onboardingSubmission OnboardingSubmission?
   onboardingTasks      OnboardingTask[]
@@ -264,7 +281,7 @@ model Employee {
   digitalAccess        DigitalAccess[]
   exitRecord           EmployeeExit?
   salaryHistory        SalaryHistory[]
-  expenses             Expense[] @relation("SubmittedBy")
+  expenses             Expense[]             @relation("SubmittedBy")
   payrollItems         PayrollItem[]
   commissions          Commission[]
   deductions           Deduction[]
@@ -274,14 +291,50 @@ model Employee {
   @@map("employees")
 }
 
-model EmployeeCompany {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  companyId   Int
-  assignedAt  DateTime @default(now())
+// ========================
+// ORG ASSIGNMENTS (effective-dated reporting + matrix/dotted-line)
+// ========================
+//
+// Source of truth for "who reports to whom, and since when".
+// `Employee.reportingManagerId` is kept as a denormalized cache of the
+// current SOLID-line manager — mutations go through `lib/services/orgTreeService.ts`,
+// which writes through to keep the cache in sync.
+//
+// Update rule: never UPDATE an existing row. To change a manager,
+// close the open row (validTo = now()) and INSERT a new one.
+//
+// Invariants enforced at the service layer (not via DB constraint):
+//   - At most one OPEN row (validTo IS NULL) per (employeeId, relationshipType).
+//   - validFrom <= validTo when validTo is non-null.
+model OrgAssignment {
+  id               Int                 @id @default(autoincrement())
+  employeeId       Int
+  managerId        Int
+  relationshipType OrgRelationshipType @default(SOLID)
+  validFrom        DateTime
+  validTo          DateTime?
+  reason           String?
+  createdById      Int?
+  createdAt        DateTime            @default(now())
 
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee  Employee @relation("AssignmentSubordinate", fields: [employeeId], references: [id], onDelete: Cascade)
+  manager   Employee @relation("AssignmentManager", fields: [managerId], references: [id])
+  createdBy User?    @relation("AssignmentCreatedBy", fields: [createdById], references: [id])
+
+  @@index([employeeId, validFrom])
+  @@index([managerId, validFrom])
+  @@index([validFrom, validTo])
+  @@map("org_assignments")
+}
+
+model EmployeeCompany {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  companyId  Int
+  assignedAt DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, companyId])
   @@map("employee_companies")
@@ -298,19 +351,19 @@ model OfferLetter {
   offerDate           DateTime  @default(now())
   position            String
   department          String?
-  companyName         String?   // Which sub-company
-  salary              Decimal    @db.Decimal(12, 2)
+  companyName         String? // Which sub-company
+  salary              Decimal   @db.Decimal(12, 2)
   currency            String    @default("PKR")
   startDate           DateTime
   // Extra contract terms
-  probationPeriod     String?   // e.g. "3 months"
+  probationPeriod     String? // e.g. "3 months"
   reportingTo         String?
-  contractType        String?   // REMOTE, HYBRID, ONSITE
-  commissionStructure String?   // For sales roles
+  contractType        String? // REMOTE, HYBRID, ONSITE
+  commissionStructure String? // For sales roles
   benefits            String?
   workingHours        String?
   terms               String?
-  customBody          String?   // For CUSTOM template
+  customBody          String? // For CUSTOM template
   status              String    @default("DRAFT") // DRAFT, SENT, ACCEPTED, DECLINED
   sentAt              DateTime?
   acceptedDate        DateTime?
@@ -319,16 +372,16 @@ model OfferLetter {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  employee            Employee? @relation(fields: [employeeId], references: [id])
+  employee Employee? @relation(fields: [employeeId], references: [id])
 
   @@map("offer_letters")
 }
 
 model OnboardingSubmission {
-  id                Int       @id @default(autoincrement())
-  employeeId        Int?      @unique
+  id                Int         @id @default(autoincrement())
+  employeeId        Int?        @unique
   // Token-based public access (before Employee exists)
-  token             String?   @unique
+  token             String?     @unique
   tokenExpiresAt    DateTime?
   candidateName     String?
   candidateEmail    String?
@@ -340,113 +393,113 @@ model OnboardingSubmission {
   company           Company?    @relation(fields: [companyId], references: [id])
   department        Department? @relation(fields: [departmentId], references: [id])
   // Submitted data
-  personalDetails   Json?     // Full personal details submitted by employee
-  bankDetails       Json?     // Bank info submitted
+  personalDetails   Json? // Full personal details submitted by employee
+  bankDetails       Json? // Bank info submitted
   emergencyContact  Json?
-  educationHistory  Json?     // Array of education records
-  workHistory       Json?     // Array of previous employers
-  references        Json?     // Array of references
-  documentsUploaded Boolean   @default(false)
-  documentsMeta     Json?     // Metadata for uploaded documents
-  isComplete        Boolean   @default(false)
+  educationHistory  Json? // Array of education records
+  workHistory       Json? // Array of previous employers
+  references        Json? // Array of references
+  documentsUploaded Boolean     @default(false)
+  documentsMeta     Json? // Metadata for uploaded documents
+  isComplete        Boolean     @default(false)
   submittedAt       DateTime?
-  reviewStatus      String    @default("PENDING") // PENDING, APPROVED, REJECTED, NEEDS_REVISION
+  reviewStatus      String      @default("PENDING") // PENDING, APPROVED, REJECTED, NEEDS_REVISION
   reviewedBy        Int?
   reviewedAt        DateTime?
   reviewNotes       String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
-  employee          Employee? @relation(fields: [employeeId], references: [id])
+  employee Employee? @relation(fields: [employeeId], references: [id])
 
   @@map("onboarding_submissions")
 }
 
 model OnboardingTask {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   employeeId  Int
-  category    String   // IT, HR, FINANCE, MANAGER
+  category    String // IT, HR, FINANCE, MANAGER
   title       String
   description String?
   // Role that owns the task (SUPER_ADMIN, ADMIN_IT, FINANCE, EMPLOYEE)
   ownerRole   String
   dueDate     DateTime?
-  status      String   @default("PENDING") // PENDING, DONE, SKIPPED
+  status      String    @default("PENDING") // PENDING, DONE, SKIPPED
   completedAt DateTime?
   completedBy Int?
-  sortOrder   Int      @default(0)
+  sortOrder   Int       @default(0)
   notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([employeeId])
   @@map("onboarding_tasks")
 }
 
 model EmailTemplate {
-  id           Int       @id @default(autoincrement())
-  templateKey  String    @unique // e.g. "OFFER_PERMANENT", "ONBOARDING_INVITE"
-  name         String
-  category     String    // OFFER, ONBOARDING, EXPENSE, PAYROLL, ASSET, GENERAL
-  subject      String
-  bodyHtml     String    @db.Text
-  bodyText     String?   @db.Text
-  mergeFields  Json?     // Array of supported merge field keys
-  description  String?
-  isActive     Boolean   @default(true)
-  createdBy    Int?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id          Int      @id @default(autoincrement())
+  templateKey String   @unique // e.g. "OFFER_PERMANENT", "ONBOARDING_INVITE"
+  name        String
+  category    String // OFFER, ONBOARDING, EXPENSE, PAYROLL, ASSET, GENERAL
+  subject     String
+  bodyHtml    String   @db.Text
+  bodyText    String?  @db.Text
+  mergeFields Json? // Array of supported merge field keys
+  description String?
+  isActive    Boolean  @default(true)
+  createdBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("email_templates")
 }
 
 model EmployeeDocument {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   employeeId   Int
-  documentType String    // CNIC, RESUME, DEGREE, CONTRACT, NDA, OTHER
+  documentType String // CNIC, RESUME, DEGREE, CONTRACT, NDA, OTHER
   fileName     String
   fileUrl      String
-  uploadedAt   DateTime  @default(now())
-  createdAt    DateTime  @default(now())
+  uploadedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
 
-  employee     Employee  @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 
   @@map("employee_documents")
 }
 
 model DigitalAccess {
-  id           Int       @id @default(autoincrement())
-  employeeId   Int
-  serviceName  String    // O365, Claude, GitHub Copilot, VPN, Biometric, etc.
-  accountId    String?   // Email or username for the service
-  isActive     Boolean   @default(true)
-  grantedDate  DateTime  @default(now())
-  revokedDate  DateTime?
-  notes        String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  employeeId  Int
+  serviceName String // O365, Claude, GitHub Copilot, VPN, Biometric, etc.
+  accountId   String? // Email or username for the service
+  isActive    Boolean   @default(true)
+  grantedDate DateTime  @default(now())
+  revokedDate DateTime?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  employee     Employee  @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 
   @@map("digital_access")
 }
 
 model EmployeeExit {
-  id                Int       @id @default(autoincrement())
-  employeeId        Int       @unique
-  exitDate          DateTime
-  reason            String?
-  exitType          String    @default("RESIGNATION") // RESIGNATION, TERMINATION, CONTRACT_END
-  clearanceStatus   Json?     // Checklist items: assets returned, access revoked, etc.
-  finalSettlement   Decimal?   @db.Decimal(12, 2)
-  isComplete        Boolean   @default(false)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id              Int      @id @default(autoincrement())
+  employeeId      Int      @unique
+  exitDate        DateTime
+  reason          String?
+  exitType        String   @default("RESIGNATION") // RESIGNATION, TERMINATION, CONTRACT_END
+  clearanceStatus Json? // Checklist items: assets returned, access revoked, etc.
+  finalSettlement Decimal? @db.Decimal(12, 2)
+  isComplete      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  employee          Employee  @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 
   @@map("employee_exits")
 }
@@ -456,13 +509,13 @@ model EmployeeExit {
 // ========================
 
 model AssetCategory {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  code        String     @unique
-  assetType   AssetType  @default(HARDWARE)
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  code        String    @unique
+  assetType   AssetType @default(HARDWARE)
   description String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   assets Asset[]
 
@@ -470,76 +523,76 @@ model AssetCategory {
 }
 
 model Asset {
-  id              Int       @id @default(autoincrement())
-  assetTag        String    @unique
-  serialNumber    String
-  categoryId      Int
-  manufacturer    String
-  model           String
-  description     String?
-  purchaseDate    DateTime?
-  purchasePrice   Decimal   @default(0) @db.Decimal(12, 2)
-  currency        String    @default("PKR")
-  warrantyExpiry  DateTime?
-  condition       AssetCondition @default(WORKING)
-  companyId       Int?
-  locationId      Int?
-  isAssigned      Boolean   @default(false)
-  isRetired       Boolean   @default(false)
-  retiredDate     DateTime?
-  retireReason    String?
-  specs           Json?
-  photoUrl        String?
-  batchId         String?
+  id             Int            @id @default(autoincrement())
+  assetTag       String         @unique
+  serialNumber   String
+  categoryId     Int
+  manufacturer   String
+  model          String
+  description    String?
+  purchaseDate   DateTime?
+  purchasePrice  Decimal        @default(0) @db.Decimal(12, 2)
+  currency       String         @default("PKR")
+  warrantyExpiry DateTime?
+  condition      AssetCondition @default(WORKING)
+  companyId      Int?
+  locationId     Int?
+  isAssigned     Boolean        @default(false)
+  isRetired      Boolean        @default(false)
+  retiredDate    DateTime?
+  retireReason   String?
+  specs          Json?
+  photoUrl       String?
+  batchId        String?
   // Raw holder label from source sheet when we can't resolve to a real employee
   // (e.g. "Available", "Damage", "Home Office", "Qasim Sir House")
-  assignedToName  String?
-  notes           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  assignedToName String?
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  category        AssetCategory @relation(fields: [categoryId], references: [id])
-  company         Company? @relation(fields: [companyId], references: [id])
-  location        Location? @relation(fields: [locationId], references: [id])
-  assignments     AssetAssignment[]
-  transfers       AssetTransfer[]
+  category    AssetCategory     @relation(fields: [categoryId], references: [id])
+  company     Company?          @relation(fields: [companyId], references: [id])
+  location    Location?         @relation(fields: [locationId], references: [id])
+  assignments AssetAssignment[]
+  transfers   AssetTransfer[]
 
   @@map("assets")
 }
 
 model AssetAssignment {
-  id                    Int       @id @default(autoincrement())
+  id                    Int             @id @default(autoincrement())
   assetId               Int
   employeeId            Int
   assignedById          Int?
-  assignedDate          DateTime  @default(now())
+  assignedDate          DateTime        @default(now())
   returnedDate          DateTime?
   conditionAtAssignment AssetCondition
   conditionAtReturn     AssetCondition?
   notes                 String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 
-  asset                 Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  employee              Employee @relation(fields: [employeeId], references: [id])
-  assignedBy            Employee? @relation("AssignedBy", fields: [assignedById], references: [id])
+  asset      Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  assignedBy Employee? @relation("AssignedBy", fields: [assignedById], references: [id])
 
   @@map("asset_assignments")
 }
 
 model AssetTransfer {
-  id             Int       @id @default(autoincrement())
-  assetId        Int
-  fromCompanyId  Int
-  toCompanyId    Int
-  transferredBy  Int?
-  transferDate   DateTime  @default(now())
-  reason         String?
-  createdAt      DateTime  @default(now())
+  id            Int      @id @default(autoincrement())
+  assetId       Int
+  fromCompanyId Int
+  toCompanyId   Int
+  transferredBy Int?
+  transferDate  DateTime @default(now())
+  reason        String?
+  createdAt     DateTime @default(now())
 
-  asset          Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  fromCompany    Company @relation("FromCompany", fields: [fromCompanyId], references: [id])
-  toCompany      Company @relation("ToCompany", fields: [toCompanyId], references: [id])
+  asset                 Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  fromCompany           Company   @relation("FromCompany", fields: [fromCompanyId], references: [id])
+  toCompany             Company   @relation("ToCompany", fields: [toCompanyId], references: [id])
   transferredByEmployee Employee? @relation("TransferredBy", fields: [transferredBy], references: [id])
 
   @@map("asset_transfers")
@@ -550,35 +603,35 @@ model AssetTransfer {
 // ========================
 
 model ExpenseCategory {
-  id           Int       @id @default(autoincrement())
-  name         String    @unique
-  code         String    @unique
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  code         String   @unique
   description  String?
-  isGlobal     Boolean   @default(true)   // Available across all companies
-  departmentId Int?                        // If company-specific
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  isGlobal     Boolean  @default(true) // Available across all companies
+  departmentId Int? // If company-specific
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  department   Department? @relation(fields: [departmentId], references: [id])
-  expenses     Expense[]
+  department Department? @relation(fields: [departmentId], references: [id])
+  expenses   Expense[]
 
   @@map("expense_categories")
 }
 
 model Expense {
   id              Int           @id @default(autoincrement())
-  expenseNumber   String        @unique   // EXP-YYYY-MM-XXXX
+  expenseNumber   String        @unique // EXP-YYYY-MM-XXXX
   categoryId      Int
   companyId       Int
   departmentId    Int?
   submittedById   Int
-  amount          Decimal   @db.Decimal(12, 2)
+  amount          Decimal       @db.Decimal(12, 2)
   currency        String        @default("PKR")
   description     String
-  paymentMethod   String?       // CASH, BANK_TRANSFER, CREDIT_CARD, PETTY_CASH
+  paymentMethod   String? // CASH, BANK_TRANSFER, CREDIT_CARD, PETTY_CASH
   invoiceNumber   String?
-  receiptUrl      String?       // Photo/PDF upload
+  receiptUrl      String? // Photo/PDF upload
   vendor          String?
   expenseDate     DateTime
   status          ExpenseStatus @default(PENDING)
@@ -587,25 +640,25 @@ model Expense {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  category        ExpenseCategory @relation(fields: [categoryId], references: [id])
-  company         Company @relation(fields: [companyId], references: [id])
-  department      Department? @relation(fields: [departmentId], references: [id])
-  submittedBy     Employee @relation("SubmittedBy", fields: [submittedById], references: [id])
-  approvals       ExpenseApproval[]
+  category    ExpenseCategory   @relation(fields: [categoryId], references: [id])
+  company     Company           @relation(fields: [companyId], references: [id])
+  department  Department?       @relation(fields: [departmentId], references: [id])
+  submittedBy Employee          @relation("SubmittedBy", fields: [submittedById], references: [id])
+  approvals   ExpenseApproval[]
 
   @@map("expenses")
 }
 
 model ExpenseApproval {
-  id          Int       @id @default(autoincrement())
-  expenseId   Int
+  id           Int      @id @default(autoincrement())
+  expenseId    Int
   approvedById Int
-  action      String    // APPROVED, REJECTED, NEEDS_REVISION
-  comments    String?
-  createdAt   DateTime  @default(now())
+  action       String // APPROVED, REJECTED, NEEDS_REVISION
+  comments     String?
+  createdAt    DateTime @default(now())
 
-  expense     Expense   @relation(fields: [expenseId], references: [id])
-  approvedBy  User      @relation(fields: [approvedById], references: [id])
+  expense    Expense @relation(fields: [expenseId], references: [id])
+  approvedBy User    @relation(fields: [approvedById], references: [id])
 
   @@map("expense_approvals")
 }
@@ -621,95 +674,95 @@ model SalaryHistory {
   currency      String    @default("PKR")
   effectiveFrom DateTime
   effectiveTo   DateTime?
-  incrementPct  Decimal?  @db.Decimal(5, 2)  // Percentage increase from previous
-  reason        String?   // Annual increment, promotion, etc.
+  incrementPct  Decimal?  @db.Decimal(5, 2) // Percentage increase from previous
+  reason        String? // Annual increment, promotion, etc.
   createdAt     DateTime  @default(now())
 
-  employee      Employee  @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 
   @@map("salary_history")
 }
 
 model Commission {
-  id           Int       @id @default(autoincrement())
-  employeeId   Int
-  amount       Decimal   @db.Decimal(12, 2)
-  currency     String    @default("PKR")
-  description  String
-  period       String    // e.g., "2026-03"
-  isPaid       Boolean   @default(false)
-  createdAt    DateTime  @default(now())
+  id          Int      @id @default(autoincrement())
+  employeeId  Int
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("PKR")
+  description String
+  period      String // e.g., "2026-03"
+  isPaid      Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
-  employee     Employee  @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 
   @@map("commissions")
 }
 
 model Deduction {
-  id           Int       @id @default(autoincrement())
-  employeeId   Int
-  amount       Decimal   @db.Decimal(12, 2)
-  currency     String    @default("PKR")
-  deductionType String   // TAX, LOAN, ADVANCE, INSURANCE, OTHER
-  description  String?
-  period       String    // e.g., "2026-03"
-  createdAt    DateTime  @default(now())
+  id            Int      @id @default(autoincrement())
+  employeeId    Int
+  amount        Decimal  @db.Decimal(12, 2)
+  currency      String   @default("PKR")
+  deductionType String // TAX, LOAN, ADVANCE, INSURANCE, OTHER
+  description   String?
+  period        String // e.g., "2026-03"
+  createdAt     DateTime @default(now())
 
-  employee     Employee  @relation(fields: [employeeId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
 
   @@map("deductions")
 }
 
 model PayrollRun {
-  id          Int           @id @default(autoincrement())
-  period      String        // e.g., "2026-03"
-  companyId   Int?
-  status      PayrollStatus @default(DRAFT)
+  id              Int           @id @default(autoincrement())
+  period          String // e.g., "2026-03"
+  companyId       Int?
+  status          PayrollStatus @default(DRAFT)
   totalGross      Decimal       @default(0) @db.Decimal(14, 2)
   totalDeductions Decimal       @default(0) @db.Decimal(14, 2)
   totalNet        Decimal       @default(0) @db.Decimal(14, 2)
-  processedAt DateTime?
-  paidAt      DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  processedAt     DateTime?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
-  company     Company?      @relation(fields: [companyId], references: [id])
-  items       PayrollItem[]
+  company Company?      @relation(fields: [companyId], references: [id])
+  items   PayrollItem[]
 
   @@unique([period, companyId])
   @@map("payroll_runs")
 }
 
 model PayrollItem {
-  id            Int       @id @default(autoincrement())
-  payrollRunId  Int
-  employeeId    Int
-  baseSalary    Decimal   @db.Decimal(12, 2)
-  commissions   Decimal   @default(0) @db.Decimal(12, 2)
-  bonuses       Decimal   @default(0) @db.Decimal(12, 2)
-  deductions    Decimal   @default(0) @db.Decimal(12, 2)
-  netPay        Decimal   @db.Decimal(12, 2)
-  currency      String    @default("PKR")
-  createdAt     DateTime  @default(now())
+  id           Int      @id @default(autoincrement())
+  payrollRunId Int
+  employeeId   Int
+  baseSalary   Decimal  @db.Decimal(12, 2)
+  commissions  Decimal  @default(0) @db.Decimal(12, 2)
+  bonuses      Decimal  @default(0) @db.Decimal(12, 2)
+  deductions   Decimal  @default(0) @db.Decimal(12, 2)
+  netPay       Decimal  @db.Decimal(12, 2)
+  currency     String   @default("PKR")
+  createdAt    DateTime @default(now())
 
-  payrollRun    PayrollRun @relation(fields: [payrollRunId], references: [id])
-  employee      Employee   @relation(fields: [employeeId], references: [id])
+  payrollRun PayrollRun @relation(fields: [payrollRunId], references: [id])
+  employee   Employee   @relation(fields: [employeeId], references: [id])
 
   @@map("payroll_items")
 }
 
 model BillingSplit {
-  id          Int       @id @default(autoincrement())
-  employeeId  Int
-  companyId   Int
-  percentage  Decimal   @db.Decimal(5, 2) // What % of this employee is billed to this company
+  id            Int       @id @default(autoincrement())
+  employeeId    Int
+  companyId     Int
+  percentage    Decimal   @db.Decimal(5, 2) // What % of this employee is billed to this company
   effectiveFrom DateTime
-  effectiveTo DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  effectiveTo   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  employee    Employee  @relation(fields: [employeeId], references: [id])
-  company     Company   @relation(fields: [companyId], references: [id])
+  employee Employee @relation(fields: [employeeId], references: [id])
+  company  Company  @relation(fields: [companyId], references: [id])
 
   @@map("billing_splits")
 }
@@ -726,19 +779,19 @@ enum ReportStatus {
 }
 
 model MonthlyReport {
-  id          Int          @id @default(autoincrement())
-  period      String       // e.g., "2026-03"
-  companyId   Int?
-  title       String
-  status      ReportStatus @default(DRAFT)
-  summary     Json?        // { totalExpenses, totalPayroll, assetCount, headcount, etc. }
-  generatedBy Int?
-  reviewedBy  Int?
-  sentAt      DateTime?
+  id             Int          @id @default(autoincrement())
+  period         String // e.g., "2026-03"
+  companyId      Int?
+  title          String
+  status         ReportStatus @default(DRAFT)
+  summary        Json? // { totalExpenses, totalPayroll, assetCount, headcount, etc. }
+  generatedBy    Int?
+  reviewedBy     Int?
+  sentAt         DateTime?
   acknowledgedAt DateTime?
-  notes       String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@map("monthly_reports")
 }
@@ -748,16 +801,16 @@ model MonthlyReport {
 // ========================
 
 model Notification {
-  id          Int              @id @default(autoincrement())
-  userId      Int
-  type        NotificationType @default(GENERAL)
-  title       String
-  message     String
-  link        String?          // URL to navigate to
-  isRead      Boolean          @default(false)
-  createdAt   DateTime         @default(now())
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  type      NotificationType @default(GENERAL)
+  title     String
+  message   String
+  link      String? // URL to navigate to
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
 
-  user        User             @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@map("notifications")
 }
@@ -791,7 +844,7 @@ model AuditLog {
   changedById Int?
   changedBy   User?       @relation("AuditUser", fields: [changedById], references: [id])
   ipAddress   String?
-  module      String?     // ASSET, EMPLOYEE, EXPENSE, PAYROLL, etc.
+  module      String? // ASSET, EMPLOYEE, EXPENSE, PAYROLL, etc.
   oldValues   Json?
   newValues   Json?
   createdAt   DateTime    @default(now())
