@@ -43,6 +43,25 @@ export default function EmployeeDetailClient({
 }: EmployeeDetailClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('personal');
+
+  // Hash-based deep links: e.g. /employees/123#direct-reports lands on the
+  // Employment tab and scrolls to the Direct Reports panel. Used by the
+  // "Direct Reports" tile in the page header to make that count clickable.
+  useEffect(() => {
+    function handleHash() {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'direct-reports') {
+        setActiveTab('employment');
+        // Wait for the tab content to mount before scrolling.
+        setTimeout(() => {
+          document.getElementById('direct-reports')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 60);
+      }
+    }
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showAccessModal, setShowAccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -890,7 +909,19 @@ export default function EmployeeDetailClient({
                     {employee.probationEndDate && (
                       <InfoRow label="Probation End" value={new Date(employee.probationEndDate).toLocaleDateString()} />
                     )}
-                    <InfoRow label="Reporting Manager" value={employee.reportingManager ? `${employee.reportingManager.firstName} ${employee.reportingManager.lastName}` : '-'} />
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Reporting Manager</span>
+                      {employee.reportingManager ? (
+                        <Link
+                          href={`/employees/${employee.reportingManager.id}`}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          {employee.reportingManager.firstName} {employee.reportingManager.lastName}
+                        </Link>
+                      ) : (
+                        <span className="text-sm font-medium">-</span>
+                      )}
+                    </div>
                   </>
                 )}
               </div>
@@ -899,7 +930,7 @@ export default function EmployeeDetailClient({
             {/* Actions, Direct Reports & Exit Clearance */}
             <div className="space-y-4">
               {/* Direct Reports */}
-              <div className="card">
+              <div className="card" id="direct-reports">
                 <div className="card-header flex items-center justify-between">
                   <h3 className="section-heading">Direct Reports</h3>
                   <span className="badge badge-blue">{directReports.length}</span>

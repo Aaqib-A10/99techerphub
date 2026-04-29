@@ -264,24 +264,46 @@ export default async function EmployeeDetailPage({
             <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>{tenureLabel}</div>
             <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>since {joinDate.toLocaleDateString()}</div>
           </div>
-          <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Manager</div>
-            <div className="quick-fact-value truncate" style={{ color: '#FFFFFF', fontSize: '0.95rem' }}>
-              {employee.reportingManager
-                ? `${employee.reportingManager.firstName} ${employee.reportingManager.lastName}`
-                : '—'}
+          {employee.reportingManager ? (
+            <Link
+              href={`/employees/${employee.reportingManager.id}`}
+              className="quick-fact transition-colors hover:bg-white/10"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none' }}
+              title={`Open ${employee.reportingManager.firstName} ${employee.reportingManager.lastName}'s profile`}
+            >
+              <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Reports To</div>
+              <div className="quick-fact-value truncate" style={{ color: '#FFFFFF', fontSize: '0.95rem' }}>
+                {employee.reportingManager.firstName} {employee.reportingManager.lastName}
+              </div>
+              <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                {employee.reportingManager.empCode}
+              </div>
+            </Link>
+          ) : (
+            <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Reports To</div>
+              <div className="quick-fact-value truncate" style={{ color: '#FFFFFF', fontSize: '0.95rem' }}>—</div>
+              <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>No manager set</div>
             </div>
-            <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              {employee.reportingManager?.empCode || 'No manager set'}
+          )}
+          {directReports.length > 0 ? (
+            <a
+              href="#direct-reports"
+              className="quick-fact transition-colors hover:bg-white/10"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none' }}
+              title={`See ${directReports.length} direct report${directReports.length === 1 ? '' : 's'}`}
+            >
+              <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Direct Reports</div>
+              <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>{directReports.length}</div>
+              <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>Active employees</div>
+            </a>
+          ) : (
+            <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Direct Reports</div>
+              <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>0</div>
+              <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>No reports</div>
             </div>
-          </div>
-          <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Direct Reports</div>
-            <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>{directReports.length}</div>
-            <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              {directReports.length === 0 ? 'No reports' : 'Active employees'}
-            </div>
-          </div>
+          )}
           <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
             <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Active Assets</div>
             <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>{activeAssets}</div>
