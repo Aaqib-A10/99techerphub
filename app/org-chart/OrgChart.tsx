@@ -158,7 +158,12 @@ const OrgCard = memo(function OrgCard({ data }: NodeProps<OrgNodeData>) {
 
   return (
     <div
-      className={`group relative flex w-[260px] items-center gap-3 rounded-lg bg-white pl-3 pr-3 py-2.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] ring-1 ring-[rgba(228,228,231,0.85)] transition-all hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:ring-zinc-300 ${
+      // pointer-events-auto is REQUIRED — ReactFlow sets pointer-events: none
+      // on .react-flow__nodes so its pane can receive pan/drag events. Without
+      // re-enabling pointer-events on the card, mouse clicks pass through to
+      // the pane and never fire React handlers. JS .click() works because it
+      // dispatches synthetically (bypasses hit-testing).
+      className={`pointer-events-auto group relative flex w-[260px] items-center gap-3 rounded-lg bg-white pl-3 pr-3 py-2.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] ring-1 ring-[rgba(228,228,231,0.85)] transition-all hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:ring-zinc-300 ${
         isMatch ? 'ring-2 ring-blue-400 shadow-[0_4px_16px_-2px_rgba(37,99,235,0.25)]' : ''
       } ${isDimmed ? 'opacity-30' : ''}`}
       onClick={(e) => {
