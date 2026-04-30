@@ -130,3 +130,75 @@ export async function PATCH(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+/**
+ * DELETE /api/users/:id — Hard-delete a user (ADMIN only).
+ * Refuses to delete the caller's own account. Tears down active sessions
+ * before deletion. FK violations surface as 409 with a deactivate hint.
+ */
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const admin = await requireRole([UserRole.ADMIN]);
+    const userId = parseInt(params.id);
+    if (isNaN(userId)) {
+      return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
+    }
+    if (userId === admin.id) {
+      return NextResponse.json(
+        { error: 'You cannot delete your own account.' },
+        { status: 400 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, role: true, employeeId: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    await destroyAllUserSessions(userId).catch(() => {});
+
+    try {
+      await prisma.user.delete({ where: { id: userId } });
+    } catch (e: any) {
+      if (e?.code === 'P2003') {
+        return NextResponse.json(
+          {
+            error:
+              'Cannot delete: user has linked records (audit logs, etc.). Deactivate instead.',
+          },
+          { status: 409 }
+        );
+      }
+      throw e;
+    }
+
+    await prisma.auditLog.create({
+      data: {
+        tableName: 'users',
+        recordId: userId,
+        action: 'DELETE',
+        oldValues: user,
+      },
+    });
+
+    return NextResponse.json({ message: 'User deleted', id: userId });
+  } catch (error: any) {
+    if (
+      error?.message?.includes('Unauthorized') ||
+      error?.message?.includes('Forbidden')
+    ) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
+    console.error('[Users/DELETE]', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

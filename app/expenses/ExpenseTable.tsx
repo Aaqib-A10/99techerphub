@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ExpenseRowActions from './ExpenseRowActions';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
+import { runBulk, summarizeBulk } from '@/app/components/bulkRunner';
 
 interface Expense {
   id: number;
@@ -87,29 +88,25 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
         a.download = `expenses-export-${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-      } else if (actionKey === 'approve') {
-        for (const id of ids) {
-          await fetch(`/api/expenses/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'APPROVED' }),
-          });
-        }
+      } else if (actionKey === 'approve' || actionKey === 'reject' || actionKey === 'delete') {
+        const result = await runBulk({
+          ids,
+          request: (id) =>
+            actionKey === 'delete'
+              ? fetch(`/api/expenses/${id}`, { method: 'DELETE' })
+              : fetch(`/api/expenses/${id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    status: actionKey === 'approve' ? 'APPROVED' : 'REJECTED',
+                  }),
+                }),
+        });
         router.refresh();
-      } else if (actionKey === 'reject') {
-        for (const id of ids) {
-          await fetch(`/api/expenses/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'REJECTED' }),
-          });
-        }
-        router.refresh();
-      } else if (actionKey === 'delete') {
-        for (const id of ids) {
-          await fetch(`/api/expenses/${id}`, { method: 'DELETE' });
-        }
-        router.refresh();
+        setSelectedIds(new Set(ids.filter((id) => !result.succeededIds.has(id))));
+        const msg = summarizeBulk(result, ids.length, actionKey);
+        if (msg) alert(msg);
+        return;
       }
       setSelectedIds(new Set());
     } catch (err) {

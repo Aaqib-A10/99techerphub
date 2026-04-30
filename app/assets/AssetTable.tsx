@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { AssetCondition } from '@prisma/client';
 import StatusBadge from '@/components/StatusBadge';
 import BulkActionBar from '@/app/components/BulkActionBar';
+import { runBulk, summarizeBulk } from '@/app/components/bulkRunner';
 
 interface AssetRow {
   id: number;
@@ -88,18 +89,29 @@ export default function AssetTable({ assets }: { assets: AssetRow[] }) {
         a.click();
         URL.revokeObjectURL(url);
       } else if (actionKey === 'delete') {
-        for (const id of ids) {
-          await fetch(`/api/assets/${id}`, { method: 'DELETE' });
-        }
+        const result = await runBulk({
+          ids,
+          request: (id) => fetch(`/api/assets/${id}`, { method: 'DELETE' }),
+        });
         router.refresh();
+        setSelectedIds(new Set(ids.filter((id) => !result.succeededIds.has(id))));
+        const msg = summarizeBulk(result, ids.length, 'delete');
+        if (msg) alert(msg);
+        return;
       } else if (actionKey === 'unassign') {
-        for (const id of ids) {
+        const idsToUnassign = ids.filter((id) => {
           const asset = assets.find((a) => a.id === id);
-          if (asset && asset.assignments?.length > 0) {
-            await fetch(`/api/assets/${id}/return`, { method: 'POST' });
-          }
-        }
+          return asset && asset.assignments?.length > 0;
+        });
+        const result = await runBulk({
+          ids: idsToUnassign,
+          request: (id) => fetch(`/api/assets/${id}/return`, { method: 'POST' }),
+        });
         router.refresh();
+        setSelectedIds(new Set(ids.filter((id) => !result.succeededIds.has(id))));
+        const msg = summarizeBulk(result, idsToUnassign.length, 'unassign');
+        if (msg) alert(msg);
+        return;
       }
       setSelectedIds(new Set());
     } catch (err) {

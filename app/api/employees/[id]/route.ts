@@ -97,6 +97,84 @@ export async function PATCH(
 }
 
 // ============================================
+// DELETE: Hard-delete an employee record
+// ============================================
+// FK constraints (Expense.submittedBy: Restrict, AssetAssignment cascades, etc.)
+// will reject deletion when the employee still has linked records the business
+// considers load-bearing — surface a 409 with an actionable message instead of
+// silently failing.
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (currentUser.role !== 'ADMIN' && currentUser.role !== 'HR') {
+      return NextResponse.json(
+        { error: 'Only ADMIN and HR can delete employees' },
+        { status: 403 }
+      );
+    }
+
+    const empId = parseInt(params.id);
+    if (isNaN(empId)) {
+      return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 });
+    }
+
+    const existing = await prisma.employee.findUnique({
+      where: { id: empId },
+      select: {
+        id: true,
+        empCode: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+      },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
+    }
+
+    try {
+      await prisma.employee.delete({ where: { id: empId } });
+    } catch (e: any) {
+      // Prisma P2003 = foreign key constraint violation
+      if (e?.code === 'P2003') {
+        return NextResponse.json(
+          {
+            error:
+              'Cannot delete: this employee has linked records (expenses, assets, payroll, etc.). Deactivate them instead.',
+          },
+          { status: 409 }
+        );
+      }
+      throw e;
+    }
+
+    await prisma.auditLog.create({
+      data: {
+        tableName: 'employees',
+        recordId: empId,
+        action: 'DELETE',
+        module: 'EMPLOYEE',
+        oldValues: existing,
+      },
+    });
+
+    return NextResponse.json({ message: 'Employee deleted', id: empId });
+  } catch (error: any) {
+    console.error('Error deleting employee:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete employee' },
+      { status: 500 }
+    );
+  }
+}
+
+// ============================================
 // HELPER: Initiate Exit
 // ============================================
 async function handleInitiateExit(empId: number, data: any) {

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
+import { runBulk, summarizeBulk } from '@/app/components/bulkRunner';
 
 interface AccessRecord {
   id: number;
@@ -134,10 +135,15 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
         a.click();
         URL.revokeObjectURL(url);
       } else if (actionKey === 'revoke') {
-        for (const id of ids) {
-          await fetch(`/api/digital-access/${id}/revoke`, { method: 'POST' });
-        }
+        const result = await runBulk({
+          ids,
+          request: (id) => fetch(`/api/digital-access/${id}/revoke`, { method: 'POST' }),
+        });
         router.refresh();
+        setSelectedIds(new Set(ids.filter((id) => !result.succeededIds.has(id))));
+        const msg = summarizeBulk(result, ids.length, 'revoke');
+        if (msg) alert(msg);
+        return;
       }
       setSelectedIds(new Set());
     } catch (err) {

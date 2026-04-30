@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import PageHero from '@/app/components/PageHero';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
+import { runBulk, summarizeBulk } from '@/app/components/bulkRunner';
 
 interface EmailTemplate {
   id: number;
@@ -169,27 +170,31 @@ export default function EmailTemplatesPage() {
         a.download = `email-templates-export-${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-      } else if (actionKey === 'activate') {
-        for (const id of ids) {
-          const template = templates.find(t => t.id === id);
-          if (template && !template.isActive) {
-            await fetch(`/api/email-templates/${id}/toggle`, { method: 'POST' });
-          }
-        }
+      } else if (actionKey === 'activate' || actionKey === 'deactivate') {
+        const wantActive = actionKey === 'activate';
+        const idsToToggle = ids.filter((id) => {
+          const t = templates.find((x) => x.id === id);
+          return t && t.isActive !== wantActive;
+        });
+        const result = await runBulk({
+          ids: idsToToggle,
+          request: (id) => fetch(`/api/email-templates/${id}/toggle`, { method: 'POST' }),
+        });
         router.refresh();
-      } else if (actionKey === 'deactivate') {
-        for (const id of ids) {
-          const template = templates.find(t => t.id === id);
-          if (template && template.isActive) {
-            await fetch(`/api/email-templates/${id}/toggle`, { method: 'POST' });
-          }
-        }
-        router.refresh();
+        setSelectedIds(new Set(ids.filter((id) => !result.succeededIds.has(id))));
+        const msg = summarizeBulk(result, idsToToggle.length, actionKey);
+        if (msg) alert(msg);
+        return;
       } else if (actionKey === 'delete') {
-        for (const id of ids) {
-          await fetch(`/api/email-templates/${id}`, { method: 'DELETE' });
-        }
+        const result = await runBulk({
+          ids,
+          request: (id) => fetch(`/api/email-templates/${id}`, { method: 'DELETE' }),
+        });
         router.refresh();
+        setSelectedIds(new Set(ids.filter((id) => !result.succeededIds.has(id))));
+        const msg = summarizeBulk(result, ids.length, 'delete');
+        if (msg) alert(msg);
+        return;
       }
       setSelectedIds(new Set());
     } catch (err) {

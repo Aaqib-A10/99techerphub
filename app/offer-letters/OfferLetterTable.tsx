@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
+import { runBulk, summarizeBulk } from '@/app/components/bulkRunner';
 
 interface OfferLetter {
   id: number;
@@ -92,10 +93,15 @@ export default function OfferLetterTable({ offerLetters }: { offerLetters: Offer
         a.click();
         URL.revokeObjectURL(url);
       } else if (actionKey === 'delete') {
-        for (const id of ids) {
-          await fetch(`/api/offer-letters/${id}`, { method: 'DELETE' });
-        }
+        const result = await runBulk({
+          ids,
+          request: (id) => fetch(`/api/offer-letters/${id}`, { method: 'DELETE' }),
+        });
         router.refresh();
+        setSelectedIds(new Set(ids.filter((id) => !result.succeededIds.has(id))));
+        const msg = summarizeBulk(result, ids.length, 'delete');
+        if (msg) alert(msg);
+        return;
       }
       setSelectedIds(new Set());
     } catch (err) {

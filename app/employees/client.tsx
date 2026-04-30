@@ -225,29 +225,63 @@ export default function EmployeeListClient({
         a.download = `employees-export-${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-      } else if (actionKey === 'deactivate') {
+      } else if (actionKey === 'deactivate' || actionKey === 'activate' || actionKey === 'delete') {
+        // Track each request so a partial failure (e.g. FK constraint on a
+        // single employee) doesn't get hidden by a blanket "success".
+        const failures: { id: number; reason: string }[] = [];
+        const succeededIds = new Set<number>();
+
         for (const id of ids) {
-          await fetch(`/api/employees/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isActive: false, lifecycleStage: 'EXITED' }),
-          });
+          let res: Response;
+          try {
+            if (actionKey === 'delete') {
+              res = await fetch(`/api/employees/${id}`, { method: 'DELETE' });
+            } else {
+              const body =
+                actionKey === 'deactivate'
+                  ? { isActive: false, lifecycleStage: 'EXITED' }
+                  : { isActive: true, lifecycleStage: 'ACTIVE' };
+              res = await fetch(`/api/employees/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+              });
+            }
+          } catch (e: any) {
+            failures.push({ id, reason: e?.message ?? 'Network error' });
+            continue;
+          }
+
+          if (res.ok) {
+            succeededIds.add(id);
+          } else {
+            const reason = await res
+              .json()
+              .then((j) => j.error || `HTTP ${res.status}`)
+              .catch(() => `HTTP ${res.status}`);
+            failures.push({ id, reason });
+          }
         }
+
         router.refresh();
-      } else if (actionKey === 'activate') {
-        for (const id of ids) {
-          await fetch(`/api/employees/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isActive: true, lifecycleStage: 'ACTIVE' }),
-          });
+
+        // Keep failed rows selected so the user can retry without re-checking them.
+        setSelectedIds(new Set(ids.filter((id) => !succeededIds.has(id))));
+
+        if (failures.length > 0) {
+          const verb =
+            actionKey === 'delete'
+              ? 'delete'
+              : actionKey === 'deactivate'
+              ? 'deactivate'
+              : 'activate';
+          const summary = `${verb}d ${succeededIds.size} of ${ids.length}. ${failures.length} failed:\n\n${failures
+            .map((f) => `• #${f.id}: ${f.reason}`)
+            .slice(0, 8)
+            .join('\n')}${failures.length > 8 ? `\n… and ${failures.length - 8} more` : ''}`;
+          alert(summary);
         }
-        router.refresh();
-      } else if (actionKey === 'delete') {
-        for (const id of ids) {
-          await fetch(`/api/employees/${id}`, { method: 'DELETE' });
-        }
-        router.refresh();
+        return;
       }
       setSelectedIds(new Set());
     } catch (err) {

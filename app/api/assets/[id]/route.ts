@@ -145,3 +145,82 @@ export async function PUT(
     );
   }
 }
+
+// ============================================
+// DELETE: Hard-delete an asset
+// ============================================
+// Refuses to delete an asset with an open assignment — user must return it
+// first or retire it instead. AssetAssignment.assetId cascades on delete,
+// so closed assignments + transfer history go with the asset.
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const ctx = await getSessionContext();
+    if (!ctx) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (ctx.user.role !== 'ADMIN' && ctx.user.role !== 'HR') {
+      return NextResponse.json(
+        { error: 'Only ADMIN and HR can delete assets' },
+        { status: 403 }
+      );
+    }
+
+    const assetId = parseInt(params.id);
+    if (isNaN(assetId)) {
+      return NextResponse.json({ error: 'Invalid asset ID' }, { status: 400 });
+    }
+
+    const asset = await prisma.asset.findUnique({
+      where: { id: assetId },
+      select: {
+        id: true,
+        assetTag: true,
+        companyId: true,
+        isAssigned: true,
+        isRetired: true,
+      },
+    });
+    if (!asset) {
+      return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
+    }
+
+    if (asset.companyId && !ctx.companyIds.includes(asset.companyId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const openAssignments = await prisma.assetAssignment.count({
+      where: { assetId, returnedDate: null },
+    });
+    if (openAssignments > 0) {
+      return NextResponse.json(
+        {
+          error:
+            'Cannot delete: this asset has an open assignment. Return it first or retire instead.',
+        },
+        { status: 409 }
+      );
+    }
+
+    await prisma.asset.delete({ where: { id: assetId } });
+
+    await prisma.auditLog.create({
+      data: {
+        tableName: 'assets',
+        recordId: assetId,
+        action: 'DELETE',
+        oldValues: asset,
+      },
+    });
+
+    return NextResponse.json({ message: 'Asset deleted', id: assetId });
+  } catch (error: any) {
+    console.error('Error deleting asset:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete asset' },
+      { status: 500 }
+    );
+  }
+}

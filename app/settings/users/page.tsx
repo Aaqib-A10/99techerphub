@@ -6,6 +6,7 @@ import PageHero from '@/app/components/PageHero';
 import Modal from '@/components/Modal';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
+import { runBulk, summarizeBulk } from '@/app/components/bulkRunner';
 
 interface UserAccount {
   id: number;
@@ -300,29 +301,23 @@ export default function UserAccountsPage() {
         a.download = `users-export-${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-      } else if (actionKey === 'deactivate') {
-        for (const id of ids) {
-          await fetch(`/api/users/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isActive: false }),
-          });
-        }
+      } else if (actionKey === 'activate' || actionKey === 'deactivate' || actionKey === 'delete') {
+        const result = await runBulk({
+          ids,
+          request: (id) =>
+            actionKey === 'delete'
+              ? fetch(`/api/users/${id}`, { method: 'DELETE' })
+              : fetch(`/api/users/${id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ isActive: actionKey === 'activate' }),
+                }),
+        });
         router.refresh();
-      } else if (actionKey === 'activate') {
-        for (const id of ids) {
-          await fetch(`/api/users/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isActive: true }),
-          });
-        }
-        router.refresh();
-      } else if (actionKey === 'delete') {
-        for (const id of ids) {
-          await fetch(`/api/users/${id}`, { method: 'DELETE' });
-        }
-        router.refresh();
+        setSelectedIds(new Set(ids.filter((id) => !result.succeededIds.has(id))));
+        const msg = summarizeBulk(result, ids.length, actionKey);
+        if (msg) alert(msg);
+        return;
       }
       setSelectedIds(new Set());
     } catch (err) {
