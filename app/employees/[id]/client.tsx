@@ -33,6 +33,9 @@ interface EmployeeDetailClientProps {
     department: { name: string };
   }[];
   employeeCompanies?: { id: number; code: string; name: string }[];
+  /** Whether the signed-in viewer is allowed to navigate into other employee
+   *  profiles (Reports To, Direct Reports list). EMPLOYEE = false. */
+  canBrowseEmployees: boolean;
   rolesProps: {
     responsibilities: string | null;
     marketplaceIds: number[];
@@ -49,6 +52,7 @@ export default function EmployeeDetailClient({
   locations = [],
   directReports = [],
   employeeCompanies = [],
+  canBrowseEmployees,
   rolesProps,
 }: EmployeeDetailClientProps) {
   const router = useRouter();
@@ -938,12 +942,18 @@ export default function EmployeeDetailClient({
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-500">Reporting Manager</span>
                       {employee.reportingManager ? (
-                        <Link
-                          href={`/employees/${employee.reportingManager.id}`}
-                          className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
-                        >
-                          {employee.reportingManager.firstName} {employee.reportingManager.lastName}
-                        </Link>
+                        canBrowseEmployees ? (
+                          <Link
+                            href={`/employees/${employee.reportingManager.id}`}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            {employee.reportingManager.firstName} {employee.reportingManager.lastName}
+                          </Link>
+                        ) : (
+                          <span className="text-sm font-medium">
+                            {employee.reportingManager.firstName} {employee.reportingManager.lastName}
+                          </span>
+                        )
                       ) : (
                         <span className="text-sm font-medium">-</span>
                       )}
@@ -968,11 +978,19 @@ export default function EmployeeDetailClient({
                     </p>
                   ) : (
                     <div className="space-y-2">
-                      {directReports.map((r) => (
-                        <Link
+                      {directReports.map((r) => {
+                        // EMPLOYEE viewers see direct-report rows as static
+                        // chips — they can read who's on the team but can't
+                        // click through into colleagues' full profiles.
+                        const RowTag: any = canBrowseEmployees ? Link : 'div';
+                        const rowProps = canBrowseEmployees
+                          ? { href: `/employees/${r.id}` }
+                          : {};
+                        return (
+                        <RowTag
                           key={r.id}
-                          href={`/employees/${r.id}`}
-                          className="flex items-center gap-3 p-2 rounded hover:bg-gray-50 transition-colors"
+                          {...rowProps}
+                          className={`flex items-center gap-3 p-2 rounded transition-colors ${canBrowseEmployees ? 'hover:bg-gray-50' : ''}`}
                         >
                           <div className="w-8 h-8 bg-brand-light rounded-full flex items-center justify-center flex-shrink-0">
                             <span className="text-xs font-bold text-brand-primary">
@@ -988,8 +1006,9 @@ export default function EmployeeDetailClient({
                             </div>
                           </div>
                           <span className="text-xs text-gray-400 font-mono">{r.empCode}</span>
-                        </Link>
-                      ))}
+                        </RowTag>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

@@ -51,6 +51,14 @@ export default async function EmployeeDetailPage({
   // canEdit: ADMIN/HR always; otherwise user must be in this employee's
   // reporting chain (manager, manager-of-manager, etc.). Mirrors the API.
   const sessionUser = await getSessionUser();
+
+  // Roles that are allowed to browse other employees' profiles via cross-links
+  // (the Reports To tile, the Direct Reports list, etc.). Plain EMPLOYEEs see
+  // those fields as static text — they can read who their manager is, but
+  // can't click through into that person's full profile.
+  const BROWSE_ROLES = new Set(['ADMIN', 'HR', 'MANAGER', 'FINANCE', 'ACCOUNTANT']);
+  const canBrowseEmployees = !!sessionUser && BROWSE_ROLES.has(sessionUser.role);
+
   let canEditRoles = false;
   if (sessionUser) {
     if (sessionUser.role === 'ADMIN' || sessionUser.role === 'HR') {
@@ -261,19 +269,32 @@ export default async function EmployeeDetailPage({
           </div>
         </div>
         {employee.reportingManager ? (
-          <Link
-            href={`/employees/${employee.reportingManager.id}`}
-            className="stat-card block hover:shadow-md transition cursor-pointer"
-            title={`Open ${employee.reportingManager.firstName} ${employee.reportingManager.lastName}'s profile`}
-          >
-            <div className="stat-label">Reports To</div>
-            <div className="stat-value text-[1.05rem] truncate">
-              {employee.reportingManager.firstName} {employee.reportingManager.lastName}
+          canBrowseEmployees ? (
+            <Link
+              href={`/employees/${employee.reportingManager.id}`}
+              className="stat-card block hover:shadow-md transition cursor-pointer"
+              title={`Open ${employee.reportingManager.firstName} ${employee.reportingManager.lastName}'s profile`}
+            >
+              <div className="stat-label">Reports To</div>
+              <div className="stat-value text-[1.05rem] truncate">
+                {employee.reportingManager.firstName} {employee.reportingManager.lastName}
+              </div>
+              <div className="text-[11px] text-zinc-500 mt-1">
+                {employee.reportingManager.empCode}
+              </div>
+            </Link>
+          ) : (
+            // EMPLOYEE viewers see the manager as static text — no link out.
+            <div className="stat-card">
+              <div className="stat-label">Reports To</div>
+              <div className="stat-value text-[1.05rem] truncate">
+                {employee.reportingManager.firstName} {employee.reportingManager.lastName}
+              </div>
+              <div className="text-[11px] text-zinc-500 mt-1">
+                {employee.reportingManager.empCode}
+              </div>
             </div>
-            <div className="text-[11px] text-zinc-500 mt-1">
-              {employee.reportingManager.empCode}
-            </div>
-          </Link>
+          )
         ) : (
           <div className="stat-card">
             <div className="stat-label">Reports To</div>
@@ -320,6 +341,7 @@ export default async function EmployeeDetailPage({
         locations={locations}
         directReports={directReports}
         employeeCompanies={employeeCompanies}
+        canBrowseEmployees={canBrowseEmployees}
         rolesProps={{
           responsibilities: employee.responsibilities,
           marketplaceIds: employee.marketplaces.map((em: any) => em.marketplaceId),
