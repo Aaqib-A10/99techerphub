@@ -100,8 +100,12 @@ export default function EmployeeDetailClient({
     notes: '',
   });
 
-  // Edit form state
-  const [editFormData, setEditFormData] = useState<any>({
+  // Build the edit-form snapshot from the canonical employee prop. Used to
+  // initialize state AND to revert on Cancel — without this, clicking Cancel
+  // after editing would keep the user's unsaved (possibly cleared) values in
+  // state, so re-opening Edit showed the cleared field as if it were the
+  // current value.
+  const buildInitialEditFormData = () => ({
     // Personal
     firstName: employee.firstName,
     lastName: employee.lastName,
@@ -146,6 +150,14 @@ export default function EmployeeDetailClient({
     previousOrganization: employee.previousOrganization,
     referenceCheck: employee.referenceCheck,
   });
+
+  const [editFormData, setEditFormData] = useState<any>(buildInitialEditFormData);
+
+  const cancelEdit = () => {
+    setEditFormData(buildInitialEditFormData());
+    setIsEditMode(false);
+    setEditingTab(null);
+  };
 
   // Exit clearance state
   const [clearanceStatus, setClearanceStatus] = useState<any>(
@@ -375,10 +387,7 @@ export default function EmployeeDetailClient({
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
-                  onClick={() => {
-                    setIsEditMode(false);
-                    setEditingTab(null);
-                  }}
+                  onClick={cancelEdit}
                   className="btn"
                   style={{ backgroundColor: '#f0f0f0', color: '#333' }}
                 >
@@ -723,10 +732,7 @@ export default function EmployeeDetailClient({
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
-                  onClick={() => {
-                    setIsEditMode(false);
-                    setEditingTab(null);
-                  }}
+                  onClick={cancelEdit}
                   className="btn"
                   style={{ backgroundColor: '#f0f0f0', color: '#333' }}
                 >
@@ -1287,10 +1293,7 @@ export default function EmployeeDetailClient({
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
-                  onClick={() => {
-                    setIsEditMode(false);
-                    setEditingTab(null);
-                  }}
+                  onClick={cancelEdit}
                   className="btn"
                   style={{ backgroundColor: '#f0f0f0', color: '#333' }}
                 >

@@ -39,3 +39,6 @@ Thumbs.db
 
 # Claude Code — personal session config (don't commit)
 .claude/settings.local.json
+
+# Master employee data — PII (CNIC, bank, addresses). Don't commit.
+scripts/Active_employees.xlsx
