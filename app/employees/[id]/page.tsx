@@ -4,7 +4,6 @@ import Link from 'next/link';
 import EmployeeDetailClient from './client';
 import ProfilePhotoUpload from './ProfilePhotoUpload';
 import RelativeTime from '@/app/components/RelativeTime';
-import RolesEditor from './RolesEditor';
 import { getSessionUser } from '@/lib/auth';
 
 export default async function EmployeeDetailPage({
@@ -183,181 +182,159 @@ export default async function EmployeeDetailPage({
       }
     : null;
 
+  const activeDigitalAccess = (employee.digitalAccess || []).filter(
+    (d: any) => d.isActive,
+  ).length;
+
   return (
     <div>
-      {/* Header — Architectural Ledger profile card */}
-      <div className="relative rounded-xl overflow-hidden p-4 mb-6" style={{ background: 'linear-gradient(135deg, #0B1F3A 0%, #152B4C 100%)', boxShadow: '0 32px 64px -12px rgba(11,31,58,0.12)' }}>
-        {/* Ledger Line accent */}
-        <div aria-hidden style={{ position: 'absolute', left: 0, top: 16, bottom: 16, width: 2, background: '#14B8A6', borderRadius: '0 1px 1px 0' }} />
-        {/* Ambient teal glow */}
-        <div aria-hidden style={{ position: 'absolute', top: -80, right: -80, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(20,184,166,0.15) 0%, rgba(20,184,166,0) 65%)', pointerEvents: 'none' }} />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-          <div className="flex items-center gap-3">
+      {/* Page hero — light, matches the rest of the ERP */}
+      <div className="page-hero">
+        <div className="flex items-start justify-between gap-6 flex-wrap">
+          <div className="min-w-0 flex-1 flex items-start gap-4">
             <ProfilePhotoUpload
               employeeId={employee.id}
               photoUrl={employee.photoUrl}
               initials={`${employee.firstName[0]}${employee.lastName[0]}`}
             />
             <div className="min-w-0">
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em', lineHeight: 1.1 }} className="truncate">
+              <span className="eyebrow">
+                People / {employee.department.name}
+              </span>
+              <h1>
                 {employee.firstName} {employee.lastName}
               </h1>
-              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.85rem', marginTop: 2 }}>
-                <span className="mono" style={{ color: '#14B8A6' }}>{employee.empCode}</span> &middot; {employee.designation} &middot; {employee.department.name}
+              <p>
+                <span className="mono text-emerald-600">{employee.empCode}</span>
+                {employee.designation ? ` · ${employee.designation}` : ''}
               </p>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {/* Lifecycle badge — combines isActive + lifecycleStage into one */}
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 <span
-                  className="badge"
-                  style={{
-                    color: employee.isActive ? '#6EE7B7' : '#FCA5A5',
-                    backgroundColor: employee.isActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
-                    borderColor: employee.isActive ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)',
-                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${
+                    employee.isActive
+                      ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                      : 'bg-rose-50 text-rose-700 ring-rose-200'
+                  }`}
                 >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      employee.isActive ? 'bg-emerald-500' : 'bg-rose-500'
+                    }`}
+                  />
                   {employee.lifecycleStage.replace(/_/g, ' ')}
                 </span>
-                <span
-                  className="badge"
-                  style={{
-                    color: '#FFFFFF',
-                    backgroundColor: 'rgba(255,255,255,0.12)',
-                    borderColor: 'rgba(255,255,255,0.3)',
-                    fontWeight: 600,
-                  }}
-                >
+                <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-700 ring-1 ring-zinc-200">
                   {employee.employmentStatus}
                 </span>
-                {employeeCompanies.length > 0 ? (
-                  employeeCompanies.map((c) => (
-                    <span
-                      key={c.id}
-                      className="badge"
-                      style={{
-                        color: '#FDE68A',
-                        backgroundColor: 'rgba(245,158,11,0.15)',
-                        borderColor: 'rgba(245,158,11,0.35)',
-                      }}
-                    >
-                      {c.code || c.name}
-                    </span>
-                  ))
-                ) : employee.company?.name ? (
+                {(employeeCompanies.length > 0
+                  ? employeeCompanies
+                  : employee.company?.name
+                  ? [{ id: employee.company.id, code: (employee.company as any).code, name: employee.company.name }]
+                  : []
+                ).map((c: any) => (
                   <span
-                    className="badge"
-                    style={{
-                      color: '#FDE68A',
-                      backgroundColor: 'rgba(245,158,11,0.15)',
-                      borderColor: 'rgba(245,158,11,0.35)',
-                    }}
+                    key={c.id}
+                    className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-amber-200"
                   >
-                    {employee.company.name}
+                    {c.code || c.name}
                   </span>
-                ) : null}
+                ))}
               </div>
               {lastEditInfo && (
                 <p
-                  className="mt-2"
-                  style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.7rem' }}
+                  className="mt-2 text-[11px] text-zinc-400"
                   title={new Date(lastEditInfo.at).toLocaleString()}
                 >
                   Last edited <RelativeTime iso={lastEditInfo.at} /> by{' '}
-                  <span style={{ color: 'rgba(255,255,255,0.7)' }}>{lastEditInfo.byName}</span>
+                  <span className="text-zinc-600">{lastEditInfo.byName}</span>
                 </p>
               )}
             </div>
           </div>
 
-          {/* Contact shortcuts */}
-          <div className="flex flex-col gap-1.5 md:text-right" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)' }}>
+          {/* Contact column */}
+          <div className="flex flex-col items-end gap-1 text-[12.5px] text-zinc-500">
             {employee.email && (
-              <a href={`mailto:${employee.email}`} className="truncate" style={{ color: 'rgba(255,255,255,0.7)', transition: 'color 0.15s' }} title="Send email">
+              <a
+                href={`mailto:${employee.email}`}
+                className="truncate hover:text-zinc-800"
+                title="Send email"
+              >
                 ✉ {employee.email}
               </a>
             )}
             {employee.phone && (
-              <a href={`tel:${employee.phone}`} style={{ color: 'rgba(255,255,255,0.7)', transition: 'color 0.15s' }} title="Call">
+              <a href={`tel:${employee.phone}`} className="hover:text-zinc-800" title="Call">
                 ☎ {employee.phone}
               </a>
             )}
             {employee.location?.name && (
-              <span style={{ color: 'rgba(255,255,255,0.5)' }}>📍 {employee.location.name}</span>
+              <span className="text-zinc-400">📍 {employee.location.name}</span>
             )}
-          </div>
-        </div>
-
-        {/* Quick-facts strip */}
-        <div className="quick-facts relative z-10" style={{ marginTop: 12 }}>
-          <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Tenure</div>
-            <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>{tenureLabel}</div>
-            <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>since {joinDate.toLocaleDateString()}</div>
-          </div>
-          {employee.reportingManager ? (
-            <Link
-              href={`/employees/${employee.reportingManager.id}`}
-              className="quick-fact transition-colors hover:bg-white/10"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none' }}
-              title={`Open ${employee.reportingManager.firstName} ${employee.reportingManager.lastName}'s profile`}
-            >
-              <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Reports To</div>
-              <div className="quick-fact-value truncate" style={{ color: '#FFFFFF', fontSize: '0.95rem' }}>
-                {employee.reportingManager.firstName} {employee.reportingManager.lastName}
-              </div>
-              <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                {employee.reportingManager.empCode}
-              </div>
-            </Link>
-          ) : (
-            <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Reports To</div>
-              <div className="quick-fact-value truncate" style={{ color: '#FFFFFF', fontSize: '0.95rem' }}>—</div>
-              <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>No manager set</div>
-            </div>
-          )}
-          {directReports.length > 0 ? (
-            <a
-              href="#direct-reports"
-              className="quick-fact transition-colors hover:bg-white/10"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none' }}
-              title={`See ${directReports.length} direct report${directReports.length === 1 ? '' : 's'}`}
-            >
-              <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Direct Reports</div>
-              <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>{directReports.length}</div>
-              <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>Active employees</div>
-            </a>
-          ) : (
-            <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Direct Reports</div>
-              <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>0</div>
-              <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>No reports</div>
-            </div>
-          )}
-          <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Active Assets</div>
-            <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>{activeAssets}</div>
-            <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              {returnedAssets} returned
-            </div>
-          </div>
-          <div className="quick-fact" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="quick-fact-label" style={{ color: 'rgba(255,255,255,0.5)' }}>Digital Access</div>
-            <div className="quick-fact-value" style={{ color: '#FFFFFF' }}>
-              {(employee.digitalAccess || []).filter((d: any) => d.isActive).length}
-            </div>
-            <div className="quick-fact-sub" style={{ color: 'rgba(255,255,255,0.4)' }}>Active services</div>
           </div>
         </div>
       </div>
 
-      <RolesEditor
-        employeeId={employee.id}
-        initialResponsibilities={employee.responsibilities}
-        initialMarketplaceIds={employee.marketplaces.map((em: any) => em.marketplaceId)}
-        marketplaceOptions={marketplaceCatalog}
-        canEdit={canEditRoles}
-      />
+      {/* KPI strip — same stat-card pattern as /expenses and /employees */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+        <div className="stat-card">
+          <div className="stat-label">Tenure</div>
+          <div className="stat-value">{tenureLabel}</div>
+          <div className="text-[11px] text-zinc-500 mt-1">
+            since {joinDate.toLocaleDateString()}
+          </div>
+        </div>
+        {employee.reportingManager ? (
+          <Link
+            href={`/employees/${employee.reportingManager.id}`}
+            className="stat-card block hover:shadow-md transition cursor-pointer"
+            title={`Open ${employee.reportingManager.firstName} ${employee.reportingManager.lastName}'s profile`}
+          >
+            <div className="stat-label">Reports To</div>
+            <div className="stat-value text-[1.05rem] truncate">
+              {employee.reportingManager.firstName} {employee.reportingManager.lastName}
+            </div>
+            <div className="text-[11px] text-zinc-500 mt-1">
+              {employee.reportingManager.empCode}
+            </div>
+          </Link>
+        ) : (
+          <div className="stat-card">
+            <div className="stat-label">Reports To</div>
+            <div className="stat-value text-[1.05rem]">—</div>
+            <div className="text-[11px] text-zinc-500 mt-1">No manager set</div>
+          </div>
+        )}
+        {directReports.length > 0 ? (
+          <a
+            href="#direct-reports"
+            className="stat-card block hover:shadow-md transition cursor-pointer"
+            title={`See ${directReports.length} direct report${directReports.length === 1 ? '' : 's'}`}
+          >
+            <div className="stat-label">Direct Reports</div>
+            <div className="stat-value">{directReports.length}</div>
+            <div className="text-[11px] text-zinc-500 mt-1">Active employees</div>
+          </a>
+        ) : (
+          <div className="stat-card">
+            <div className="stat-label">Direct Reports</div>
+            <div className="stat-value">0</div>
+            <div className="text-[11px] text-zinc-500 mt-1">No reports</div>
+          </div>
+        )}
+        <div className="stat-card">
+          <div className="stat-label">Active Assets</div>
+          <div className="stat-value">{activeAssets}</div>
+          <div className="text-[11px] text-zinc-500 mt-1">
+            {returnedAssets} returned
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Digital Access</div>
+          <div className="stat-value">{activeDigitalAccess}</div>
+          <div className="text-[11px] text-zinc-500 mt-1">Active services</div>
+        </div>
+      </div>
 
       <EmployeeDetailClient
         employee={employee}
@@ -367,6 +344,12 @@ export default async function EmployeeDetailPage({
         locations={locations}
         directReports={directReports}
         employeeCompanies={employeeCompanies}
+        rolesProps={{
+          responsibilities: employee.responsibilities,
+          marketplaceIds: employee.marketplaces.map((em: any) => em.marketplaceId),
+          marketplaceCatalog,
+          canEdit: canEditRoles,
+        }}
       />
     </div>
   );

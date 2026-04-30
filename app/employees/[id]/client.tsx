@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Modal from '@/components/Modal';
 import OnboardingChecklistPanel from './OnboardingChecklistPanel';
 import EmployeePicker from '@/app/components/EmployeePicker';
+import RolesEditor from './RolesEditor';
 import { getTeam } from '../client';
 
 function formatCnic(value: string): string {
@@ -30,6 +31,12 @@ interface EmployeeDetailClientProps {
     department: { name: string };
   }[];
   employeeCompanies?: { id: number; code: string; name: string }[];
+  rolesProps: {
+    responsibilities: string | null;
+    marketplaceIds: number[];
+    marketplaceCatalog: { id: number; name: string }[];
+    canEdit: boolean;
+  };
 }
 
 export default function EmployeeDetailClient({
@@ -40,6 +47,7 @@ export default function EmployeeDetailClient({
   locations = [],
   directReports = [],
   employeeCompanies = [],
+  rolesProps,
 }: EmployeeDetailClientProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('personal');
@@ -49,7 +57,7 @@ export default function EmployeeDetailClient({
   // scrolls to the Direct Reports panel.
   useEffect(() => {
     const VALID_TAB_HASHES = new Set([
-      'personal', 'employment', 'onboarding', 'assets',
+      'personal', 'employment', 'roles', 'onboarding', 'assets',
       'digital', 'finance', 'documents', 'timeline',
     ]);
     function handleHash() {
@@ -292,6 +300,7 @@ export default function EmployeeDetailClient({
   const tabs = [
     { id: 'personal', label: 'Personal' },
     { id: 'employment', label: 'Employment' },
+    { id: 'roles', label: 'Roles & Responsibilities' },
     { id: 'onboarding', label: 'Onboarding' },
     { id: 'assets', label: 'Assets' },
     { id: 'digital', label: 'Digital Access' },
@@ -1068,6 +1077,17 @@ export default function EmployeeDetailClient({
             </div>
           </div>
         </>
+      )}
+
+      {/* Roles & Responsibilities Tab */}
+      {activeTab === 'roles' && (
+        <RolesEditor
+          employeeId={employee.id}
+          initialResponsibilities={rolesProps.responsibilities}
+          initialMarketplaceIds={rolesProps.marketplaceIds}
+          marketplaceOptions={rolesProps.marketplaceCatalog}
+          canEdit={rolesProps.canEdit}
+        />
       )}
 
       {/* Onboarding Tab */}
