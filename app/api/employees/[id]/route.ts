@@ -141,8 +141,11 @@ export async function DELETE(
     try {
       await prisma.employee.delete({ where: { id: empId } });
     } catch (e: any) {
-      // Prisma P2003 = foreign key constraint violation
-      if (e?.code === 'P2003') {
+      // Prisma's known FK code is P2003, but cascaded RESTRICT violations
+      // sometimes surface as PrismaClientUnknownRequestError with the raw
+      // Postgres message — match the message text as a safety net.
+      const msg = String(e?.message ?? '');
+      if (e?.code === 'P2003' || /violates.*foreign key|RESTRICT setting/i.test(msg)) {
         return NextResponse.json(
           {
             error:

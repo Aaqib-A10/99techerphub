@@ -21,20 +21,23 @@ export const testDb = new PrismaClient({
  * of FKs — children before parents. Skip migrations / system tables.
  */
 export async function resetDb() {
-  await testDb.$executeRawUnsafe(`
-    TRUNCATE TABLE
-      asset_assignments,
-      asset_transfers,
-      assets,
-      employee_companies,
-      employee_marketplaces,
-      employees,
-      departments,
-      companies,
-      asset_categories,
-      locations
-    RESTART IDENTITY CASCADE;
-  `);
+  // deleteMany per table in FK-dependent order. Slower than a single TRUNCATE
+  // but more predictable inside vitest's module-isolation environment, where
+  // multi-table TRUNCATE has been observed to silently no-op for us.
+  await testDb.auditLog.deleteMany({});
+  await testDb.expenseApproval.deleteMany({});
+  await testDb.expense.deleteMany({});
+  await testDb.expenseCategory.deleteMany({});
+  await testDb.assetAssignment.deleteMany({});
+  await testDb.assetTransfer.deleteMany({});
+  await testDb.asset.deleteMany({});
+  await testDb.employeeCompany.deleteMany({});
+  await testDb.employeeMarketplace.deleteMany({});
+  await testDb.employee.deleteMany({});
+  await testDb.department.deleteMany({});
+  await testDb.company.deleteMany({});
+  await testDb.assetCategory.deleteMany({});
+  await testDb.location.deleteMany({});
 }
 
 /**

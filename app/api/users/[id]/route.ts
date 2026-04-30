@@ -166,7 +166,8 @@ export async function DELETE(
     try {
       await prisma.user.delete({ where: { id: userId } });
     } catch (e: any) {
-      if (e?.code === 'P2003') {
+      const msg = String(e?.message ?? '');
+      if (e?.code === 'P2003' || /violates.*foreign key|RESTRICT setting/i.test(msg)) {
         return NextResponse.json(
           {
             error:
