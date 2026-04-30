@@ -132,7 +132,7 @@ export default function OfferLetterTable({ offerLetters }: { offerLetters: Offer
               <th>Template Type</th>
               <th>Status</th>
               <th>Offer Date</th>
-              <th>Actions</th>
+              <th className="col-sticky-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -175,7 +175,7 @@ export default function OfferLetterTable({ offerLetters }: { offerLetters: Offer
                     </span>
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>{new Date(letter.offerDate).toLocaleDateString()}</td>
-                  <td>
+                  <td className="col-sticky-right">
                     <div className="flex gap-2">
                       <Link
                         href={`/offer-letters/${letter.id}`}

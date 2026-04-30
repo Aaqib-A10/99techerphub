@@ -162,7 +162,7 @@ export default function PayrollPage() {
                 <th>Deductions</th>
                 <th>Net Pay</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th className="col-sticky-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -184,7 +184,7 @@ export default function PayrollPage() {
                     <td>
                       <span className={`badge ${statusColors[pr.status]}`}>{pr.status}</span>
                     </td>
-                    <td className="space-x-1">
+                    <td className="space-x-1 col-sticky-right">
                       {pr.status === 'DRAFT' && (
                         <button
                           onClick={() => handleFinalizeRun(pr.id)}

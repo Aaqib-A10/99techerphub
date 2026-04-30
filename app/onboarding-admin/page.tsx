@@ -158,7 +158,7 @@ export default async function OnboardingAdminPage({
                       ? 'Approved'
                       : 'Updated'}
                   </th>
-                  <th>Actions</th>
+                  <th className="col-sticky-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -181,7 +181,7 @@ export default async function OnboardingAdminPage({
                           : submission.reviewedAt || submission.updatedAt
                       )}
                     </td>
-                    <td>
+                    <td className="col-sticky-right">
                       {activeTab === 'INVITATION_SENT' ? (
                         <CopyLinkButton url={`${getAppUrl()}/onboarding/${submission.token}`} />
                       ) : activeTab === 'APPROVED' && submission.employee?.id ? (

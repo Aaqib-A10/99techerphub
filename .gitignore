@@ -36,3 +36,6 @@ yarn-error.log*
 
 # OS
 Thumbs.db
+
+# Claude Code — personal session config (don't commit)
+.claude/settings.local.json
