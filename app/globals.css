@@ -248,7 +248,12 @@ body {
 
 .main-content {
   padding: 28px 32px 48px;
-  max-width: 1280px;
+  /* Fluid container: stops letter-boxing on ultra-wide monitors (was capped
+     at 1280px so a 1920px laptop wasted ~640px of margin) while still
+     keeping readable line lengths on 4K displays. The min keeps small
+     laptops usable, max prevents 3440px ultra-wides from creating
+     unreadably long table rows. */
+  max-width: clamp(900px, 96vw, 2200px);
   margin: 0 auto;
 }
 

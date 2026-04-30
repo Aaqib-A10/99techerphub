@@ -28,7 +28,12 @@ export function getTeam(empCode: string, designation: string): string {
   return '';
 }
 
-const STORAGE_KEY = 'emp_table_filters';
+// Old localStorage key — kept here only so the one-time cleanup useEffect
+// below can purge stale entries from existing users' browsers. Filters are
+// no longer persisted client-side; URL params + initial defaults are the
+// single source of truth (avoids "ghost filters" coming back after refresh
+// or after navigating away and returning).
+const LEGACY_STORAGE_KEY = 'emp_table_filters';
 
 interface Employee {
   id: number;
@@ -70,47 +75,36 @@ export default function EmployeeListClient({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Read initial lifecycle view from ?status= so the dashboard tile can
-  // deep-link into the exited sub-list without the user touching filters.
-  // Load persisted filters from localStorage
-  const loadSavedFilters = useCallback((): FilterParams & { page?: number; perPage?: number } => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return { search: '', department: '', company: '', status: '', team: '', lifecycleView: 'active' };
-  }, []);
 
+  // Initial lifecycle view comes from ?status= so dashboard tiles can
+  // deep-link to e.g. the exited sub-list. No localStorage fallback — the
+  // page should open in a clean state every time.
   const initialLifecycleView: LifecycleView = (() => {
     const s = searchParams?.get('status');
     if (s === 'exited') return 'exited';
     if (s === 'all') return 'all';
-    // If no URL param, check localStorage
-    const saved = loadSavedFilters();
-    return saved.lifecycleView || 'active';
+    return 'active';
   })();
 
-  const savedFilters = loadSavedFilters();
-
   const [filters, setFilters] = useState<FilterParams>({
-    search: searchParams?.get('status') ? '' : (savedFilters.search || ''),
-    department: savedFilters.department || '',
-    company: savedFilters.company || '',
-    status: savedFilters.status || '',
-    team: savedFilters.team || '',
+    search: '',
+    department: '',
+    company: '',
+    status: '',
+    team: '',
     lifecycleView: initialLifecycleView,
   });
-  const [currentPage, setCurrentPage] = useState(savedFilters.page || 1);
-  const [itemsPerPage, setItemsPerPage] = useState(savedFilters.perPage || 25);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkLoading, setBulkLoading] = useState<string | null>(null);
 
-  // Persist filters to localStorage
+  // One-time cleanup: drop stale localStorage from prior versions that
+  // persisted filters across sessions. Safe to remove this useEffect after
+  // a few weeks — most active users will have visited the page by then.
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...filters, page: currentPage, perPage: itemsPerPage }));
-    } catch {}
-  }, [filters, currentPage, itemsPerPage]);
+    try { localStorage.removeItem(LEGACY_STORAGE_KEY); } catch {}
+  }, []);
 
   // Keep state in sync if the URL changes while we're on the page.
   useEffect(() => {
@@ -406,7 +400,6 @@ export default function EmployeeListClient({
                 lifecycleView: 'active',
               });
               setCurrentPage(1);
-              try { localStorage.removeItem(STORAGE_KEY); } catch {}
             }}
             className="ml-1 inline-flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
           >
