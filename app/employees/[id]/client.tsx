@@ -7,6 +7,7 @@ import Modal from '@/components/Modal';
 import OnboardingChecklistPanel from './OnboardingChecklistPanel';
 import EmployeePicker from '@/app/components/EmployeePicker';
 import RolesEditor from './RolesEditor';
+import type { EmployeeWithRelations } from './types';
 import { getTeam } from '../client';
 
 function formatCnic(value: string): string {
@@ -17,7 +18,8 @@ function formatCnic(value: string): string {
 }
 
 interface EmployeeDetailClientProps {
-  employee: any;
+  /** Server-component payload — see `employeeDetailInclude` in types.ts. */
+  employee: EmployeeWithRelations;
   allEmployees: { id: number; firstName: string; lastName: string; empCode: string }[];
   departments?: { id: number; code: string; name: string }[];
   companies?: { id: number; code: string; name: string }[];

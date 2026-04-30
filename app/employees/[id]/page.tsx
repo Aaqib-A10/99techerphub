@@ -5,6 +5,7 @@ import EmployeeDetailClient from './client';
 import ProfilePhotoUpload from './ProfilePhotoUpload';
 import RelativeTime from '@/app/components/RelativeTime';
 import { getSessionUser } from '@/lib/auth';
+import { employeeDetailInclude } from './types';
 
 export default async function EmployeeDetailPage({
   params,
@@ -13,48 +14,27 @@ export default async function EmployeeDetailPage({
 }) {
   const employeeId = parseInt(params.id);
 
+  // Shape lives in ./types — keep server include + client prop type in sync.
+  // Per-relation orderBy/take stay here because they only matter at fetch.
   const employee = await prisma.employee.findUnique({
     where: { id: employeeId },
     include: {
-      department: true,
-      company: true,
-      location: true,
-      reportingManager: true,
+      ...employeeDetailInclude,
       assetAssignments: {
-        include: {
-          asset: { include: { category: true } },
-        },
+        ...employeeDetailInclude.assetAssignments,
         orderBy: { assignedDate: 'desc' },
       },
-      documents: {
-        orderBy: { uploadedAt: 'desc' },
-      },
-      digitalAccess: {
-        orderBy: { grantedDate: 'desc' },
-      },
-      salaryHistory: {
-        orderBy: { effectiveFrom: 'desc' },
-      },
-      commissions: {
-        orderBy: { createdAt: 'desc' },
-      },
-      deductions: {
-        orderBy: { createdAt: 'desc' },
-      },
+      documents: { orderBy: { uploadedAt: 'desc' } },
+      digitalAccess: { orderBy: { grantedDate: 'desc' } },
+      salaryHistory: { orderBy: { effectiveFrom: 'desc' } },
+      commissions: { orderBy: { createdAt: 'desc' } },
+      deductions: { orderBy: { createdAt: 'desc' } },
       billingSplits: {
+        ...employeeDetailInclude.billingSplits,
         orderBy: { effectiveFrom: 'desc' },
-        include: { company: { select: { id: true, name: true, code: true } } },
       },
-      offerLetters: {
-        orderBy: { offerDate: 'desc' },
-      },
-      onboardingSubmission: true,
-      exitRecord: true,
-      expenses: {
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-      },
-      marketplaces: { include: { marketplace: true } },
+      offerLetters: { orderBy: { offerDate: 'desc' } },
+      expenses: { orderBy: { createdAt: 'desc' }, take: 10 },
     },
   });
 
