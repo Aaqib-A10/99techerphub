@@ -190,6 +190,13 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
                   </div>
                   <div className="py-1">
                     <Link
+                      href="/account/security"
+                      className="block px-3.5 py-1.5 text-[12.5px] text-zinc-700 hover:bg-zinc-50"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      Account & Security
+                    </Link>
+                    <Link
                       href="/settings"
                       className="block px-3.5 py-1.5 text-[12.5px] text-zinc-700 hover:bg-zinc-50"
                       onClick={() => setShowDropdown(false)}
