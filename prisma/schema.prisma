@@ -112,6 +112,11 @@ model User {
   employeeId   Int?      @unique
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
+  // Password reset: random hex stored here while a request is open.
+  // Cleared as soon as the new password is set (single-use). Indexed
+  // because lookups happen by token, not by user id.
+  passwordResetToken     String?   @unique
+  passwordResetExpiresAt DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 

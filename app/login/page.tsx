@@ -107,6 +107,40 @@ function LoginPageInner() {
     }
   };
 
+  // ─── Forgot Key flow ─────────────────────────────────
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+
+  const openForgot = () => {
+    setForgotEmail(email); // Pre-fill from the login form for convenience
+    setForgotSent(false);
+    setForgotOpen(true);
+  };
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) return;
+    setForgotSubmitting(true);
+    try {
+      // Endpoint always 200s for valid-shaped requests so we can't tell
+      // (and neither can attackers) whether the email is registered.
+      await fetch('/api/auth/password-reset/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      setForgotSent(true);
+    } catch {
+      // Even on a hard failure we show the same generic message — no
+      // information disclosure.
+      setForgotSent(true);
+    } finally {
+      setForgotSubmitting(false);
+    }
+  };
+
   return (
     <div
       className="min-h-screen flex"
@@ -503,8 +537,8 @@ function LoginPageInner() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setError('Password reset is not yet configured. Contact System Admin.')}
-                    className="text-[11px] font-bold uppercase tracking-widest transition-colors"
+                    onClick={openForgot}
+                    className="text-[11px] font-bold uppercase tracking-widest transition-colors hover:underline"
                     style={{ color: TEAL_DEEP }}
                   >
                     Forgot Key?
@@ -708,6 +742,93 @@ function LoginPageInner() {
           </p>
         </div>
       </section>
+
+      {/* ── Forgot Key? modal ────────────────────────────────────── */}
+      {forgotOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: 'rgba(11,31,58,0.45)' }}
+          onClick={() => !forgotSubmitting && setForgotOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-xl shadow-[0_24px_64px_rgba(11,31,58,0.18)] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-zinc-200 flex items-center justify-between">
+              <h3 className="text-[15px] font-semibold" style={{ color: INK }}>
+                {forgotSent ? 'Check your inbox' : 'Reset your password'}
+              </h3>
+              <button
+                onClick={() => setForgotOpen(false)}
+                disabled={forgotSubmitting}
+                className="text-zinc-400 hover:text-zinc-600 disabled:opacity-50"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-5 py-4">
+              {forgotSent ? (
+                <>
+                  <p className="text-[13px] mb-3" style={{ color: INK }}>
+                    If an account exists for <strong>{forgotEmail.trim()}</strong>,
+                    we just sent a reset link. It's good for one hour.
+                  </p>
+                  <p className="text-[12px]" style={{ color: OUTLINE }}>
+                    Didn't get anything? Check spam, or try again in a few minutes.
+                    SSO-only accounts can use this flow too — resetting will
+                    enable email + password sign-in alongside Microsoft.
+                  </p>
+                </>
+              ) : (
+                <form onSubmit={handleForgotSubmit} className="space-y-3">
+                  <p className="text-[13px]" style={{ color: OUTLINE }}>
+                    Enter your work email. We'll send a one-time link you can use
+                    to set a new password.
+                  </p>
+                  <div>
+                    <label
+                      className="block text-[11px] font-bold uppercase tracking-wider mb-1"
+                      style={{ color: OUTLINE }}
+                    >
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      autoFocus
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      className="w-full rounded-md ring-1 ring-zinc-200 px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                      placeholder="you@99technologies.com"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={forgotSubmitting}
+                    className="w-full rounded-md py-2 text-[13px] font-semibold text-white disabled:opacity-60"
+                    style={{ background: NAVY }}
+                  >
+                    {forgotSubmitting ? 'Sending…' : 'Send reset link'}
+                  </button>
+                </form>
+              )}
+            </div>
+            <div className="px-5 py-3 bg-zinc-50 border-t border-zinc-200 text-right">
+              <button
+                onClick={() => setForgotOpen(false)}
+                disabled={forgotSubmitting}
+                className="text-[12px] font-semibold"
+                style={{ color: TEAL_DEEP }}
+              >
+                {forgotSent ? 'Done' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/login',
+  '/reset-password', // Set-new-password page (token-based, no session needed)
   '/onboarding', // Onboarding form (token-based)
   '/api/auth', // Auth endpoints
 ];
