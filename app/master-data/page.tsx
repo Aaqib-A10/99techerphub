@@ -11,12 +11,14 @@ export default async function MasterDataPage() {
     locationsCount,
     assetCategoriesCount,
     expenseCategoriesCount,
+    marketplacesCount,
   ] = await Promise.all([
     prisma.company.count(),
     prisma.department.count(),
     prisma.location.count(),
     prisma.assetCategory.count(),
     prisma.expenseCategory.count(),
+    prisma.marketplace.count(),
   ]);
 
   const cards = [
@@ -43,6 +45,12 @@ export default async function MasterDataPage() {
       description: 'Asset and expense categories used across the system',
       count: assetCategoriesCount + expenseCategoriesCount,
       href: '/master-data/asset-categories',
+    },
+    {
+      title: 'Marketplaces',
+      description: 'E-commerce channels assigned to employees: Amazon, Walmart, eBay, Back Market…',
+      count: marketplacesCount,
+      href: '/master-data/marketplaces',
     },
   ];
 

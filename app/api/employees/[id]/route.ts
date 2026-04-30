@@ -280,6 +280,7 @@ async function handleGeneralUpdate(empId: number, data: any, existingEmployee: a
       'previousOrganization',
       'referenceCheck',
       'bankAccountStatus',
+      'responsibilities',
     ];
 
     // Field classification for input normalization

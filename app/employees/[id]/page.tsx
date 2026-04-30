@@ -4,6 +4,8 @@ import Link from 'next/link';
 import EmployeeDetailClient from './client';
 import ProfilePhotoUpload from './ProfilePhotoUpload';
 import RelativeTime from '@/app/components/RelativeTime';
+import RolesEditor from './RolesEditor';
+import { getSessionUser } from '@/lib/auth';
 
 export default async function EmployeeDetailPage({
   params,
@@ -53,10 +55,38 @@ export default async function EmployeeDetailPage({
         orderBy: { createdAt: 'desc' },
         take: 10,
       },
+      marketplaces: { include: { marketplace: true } },
     },
   });
 
   if (!employee) return notFound();
+
+  // Catalog of active marketplaces for the multi-select
+  const marketplaceCatalog = await prisma.marketplace.findMany({
+    where: { isActive: true },
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true },
+  });
+
+  // canEdit: ADMIN/HR always; otherwise user must be in this employee's
+  // reporting chain (manager, manager-of-manager, etc.). Mirrors the API.
+  const sessionUser = await getSessionUser();
+  let canEditRoles = false;
+  if (sessionUser) {
+    if (sessionUser.role === 'ADMIN' || sessionUser.role === 'HR') {
+      canEditRoles = true;
+    } else if (sessionUser.employeeId) {
+      let curr: number | null = employee.reportingManagerId;
+      for (let i = 0; i < 20 && curr; i++) {
+        if (curr === sessionUser.employeeId) { canEditRoles = true; break; }
+        const m: { reportingManagerId: number | null } | null = await prisma.employee.findUnique({
+          where: { id: curr },
+          select: { reportingManagerId: true },
+        });
+        curr = m?.reportingManagerId ?? null;
+      }
+    }
+  }
 
   const allEmployees = await prisma.employee.findMany({
     where: { isActive: true, id: { not: employeeId } },
@@ -320,6 +350,14 @@ export default async function EmployeeDetailPage({
           </div>
         </div>
       </div>
+
+      <RolesEditor
+        employeeId={employee.id}
+        initialResponsibilities={employee.responsibilities}
+        initialMarketplaceIds={employee.marketplaces.map((em: any) => em.marketplaceId)}
+        marketplaceOptions={marketplaceCatalog}
+        canEdit={canEditRoles}
+      />
 
       <EmployeeDetailClient
         employee={employee}

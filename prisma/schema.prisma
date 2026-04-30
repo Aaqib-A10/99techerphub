@@ -258,6 +258,12 @@ model Employee {
   // Digital photo
   photoUrl String?
 
+  // Free-form responsibilities / duties — markdown-friendly text edited by
+  // the employee's manager. Lives next to designation (which is the formal
+  // job title) — designation = "what they're called", responsibilities =
+  // "what they actually do day-to-day".
+  responsibilities String? @db.Text
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -278,6 +284,7 @@ model Employee {
   onboardingSubmission OnboardingSubmission?
   onboardingTasks      OnboardingTask[]
   documents            EmployeeDocument[]
+  marketplaces         EmployeeMarketplace[]
   digitalAccess        DigitalAccess[]
   exitRecord           EmployeeExit?
   salaryHistory        SalaryHistory[]
@@ -325,6 +332,39 @@ model OrgAssignment {
   @@index([managerId, validFrom])
   @@index([validFrom, validTo])
   @@map("org_assignments")
+}
+
+// ========================
+// MARKETPLACES (e-commerce channels each employee owns)
+// ========================
+//
+// Many-to-many between Employee and Marketplace. Lets an exec see which
+// marketplaces a person handles (Amazon, Walmart, eBay, Back Market, ...).
+// Catalog is editable from /master-data/marketplaces so HR can add new
+// channels without a deploy.
+model Marketplace {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees EmployeeMarketplace[]
+
+  @@map("marketplaces")
+}
+
+model EmployeeMarketplace {
+  employeeId    Int
+  marketplaceId Int
+  assignedAt    DateTime @default(now())
+
+  employee    Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  marketplace Marketplace @relation(fields: [marketplaceId], references: [id], onDelete: Cascade)
+
+  @@id([employeeId, marketplaceId])
+  @@index([marketplaceId])
+  @@map("employee_marketplaces")
 }
 
 model EmployeeCompany {
