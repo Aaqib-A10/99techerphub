@@ -148,7 +148,7 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
               <th>Submitted By</th>
               <th>Amount</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th className="col-sticky-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -189,7 +189,7 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
                       {exp.status.replace(/_/g, ' ')}
                     </span>
                   </td>
-                  <td>
+                  <td className="col-sticky-right">
                     <ExpenseRowActions
                       expenseId={exp.id}
                       expenseNumber={exp.expenseNumber}

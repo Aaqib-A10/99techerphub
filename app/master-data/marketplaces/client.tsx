@@ -104,7 +104,7 @@ export default function MarketplacesClient({ initial }: { initial: Row[] }) {
               <th className="text-left font-semibold px-3 py-2">Name</th>
               <th className="text-left font-semibold px-3 py-2">Employees</th>
               <th className="text-left font-semibold px-3 py-2">Status</th>
-              <th className="text-left font-semibold px-3 py-2">Action</th>
+              <th className="text-left font-semibold px-3 py-2 col-sticky-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
@@ -126,7 +126,7 @@ export default function MarketplacesClient({ initial }: { initial: Row[] }) {
                     {r.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 col-sticky-right">
                   <button
                     type="button"
                     onClick={() => toggleActive(r)}

@@ -27,7 +27,7 @@ export default async function Dashboard({
   if (user && user.employeeId && !ORG_VIEW_ROLES.has(user.role)) {
     return (
       <div style={{ minHeight: '100vh' }}>
-        <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="w-full px-6 py-6">
           <Suspense
             fallback={
               <div
@@ -66,7 +66,7 @@ export default async function Dashboard({
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="w-full px-6 py-6">
         <div className="mb-4 flex justify-end">
           <DashboardFilterBar
             companies={companies}

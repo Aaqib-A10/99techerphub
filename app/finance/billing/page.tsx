@@ -376,15 +376,19 @@ export default function BillingSplitPage() {
                       {splits.length === 0 ? (
                         <span className="text-gray-400">No split defined</span>
                       ) : (
-                        <div className="space-y-1">
+                        // Horizontal pill chips: keeps row height short and
+                        // makes a multi-company split (MNC · SJ · PCMART)
+                        // scannable left-to-right instead of stacking down
+                        // and pushing every other row taller.
+                        <div className="flex flex-wrap gap-1.5">
                           {splits.map((split) => (
-                            <div
+                            <span
                               key={split.id}
-                              className="text-sm"
+                              className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[12px] ring-1 ring-zinc-200"
                             >
-                              <span className="font-medium">{split.company.code}</span>
-                              <span className="text-gray-500 ml-2">{split.percentage}%</span>
-                            </div>
+                              <span className="font-medium text-zinc-900">{split.company.code}</span>
+                              <span className="text-zinc-500 tabular-nums">{split.percentage}%</span>
+                            </span>
                           ))}
                         </div>
                       )}
@@ -393,14 +397,15 @@ export default function BillingSplitPage() {
                       {splits.length === 0 ? (
                         <span className="text-gray-400">—</span>
                       ) : (
-                        <div className="space-y-1">
+                        <div className="flex flex-wrap gap-1.5">
                           {splits.map((split) => (
-                            <div
+                            <span
                               key={split.id}
-                              className="text-sm"
+                              className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[12px] ring-1 ring-emerald-200 text-emerald-800 tabular-nums"
+                              title={split.company.code}
                             >
                               {currency} {Math.round((salary * Number(split.percentage)) / 100).toLocaleString()}
-                            </div>
+                            </span>
                           ))}
                         </div>
                       )}

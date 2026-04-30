@@ -454,7 +454,7 @@ export default function EmployeeListClient({
                 <th>Designation</th>
                 <th>Status</th>
                 <th>Joining Date</th>
-                <th>Actions</th>
+                <th className="col-sticky-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -559,7 +559,7 @@ export default function EmployeeListClient({
                     <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem', color: '#44474D' }}>
                       {new Date(emp.dateOfJoining).toLocaleDateString()}
                     </td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
+                    <td className="col-sticky-right" style={{ whiteSpace: 'nowrap' }}>
                       <Link
                         href={`/employees/${emp.id}`}
                         onClick={(e) => e.stopPropagation()}

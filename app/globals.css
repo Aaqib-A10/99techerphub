@@ -258,6 +258,44 @@ body {
 }
 
 /* ============================================================
+   Sticky right-edge column for table actions (Edit/View/Delete).
+   Add `col-sticky-right` to BOTH the <th> and the matching <td>.
+   When the table horizontally scrolls (because content > viewport),
+   the action cell stays glued to the right edge so the user never
+   has to scroll-then-find-then-click.
+
+   The pseudo-element shadow gives a soft visual hint that there's
+   content scrolled behind it, without being heavy.
+   ============================================================ */
+.col-sticky-right {
+  position: sticky;
+  right: 0;
+  background: inherit;
+  z-index: 1;
+}
+.table-wrapper table tbody tr .col-sticky-right {
+  background-color: #FFFFFF;
+}
+.table-wrapper table tbody tr:hover .col-sticky-right {
+  background-color: rgba(244, 244, 245, 0.6);
+}
+.table-wrapper table thead .col-sticky-right {
+  background-color: #FAFAFA;
+}
+/* Soft shadow on the left edge of the sticky column so it visually
+   separates from scrolled content underneath. */
+.col-sticky-right::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.04));
+  pointer-events: none;
+}
+
+/* ============================================================
    Typography helpers
    ============================================================ */
 .eyebrow {

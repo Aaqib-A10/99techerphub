@@ -204,7 +204,7 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
               <th>Access Level</th>
               <th>Granted</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th className="col-sticky-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -248,7 +248,7 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
                       <span className="badge badge-red">Revoked</span>
                     )}
                   </td>
-                  <td>
+                  <td className="col-sticky-right">
                     {r.isActive && (
                       <button
                         onClick={() => handleRevoke(r.id)}
