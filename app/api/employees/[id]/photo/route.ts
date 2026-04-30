@@ -61,3 +61,54 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: 'Failed to upload photo' }, { status: 500 });
   }
 }
+
+// Clears the employee's profile photo. The actual file on disk is left in
+// place — uploads are versioned by timestamp so old files don't collide,
+// and a future cleanup script can sweep orphans.
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const employeeId = parseInt(params.id);
+    if (isNaN(employeeId)) {
+      return NextResponse.json({ error: 'Invalid employee ID' }, { status: 400 });
+    }
+
+    const employee = await prisma.employee.findUnique({ where: { id: employeeId } });
+    if (!employee) {
+      return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
+    }
+
+    if (!employee.photoUrl) {
+      return NextResponse.json({ photoUrl: null });
+    }
+
+    const oldPhotoUrl = employee.photoUrl;
+    await prisma.employee.update({
+      where: { id: employeeId },
+      data: { photoUrl: null },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        tableName: 'employees',
+        recordId: employeeId,
+        action: 'UPDATE',
+        module: 'EMPLOYEE',
+        oldValues: { photoUrl: oldPhotoUrl },
+        newValues: { photoUrl: null },
+      },
+    });
+
+    return NextResponse.json({ photoUrl: null });
+  } catch (error: any) {
+    console.error('Error removing photo:', error);
+    return NextResponse.json({ error: 'Failed to remove photo' }, { status: 500 });
+  }
+}
