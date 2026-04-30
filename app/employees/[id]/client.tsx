@@ -559,13 +559,16 @@ export default function EmployeeDetailClient({
                   <>
                     <InfoRow label="Full Name" value={`${employee.firstName} ${employee.lastName}`} />
                     <InfoRow label="Father's Name" value={employee.fatherName} />
-                    <InfoRow label="Email" value={employee.email} />
+                    <InfoRow label="Personal Email" value={employee.email} />
+                    <InfoRow label="Organization Email" value={employee.workEmail} />
                     <InfoRow label="Phone" value={employee.phone} />
                     <InfoRow label="CNIC" value={employee.cnic} />
                     <InfoRow label="Date of Birth" value={employee.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString() : '-'} />
                     <InfoRow label="Gender" value={employee.gender} />
                     <InfoRow label="Blood Group" value={employee.bloodGroup} />
-                    <InfoRow label="Current Address" value={[employee.address, employee.city, employee.country].filter(Boolean).join(', ')} />
+                    <InfoRow label="Current Address" value={employee.address} />
+                    <InfoRow label="City" value={employee.city} />
+                    <InfoRow label="Country" value={employee.country} />
                     <InfoRow label="Permanent Address" value={employee.permanentAddress} />
                   </>
                 )}
@@ -632,6 +635,7 @@ export default function EmployeeDetailClient({
                     <InfoRow label="Emergency Contact Name" value={employee.emergencyContactName} />
                     <InfoRow label="Emergency Contact Phone" value={employee.emergencyContactPhone} />
                     <InfoRow label="Emergency Contact Relation" value={employee.emergencyContactRelation} />
+                    <InfoRow label="Passport Number" value={employee.passportNumber} />
                     <InfoRow label="Passport Expiry" value={employee.passportExpiry ? new Date(employee.passportExpiry).toLocaleDateString() : '-'} />
                     <InfoRow label="Marital Status" value={employee.maritalStatus} />
                     <InfoRow label="Nationality" value={employee.nationality} />
