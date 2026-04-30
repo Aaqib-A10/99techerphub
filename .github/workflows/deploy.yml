@@ -1,0 +1,46 @@
+name: Deploy to production
+
+# Runs every time you push to main, plus a manual "Run workflow" button on
+# GitHub Actions for ad-hoc redeploys.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at the same time. If a new push arrives while a deploy
+# is in progress, queue it instead of cancelling — pm2 restarts are quick.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: SSH + pull + build + restart
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_SSH_PORT || 22 }}
+          script_stop: true
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.PROD_APP_PATH }}"
+            echo "▶ Pulling latest main"
+            git fetch --all --prune
+            git reset --hard origin/main
+            echo "▶ Installing dependencies"
+            npm ci
+            echo "▶ Regenerating Prisma client"
+            npx prisma generate
+            echo "▶ Building Next.js"
+            npm run build
+            echo "▶ Restarting PM2 process"
+            pm2 restart 99tech-erp --update-env
+            pm2 save
+            echo "✓ Deploy complete: $(git rev-parse --short HEAD)"
