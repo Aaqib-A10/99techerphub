@@ -86,10 +86,12 @@ export default function EmployeeListClient({
     return 'active';
   })();
 
+  // Hydrate company / department from URL too so the dashboard's KPI tiles
+  // (and any external link) carry their filter through to this list.
   const [filters, setFilters] = useState<FilterParams>({
     search: '',
-    department: '',
-    company: '',
+    department: searchParams?.get('department') ?? '',
+    company: searchParams?.get('company') ?? '',
     status: '',
     team: '',
     lifecycleView: initialLifecycleView,

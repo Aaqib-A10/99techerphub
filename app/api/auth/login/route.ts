@@ -74,6 +74,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // SSO-provisioned accounts have an unloginable hash (set by the OAuth
+    // callback when auto-creating a user). Detect that BEFORE bcrypt so we
+    // can hand the user a useful hint instead of a generic "invalid".
+    const isSsoOnly = user.passwordHash.startsWith('!sso_');
+    if (isSsoOnly) {
+      await prisma.auditLog.create({
+        data: {
+          tableName: 'users',
+          recordId: user.id,
+          action: 'CREATE',
+          module: 'AUTH',
+          changedById: user.id,
+          newValues: { event: 'FAILED_LOGIN', email, reason: 'SSO_ONLY_ACCOUNT' },
+        },
+      });
+      return NextResponse.json(
+        {
+          error:
+            'This account signs in with Microsoft. Click "Continue with Microsoft" below, or ask an admin to set a password.',
+          code: 'SSO_ONLY',
+        },
+        { status: 401 },
+      );
+    }
+
     // Verify password
     const passwordValid = await verifyPassword(password, user.passwordHash);
 

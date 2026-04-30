@@ -251,43 +251,67 @@ export default async function LedgerDashboard({
       </div>
 
       {/* KPI strip */}
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <KpiTile
-          href="/employees"
-          label="Total employees"
-          value={totalEmployees}
-          delta={`${totalEmployees - exitedEmployees} active`}
-          deltaTone="neutral"
-        />
-        <KpiTile
-          href="/employees?status=exited"
-          label="Exited"
-          value={exitedEmployees}
-          delta={`${totalEmployees > 0 ? Math.round((exitedEmployees / totalEmployees) * 100) : 0}% of total`}
-          deltaTone="negative"
-        />
-        <KpiTile
-          href="/assets"
-          label="Assets under custody"
-          value={assetsCount}
-          delta={fmtMoney(assetsValue)}
-          deltaTone="neutral"
-        />
-        <KpiTile
-          href="/expenses?status=PENDING"
-          label="Pending approvals"
-          value={pendingApprovalsCount}
-          delta={fmtMoney(pendingApprovalsSum)}
-          deltaTone={pendingApprovalsCount > 0 ? 'warning' : 'neutral'}
-        />
-        <KpiTile
-          href="/assets?overdue=1"
-          label="Overdue returns"
-          value={overdueReturnsCount}
-          delta={overdueReturnsCount > 0 ? 'Action needed' : 'All clear'}
-          deltaTone={overdueReturnsCount > 0 ? 'negative' : 'positive'}
-        />
-      </div>
+      {/* Forward the dashboard's active company/department filter onto each
+          tile's destination so a user filtering by "99 Tech" doesn't lose
+          their scope when they click into the list view. */}
+      {(() => {
+        const employeeFilter = new URLSearchParams();
+        if (selectedCompany !== 'all') employeeFilter.set('company', selectedCompany);
+        if (selectedDepartment !== 'all') employeeFilter.set('department', selectedDepartment);
+        const employeeFilterQs = employeeFilter.toString();
+        const withEmployeeFilters = (base: string) => {
+          if (!employeeFilterQs) return base;
+          return base.includes('?') ? `${base}&${employeeFilterQs}` : `${base}?${employeeFilterQs}`;
+        };
+
+        const assetFilter = new URLSearchParams();
+        if (selectedCompany !== 'all') assetFilter.set('companyId', selectedCompany);
+        const assetFilterQs = assetFilter.toString();
+        const withAssetFilters = (base: string) => {
+          if (!assetFilterQs) return base;
+          return base.includes('?') ? `${base}&${assetFilterQs}` : `${base}?${assetFilterQs}`;
+        };
+
+        return (
+          <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <KpiTile
+              href={withEmployeeFilters('/employees')}
+              label="Total employees"
+              value={totalEmployees}
+              delta={`${totalEmployees - exitedEmployees} active`}
+              deltaTone="neutral"
+            />
+            <KpiTile
+              href={withEmployeeFilters('/employees?status=exited')}
+              label="Exited"
+              value={exitedEmployees}
+              delta={`${totalEmployees > 0 ? Math.round((exitedEmployees / totalEmployees) * 100) : 0}% of total`}
+              deltaTone="negative"
+            />
+            <KpiTile
+              href={withAssetFilters('/assets')}
+              label="Assets under custody"
+              value={assetsCount}
+              delta={fmtMoney(assetsValue)}
+              deltaTone="neutral"
+            />
+            <KpiTile
+              href="/expenses?status=PENDING"
+              label="Pending approvals"
+              value={pendingApprovalsCount}
+              delta={fmtMoney(pendingApprovalsSum)}
+              deltaTone={pendingApprovalsCount > 0 ? 'warning' : 'neutral'}
+            />
+            <KpiTile
+              href={withAssetFilters('/assets?overdue=1')}
+              label="Overdue returns"
+              value={overdueReturnsCount}
+              delta={overdueReturnsCount > 0 ? 'Action needed' : 'All clear'}
+              deltaTone={overdueReturnsCount > 0 ? 'negative' : 'positive'}
+            />
+          </div>
+        );
+      })()}
 
       {/* Recent activity + right rail */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">

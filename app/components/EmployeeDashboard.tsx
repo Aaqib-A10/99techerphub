@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import RelativeTime from './RelativeTime';
+import { formatTenureMonthsFirst } from '@/lib/tenure';
 
 const REQUIRED_DOC_TYPES = ['CNIC_FRONT', 'CNIC_BACK', 'PHOTO', 'RESUME'];
 
@@ -177,12 +178,7 @@ export default async function EmployeeDashboard({
   const tenureDays = joinDate
     ? Math.floor((Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24))
     : 0;
-  const tenureLabel =
-    tenureDays >= 365
-      ? `${Math.floor(tenureDays / 365)}y ${Math.floor((tenureDays % 365) / 30)}m`
-      : tenureDays >= 30
-      ? `${Math.floor(tenureDays / 30)}m`
-      : `${tenureDays}d`;
+  const tenureLabel = formatTenureMonthsFirst(tenureDays);
 
   return (
     <div className="space-y-6">

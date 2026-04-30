@@ -6,6 +6,7 @@ import ProfilePhotoUpload from './ProfilePhotoUpload';
 import RelativeTime from '@/app/components/RelativeTime';
 import { getSessionUser } from '@/lib/auth';
 import { employeeDetailInclude } from './types';
+import { formatTenureMonthsFirst } from '@/lib/tenure';
 
 export default async function EmployeeDetailPage({
   params,
@@ -91,14 +92,9 @@ export default async function EmployeeDetailPage({
   const endDate = employee.dateOfLeaving ? new Date(employee.dateOfLeaving) : new Date();
   const tenureMs = endDate.getTime() - joinDate.getTime();
   const tenureDays = Math.max(0, Math.floor(tenureMs / (1000 * 60 * 60 * 24)));
-  const tenureYears = Math.floor(tenureDays / 365);
-  const tenureMonths = Math.floor((tenureDays % 365) / 30);
-  const tenureLabel =
-    tenureYears > 0
-      ? `${tenureYears}y ${tenureMonths}m`
-      : tenureMonths > 0
-      ? `${tenureMonths}m`
-      : `${tenureDays}d`;
+  // Standardized "<n> Months" / "<n> Years" / "<n> Days" format. Used here on
+  // the hero KPI tile and (via the helper in lib/tenure) anywhere else.
+  const tenureLabel = formatTenureMonthsFirst(tenureDays);
 
   // Asset summary
   const activeAssets = employee.assetAssignments.filter((a: any) => !a.returnedDate).length;

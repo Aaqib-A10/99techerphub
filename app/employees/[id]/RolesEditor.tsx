@@ -87,7 +87,7 @@ export default function RolesEditor({
     <section className="mb-6 rounded-xl bg-white ring-1 ring-[rgba(228,228,231,0.85)] p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h2 className="text-[15px] font-semibold text-zinc-900">Roles &amp; Responsibilities</h2>
+          <h2 className="text-[15px] font-semibold text-zinc-900">Responsibility</h2>
           <p className="text-[12px] text-zinc-500 mt-0.5">
             What this person is accountable for, and which marketplaces they own.
           </p>
@@ -123,7 +123,7 @@ export default function RolesEditor({
             className="mt-1 w-full rounded-md bg-white px-3 py-2 text-[13px] ring-1 ring-[rgba(228,228,231,0.85)] focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:bg-zinc-50 disabled:text-zinc-700 disabled:cursor-not-allowed"
           />
           <p className="text-[11px] text-zinc-400 mt-1">
-            Plain text or simple markdown. Visible to anyone in People → Roles &amp; Responsibilities.
+            Plain text or simple markdown. Visible to anyone in People → Responsibility.
           </p>
         </div>
 

@@ -314,7 +314,7 @@ export default function EmployeeDetailClient({
   const tabs = [
     { id: 'personal', label: 'Personal' },
     { id: 'employment', label: 'Employment' },
-    { id: 'roles', label: 'Roles & Responsibilities' },
+    { id: 'roles', label: 'Responsibility' },
     { id: 'onboarding', label: 'Onboarding' },
     { id: 'assets', label: 'Assets' },
     { id: 'digital', label: 'Digital Access' },
