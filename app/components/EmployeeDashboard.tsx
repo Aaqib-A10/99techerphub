@@ -182,64 +182,63 @@ export default async function EmployeeDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Hero — personalized */}
-      <div
-        className="relative rounded-xl overflow-hidden p-6"
-        style={{
-          background: 'linear-gradient(135deg, #0B1F3A 0%, #152B4C 100%)',
-          boxShadow: '0 32px 64px -12px rgba(11,31,58,0.12)',
-        }}
-      >
-        <div
-          aria-hidden
-          style={{ position: 'absolute', left: 0, top: 16, bottom: 16, width: 2, background: '#14B8A6', borderRadius: '0 1px 1px 0' }}
-        />
-        <div className="flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.55)' }}>
-              Welcome back
-            </p>
-            <h1
-              className="mt-1 truncate"
-              style={{ color: '#FFFFFF', fontWeight: 800, fontSize: '1.6rem', letterSpacing: '-0.02em' }}
-            >
+      {/* Hero — personalized, light theme matching the rest of the ERP */}
+      <div className="page-hero">
+        <div className="flex items-end justify-between gap-6 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <span className="eyebrow">Welcome back</span>
+            <h1>
               {employee.firstName} {employee.lastName}
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginTop: 4 }}>
-              <span className="mono" style={{ color: '#14B8A6' }}>{employee.empCode}</span>
+            <p>
+              <span className="mono text-emerald-600">{employee.empCode}</span>
               {employee.designation ? ` · ${employee.designation}` : ''}
               {employee.department?.name ? ` · ${employee.department.name}` : ''}
             </p>
           </div>
-          <div className="flex gap-3">
-            <Link
-              href={`/employees/${employee.id}`}
-              className="px-4 py-2 rounded-md text-sm font-semibold"
-              style={{ background: 'rgba(255,255,255,0.12)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.25)' }}
-            >
-              View My Profile
-            </Link>
+          <Link
+            href={`/employees/${employee.id}`}
+            className="btn btn-primary"
+            style={{ backgroundColor: '#0B1F3A' }}
+          >
+            View My Profile
+          </Link>
+        </div>
+      </div>
+
+      {/* KPI strip — same stat-card pattern as /expenses, /employees, employee detail */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="stat-card">
+          <div className="stat-label">Tenure</div>
+          <div className="stat-value">{tenureLabel}</div>
+          <div className="text-[11px] text-zinc-500 mt-1">
+            {joinDate ? `Joined ${joinDate.toLocaleDateString()}` : 'No join date'}
           </div>
         </div>
-
-        {/* Quick facts */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
-          <Stat label="Tenure" value={tenureLabel} sub={joinDate ? `Joined ${joinDate.toLocaleDateString()}` : 'No join date'} />
-          <Stat label="Active Assets" value={String(employee.assetAssignments.length)} sub="In your custody" />
-          <Stat
-            label="Required Docs"
-            value={`${requiredUploaded}/${REQUIRED_DOC_TYPES.length}`}
-            sub={missingDocs.length === 0 ? 'Complete' : `${missingDocs.length} missing`}
-          />
-          <Stat
-            label="Manager"
-            value={
-              employee.reportingManager
-                ? `${employee.reportingManager.firstName} ${employee.reportingManager.lastName}`
-                : '—'
-            }
-            sub={employee.reportingManager?.empCode || 'No manager set'}
-          />
+        <div className="stat-card">
+          <div className="stat-label">Active Assets</div>
+          <div className="stat-value">{employee.assetAssignments.length}</div>
+          <div className="text-[11px] text-zinc-500 mt-1">In your custody</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Required Docs</div>
+          <div className="stat-value">
+            {requiredUploaded}/{REQUIRED_DOC_TYPES.length}
+          </div>
+          <div className="text-[11px] text-zinc-500 mt-1">
+            {missingDocs.length === 0 ? 'Complete' : `${missingDocs.length} missing`}
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Manager</div>
+          <div className="stat-value text-[1.05rem] truncate">
+            {employee.reportingManager
+              ? `${employee.reportingManager.firstName} ${employee.reportingManager.lastName}`
+              : '—'}
+          </div>
+          <div className="text-[11px] text-zinc-500 mt-1">
+            {employee.reportingManager?.empCode || 'No manager set'}
+          </div>
         </div>
       </div>
 
@@ -554,23 +553,3 @@ function formatEventDate(d: Date): string {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div
-      className="rounded-lg p-3"
-      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-    >
-      <div className="text-[11px] uppercase tracking-wide" style={{ color: 'rgba(255,255,255,0.5)' }}>
-        {label}
-      </div>
-      <div className="mt-1 truncate" style={{ color: '#FFFFFF', fontSize: '1rem', fontWeight: 700 }}>
-        {value}
-      </div>
-      {sub && (
-        <div className="text-[11px] mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          {sub}
-        </div>
-      )}
-    </div>
-  );
-}
