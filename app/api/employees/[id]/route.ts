@@ -12,8 +12,17 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Page-level RBAC mirror: EMPLOYEE may only fetch their own record.
+    // Without this, a curl against /api/employees/<colleague-id> would
+    // bypass the page redirect and return the full record.
+    const BROWSE_ROLES = new Set(['ADMIN', 'HR', 'MANAGER', 'FINANCE', 'ACCOUNTANT']);
+    const targetId = parseInt(params.id);
+    if (!BROWSE_ROLES.has(currentUser.role) && currentUser.employeeId !== targetId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const employee = await prisma.employee.findUnique({
-      where: { id: parseInt(params.id) },
+      where: { id: targetId },
       include: {
         department: true,
         company: true,

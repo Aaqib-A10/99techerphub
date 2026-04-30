@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import EmployeeDetailClient from './client';
 import ProfilePhotoUpload from './ProfilePhotoUpload';
@@ -58,6 +58,14 @@ export default async function EmployeeDetailPage({
   // can't click through into that person's full profile.
   const BROWSE_ROLES = new Set(['ADMIN', 'HR', 'MANAGER', 'FINANCE', 'ACCOUNTANT']);
   const canBrowseEmployees = !!sessionUser && BROWSE_ROLES.has(sessionUser.role);
+
+  // Page-level RBAC: a non-admin-class viewer may only see their own profile.
+  // Without this, an EMPLOYEE could paste any /employees/N URL and read a
+  // colleague's full record (CNIC, salary, addresses, etc.). Redirect them
+  // to their own profile (or root if they have no linked employee record).
+  if (!canBrowseEmployees && sessionUser?.employeeId !== employeeId) {
+    redirect(sessionUser?.employeeId ? `/employees/${sessionUser.employeeId}` : '/');
+  }
 
   let canEditRoles = false;
   if (sessionUser) {
