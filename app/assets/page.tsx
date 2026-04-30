@@ -64,6 +64,7 @@ export default async function AssetsPage({
   const condition = searchParams.condition as string | undefined;
   const assetType = searchParams.assetType as string | undefined;
   const assignment = ((searchParams.assignment as string) || '').toLowerCase();
+  const overdueOnly = (searchParams.overdue as string) === '1';
 
   const q = ((searchParams.q as string) || '').trim();
   const ramFilter = ((searchParams.ram as string) || '').trim().toLowerCase();
@@ -123,6 +124,19 @@ export default async function AssetsPage({
         ],
       },
     );
+  }
+  // Overdue = open assignment older than 180 days. Mirrors the count
+  // computed by the dashboard "Overdue returns" tile.
+  if (overdueOnly) {
+    if (!where.AND) where.AND = [];
+    where.AND.push({
+      assignments: {
+        some: {
+          returnedDate: null,
+          assignedDate: { lt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) },
+        },
+      },
+    });
   }
   if (q) {
     where.OR = [
@@ -314,6 +328,7 @@ export default async function AssetsPage({
               categoryId: (searchParams.categoryId as string) || '',
               condition: (searchParams.condition as string) || '',
               assignment: assignment || '',
+              overdue: overdueOnly ? '1' : '',
               employeeId: (searchParams.employeeId as string) || '',
               q: q || '',
               ram: ramFilter || '',

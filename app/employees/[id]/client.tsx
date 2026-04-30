@@ -44,18 +44,23 @@ export default function EmployeeDetailClient({
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('personal');
 
-  // Hash-based deep links: e.g. /employees/123#direct-reports lands on the
-  // Employment tab and scrolls to the Direct Reports panel. Used by the
-  // "Direct Reports" tile in the page header to make that count clickable.
+  // Hash-based deep links: e.g. /employees/123#documents lands on the
+  // Documents tab; /employees/123#direct-reports lands on Employment and
+  // scrolls to the Direct Reports panel.
   useEffect(() => {
+    const VALID_TAB_HASHES = new Set([
+      'personal', 'employment', 'onboarding', 'assets',
+      'digital', 'finance', 'documents', 'timeline',
+    ]);
     function handleHash() {
       const hash = window.location.hash.replace('#', '');
       if (hash === 'direct-reports') {
         setActiveTab('employment');
-        // Wait for the tab content to mount before scrolling.
         setTimeout(() => {
           document.getElementById('direct-reports')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 60);
+      } else if (VALID_TAB_HASHES.has(hash)) {
+        setActiveTab(hash);
       }
     }
     handleHash();

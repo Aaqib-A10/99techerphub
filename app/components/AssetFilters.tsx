@@ -93,6 +93,7 @@ export default function AssetFilters({
     !!searchParams.get('categoryId') ||
     !!searchParams.get('condition') ||
     !!searchParams.get('assignment') ||
+    !!searchParams.get('overdue') ||
     !!searchParams.get('employeeId') ||
     !!q ||
     !!ram ||

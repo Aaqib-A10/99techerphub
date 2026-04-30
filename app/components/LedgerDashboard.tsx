@@ -281,7 +281,7 @@ export default async function LedgerDashboard({
           deltaTone={pendingApprovalsCount > 0 ? 'warning' : 'neutral'}
         />
         <KpiTile
-          href="/assets"
+          href="/assets?overdue=1"
           label="Overdue returns"
           value={overdueReturnsCount}
           delta={overdueReturnsCount > 0 ? 'Action needed' : 'All clear'}

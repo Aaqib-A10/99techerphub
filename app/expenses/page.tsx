@@ -7,8 +7,39 @@ import ExpenseTable from './ExpenseTable';
 import PageHero from '@/app/components/PageHero';
 import DateFilter from '@/app/components/DateFilter';
 
-export default async function ExpensesPage() {
+const VALID_STATUSES = ['DRAFT', 'PENDING', 'APPROVED', 'REJECTED', 'NEEDS_REVISION'] as const;
+type ExpenseStatusFilter = (typeof VALID_STATUSES)[number];
+
+export default async function ExpensesPage({
+  searchParams,
+}: {
+  searchParams: { status?: string; from?: string; to?: string };
+}) {
+  const rawStatus = searchParams.status?.toUpperCase();
+  const activeStatus: ExpenseStatusFilter | null =
+    rawStatus && (VALID_STATUSES as readonly string[]).includes(rawStatus)
+      ? (rawStatus as ExpenseStatusFilter)
+      : null;
+
+  const dateFrom = searchParams.from ? new Date(searchParams.from) : null;
+  const dateTo = searchParams.to ? new Date(searchParams.to) : null;
+  const dateRange =
+    dateFrom || dateTo
+      ? {
+          ...(dateFrom ? { gte: dateFrom } : {}),
+          ...(dateTo ? { lte: dateTo } : {}),
+        }
+      : undefined;
+
+  const tableWhere = {
+    ...(activeStatus ? { status: activeStatus } : {}),
+    ...(dateRange ? { expenseDate: dateRange } : {}),
+  };
+
+  const cardsWhere = dateRange ? { expenseDate: dateRange } : {};
+
   const expenses = await prisma.expense.findMany({
+    where: tableWhere,
     include: {
       category: true,
       company: true,
@@ -19,11 +50,22 @@ export default async function ExpensesPage() {
   });
 
   const [totalExpenses, pendingCount, approvedCount, rejectedCount] = await Promise.all([
-    prisma.expense.aggregate({ _sum: { amount: true } }),
-    prisma.expense.count({ where: { status: 'PENDING' } }),
-    prisma.expense.count({ where: { status: 'APPROVED' } }),
-    prisma.expense.count({ where: { status: 'REJECTED' } }),
+    prisma.expense.aggregate({ _sum: { amount: true }, where: cardsWhere }),
+    prisma.expense.count({ where: { ...cardsWhere, status: 'PENDING' } }),
+    prisma.expense.count({ where: { ...cardsWhere, status: 'APPROVED' } }),
+    prisma.expense.count({ where: { ...cardsWhere, status: 'REJECTED' } }),
   ]);
+
+  const buildHref = (status?: ExpenseStatusFilter) => {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (searchParams.from) params.set('from', searchParams.from);
+    if (searchParams.to) params.set('to', searchParams.to);
+    const qs = params.toString();
+    return qs ? `/expenses?${qs}` : '/expenses';
+  };
+
+  const cardActiveClass = 'ring-2 ring-emerald-500 ring-offset-1';
 
   const statusColors: Record<string, string> = {
     DRAFT: 'badge-gray',
@@ -60,25 +102,37 @@ export default async function ExpensesPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="stat-card">
+        <Link
+          href={buildHref()}
+          className={`stat-card block ${activeStatus === null ? cardActiveClass : ''}`}
+        >
           <div className="stat-label">Total Expenses</div>
           <div className="stat-value">
             {(totalExpenses._sum.amount || 0).toLocaleString()}
           </div>
-          <div className="stat-change">All time</div>
-        </div>
-        <div className="stat-card">
+          <div className="stat-change">{dateRange ? 'In selected range' : 'All time'}</div>
+        </Link>
+        <Link
+          href={buildHref('PENDING')}
+          className={`stat-card block ${activeStatus === 'PENDING' ? cardActiveClass : ''}`}
+        >
           <div className="stat-label">Pending Approval</div>
           <div className="stat-value text-yellow-600">{pendingCount}</div>
-        </div>
-        <div className="stat-card">
+        </Link>
+        <Link
+          href={buildHref('APPROVED')}
+          className={`stat-card block ${activeStatus === 'APPROVED' ? cardActiveClass : ''}`}
+        >
           <div className="stat-label">Approved</div>
           <div className="stat-value text-green-600">{approvedCount}</div>
-        </div>
-        <div className="stat-card">
+        </Link>
+        <Link
+          href={buildHref('REJECTED')}
+          className={`stat-card block ${activeStatus === 'REJECTED' ? cardActiveClass : ''}`}
+        >
           <div className="stat-label">Rejected</div>
           <div className="stat-value text-red-600">{rejectedCount}</div>
-        </div>
+        </Link>
       </div>
 
       {/* Date Filter */}
@@ -89,12 +143,20 @@ export default async function ExpensesPage() {
       {/* Expense Table */}
       <div className="card">
         <div className="card-header flex justify-between items-center">
-          <h2 className="section-heading">All Expenses</h2>
+          <h2 className="section-heading">
+            {activeStatus
+              ? `${activeStatus.charAt(0)}${activeStatus.slice(1).toLowerCase().replace('_', ' ')} Expenses`
+              : 'All Expenses'}
+          </h2>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-500">{expenses.length} records</span>
             <ExportButton
               module="expenses"
-              filters={{}}
+              filters={{
+                ...(activeStatus ? { status: activeStatus } : {}),
+                ...(searchParams.from ? { from: searchParams.from } : {}),
+                ...(searchParams.to ? { to: searchParams.to } : {}),
+              }}
             />
           </div>
         </div>

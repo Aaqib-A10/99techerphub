@@ -268,19 +268,39 @@ export default function EmployeeListClient({
     <div>
       {/* Enhanced Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-        <div className="stat-card">
+        <div
+          className={`stat-card cursor-pointer hover:shadow-md transition ${
+            filters.lifecycleView === 'all' && !filters.status ? 'ring-2 ring-emerald-500 ring-offset-1' : ''
+          }`}
+          onClick={() => {
+            setFilters({ ...filters, lifecycleView: 'all', status: '' });
+            setCurrentPage(1);
+          }}
+          title="Click to view all employees"
+        >
           <div className="stat-label">Total Employees</div>
           <div className="stat-value">{stats.total}</div>
           <div className="text-[11px] mt-1" style={{ color: '#75777E' }}>All time hired</div>
         </div>
-        <div className="stat-card">
+        <div
+          className={`stat-card cursor-pointer hover:shadow-md transition ${
+            filters.lifecycleView === 'active' && !filters.status ? 'ring-2 ring-emerald-500 ring-offset-1' : ''
+          }`}
+          onClick={() => {
+            setFilters({ ...filters, lifecycleView: 'active', status: '' });
+            setCurrentPage(1);
+          }}
+          title="Click to view active employees"
+        >
           <div className="stat-label">Active</div>
           <div className="stat-value text-green-600">{stats.active}</div>
         </div>
         <div
-          className="stat-card cursor-pointer hover:shadow-md transition"
+          className={`stat-card cursor-pointer hover:shadow-md transition ${
+            filters.lifecycleView === 'exited' ? 'ring-2 ring-emerald-500 ring-offset-1' : ''
+          }`}
           onClick={() => {
-            setFilters({ ...filters, lifecycleView: 'exited' });
+            setFilters({ ...filters, lifecycleView: 'exited', status: '' });
             setCurrentPage(1);
           }}
           title="Click to view exited employees"
@@ -288,7 +308,16 @@ export default function EmployeeListClient({
           <div className="stat-label">Exited</div>
           <div className="stat-value text-slate-600">{stats.exited ?? 0}</div>
         </div>
-        <div className="stat-card">
+        <div
+          className={`stat-card cursor-pointer hover:shadow-md transition ${
+            filters.status === 'PROBATION' ? 'ring-2 ring-emerald-500 ring-offset-1' : ''
+          }`}
+          onClick={() => {
+            setFilters({ ...filters, lifecycleView: 'active', status: 'PROBATION' });
+            setCurrentPage(1);
+          }}
+          title="Click to view employees on probation"
+        >
           <div className="stat-label">On Probation</div>
           <div className="stat-value text-blue-600">{stats.onProbation}</div>
         </div>

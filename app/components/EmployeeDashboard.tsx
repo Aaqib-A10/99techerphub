@@ -321,7 +321,7 @@ export default async function EmployeeDashboard({
             </div>
             {missingDocs.length > 0 && (
               <Link
-                href={`/employees/${employee.id}?tab=documents`}
+                href={`/employees/${employee.id}#documents`}
                 className="mt-4 block text-center text-xs font-medium text-brand-primary hover:text-brand-dark"
               >
                 Upload missing documents →
@@ -399,6 +399,14 @@ export default async function EmployeeDashboard({
                     + {employee.digitalAccess.length - 8} more
                   </li>
                 )}
+                <li>
+                  <Link
+                    href={`/employees/${employee.id}#digital`}
+                    className="text-xs font-medium text-brand-primary hover:text-brand-dark mt-2 block"
+                  >
+                    Manage access →
+                  </Link>
+                </li>
               </ul>
             )}
           </div>
