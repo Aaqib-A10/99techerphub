@@ -268,7 +268,7 @@ model Employee {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  department                  Department      @relation(fields: [departmentId], references: [id])
+  department                  Department      @relation(fields: [departmentId], references: [id], onDelete: Restrict)
   company                     Company?        @relation(fields: [companyId], references: [id])
   location                    Location?       @relation(fields: [locationId], references: [id])
   reportingManager            Employee?       @relation("ReportingManager", fields: [reportingManagerId], references: [id])
@@ -615,7 +615,7 @@ model AssetAssignment {
 
   asset      Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
   employee   Employee  @relation(fields: [employeeId], references: [id])
-  assignedBy Employee? @relation("AssignedBy", fields: [assignedById], references: [id])
+  assignedBy Employee? @relation("AssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
 
   @@map("asset_assignments")
 }
@@ -683,7 +683,7 @@ model Expense {
   category    ExpenseCategory   @relation(fields: [categoryId], references: [id])
   company     Company           @relation(fields: [companyId], references: [id])
   department  Department?       @relation(fields: [departmentId], references: [id])
-  submittedBy Employee          @relation("SubmittedBy", fields: [submittedById], references: [id])
+  submittedBy Employee          @relation("SubmittedBy", fields: [submittedById], references: [id], onDelete: Restrict)
   approvals   ExpenseApproval[]
 
   @@map("expenses")
