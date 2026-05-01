@@ -1,27 +1,20 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import {
+  KpiTile,
+  Card,
+  Avi,
+  Glyph,
+  Tag,
+} from './design';
 
 // ============================================================================
-// 99 Hub ERP — Ledger Dashboard
-// Architectural Ledger design — 4-up KPI strip, recent activity feed,
-// and a right rail with Asset Distribution + Monthly Burn cards.
-// Uses inline styles for navy/teal so it renders without waiting for
-// tailwind.config.ts to be picked up.
+// 99 Hub ERP — Dashboard (Phase 2 design system)
+// Calm, spacious, hairline-bordered. 5-up tinted KPI strip + recent
+// activity feed + right rail (expenses overview + burn-this-month).
+// Data fetching block is unchanged from the previous version — only
+// the rendering layer was swapped.
 // ============================================================================
-
-const NAVY = '#0B1F3A';
-const TEAL = '#14B8A6';
-const TEAL_LIGHT = '#6df5e1';
-const SURFACE = '#F8F9FF';
-const SURFACE_LOW = '#EFF4FF';
-const INK = '#0B1C30';
-const INK_MUTED = '#44474D';
-const OUTLINE = '#75777E';
-const AMBER = '#F59E0B';
-const ROSE = '#E11D48';
-const EMERALD = '#059669';
-
-const MONO = 'var(--font-jetbrains-mono), ui-monospace, monospace';
 
 interface Props {
   selectedCompany: string;
@@ -37,7 +30,9 @@ export default async function LedgerDashboard({
   dateTo,
 }: Props) {
   const companyId =
-    selectedCompany !== 'all' && !isNaN(Number(selectedCompany)) ? Number(selectedCompany) : null;
+    selectedCompany !== 'all' && !isNaN(Number(selectedCompany))
+      ? Number(selectedCompany)
+      : null;
   const departmentId =
     selectedDepartment !== 'all' && !isNaN(Number(selectedDepartment))
       ? Number(selectedDepartment)
@@ -79,12 +74,9 @@ export default async function LedgerDashboard({
     pendingApprovalsCount,
     pendingApprovalsSumAgg,
     overdueReturnsCount,
-    // Company names (for header pill)
     companyRows,
-    // Recent activity — pull recent expenses + assignments
     recentExpenses,
     recentAssetAssignments,
-    // Burn by category this month
     burnByCategory,
   ] = await Promise.all([
     prisma.employee.count({ where: employeeBase }),
@@ -97,7 +89,6 @@ export default async function LedgerDashboard({
       where: { ...expenseBase, status: 'PENDING' },
     }),
     // "Overdue" = open assignment (not returned) older than 180 days.
-    // Schema has no expectedReturnDate field, so we approximate with age.
     prisma.assetAssignment.count({
       where: {
         returnedDate: null,
@@ -166,12 +157,13 @@ export default async function LedgerDashboard({
     prisma.expense.aggregate({ _sum: { amount: true }, _count: true, where: { ...expenseBase, status: 'DRAFT' } }),
   ]);
   const expenseStatusData = [
-    { label: 'Approved', count: expApproved._count, amount: Number(expApproved._sum.amount) || 0, color: EMERALD },
-    { label: 'Pending', count: expPendingAgg._count, amount: Number(expPendingAgg._sum.amount) || 0, color: AMBER },
-    { label: 'Rejected', count: expRejected._count, amount: Number(expRejected._sum.amount) || 0, color: ROSE },
-    { label: 'Draft', count: expDraft._count, amount: Number(expDraft._sum.amount) || 0, color: OUTLINE },
+    { label: 'Approved', count: expApproved._count, amount: Number(expApproved._sum.amount) || 0, dot: 'bg-core-greenFg' as const },
+    { label: 'Pending',  count: expPendingAgg._count, amount: Number(expPendingAgg._sum.amount) || 0, dot: 'bg-core-amberFg' as const },
+    { label: 'Rejected', count: expRejected._count, amount: Number(expRejected._sum.amount) || 0, dot: 'bg-core-roseFg' as const },
+    { label: 'Draft',    count: expDraft._count, amount: Number(expDraft._sum.amount) || 0, dot: 'bg-core-text3' as const },
   ];
   const expenseTotalAmount = expenseStatusData.reduce((a, e) => a + e.amount, 0) || 1;
+  const expenseTotal = expenseStatusData.reduce((a, e) => a + e.amount, 0);
 
   // Burn by category totals
   const burnTotal = burnByCategory.reduce((a, b) => a + (Number(b._sum.amount) || 0), 0);
@@ -185,7 +177,6 @@ export default async function LedgerDashboard({
     what: string;
     meta: string;
     time: Date;
-    accent?: string;
   };
   const activity: Activity[] = [
     ...recentExpenses.map<Activity>((e) => ({
@@ -206,8 +197,10 @@ export default async function LedgerDashboard({
         ? `${a.employee.firstName} ${a.employee.lastName}`
         : 'Someone',
       verb: a.returnedDate ? 'returned' : 'checked out',
-      what: a.asset ? `${a.asset.manufacturer || ''} ${a.asset.model || ''}`.trim() : 'an asset',
-      meta: a.asset ? `Tag: ${a.asset.assetTag}` : '',
+      what: a.asset
+        ? `${a.asset.manufacturer || ''} ${a.asset.model || ''}`.trim()
+        : 'an asset',
+      meta: a.asset ? a.asset.assetTag : '',
       time: a.assignedDate || a.createdAt,
     })),
   ]
@@ -229,118 +222,113 @@ export default async function LedgerDashboard({
       ? 'All companies'
       : companyRows.find((c) => c.id === companyId)?.name || 'All';
 
-  const expenseTotal = expenseStatusData.reduce((a, e) => a + e.amount, 0);
+  // -------- KPI tile hrefs (preserve dashboard filter scope) --------
+  const employeeFilter = new URLSearchParams();
+  if (selectedCompany !== 'all') employeeFilter.set('company', selectedCompany);
+  if (selectedDepartment !== 'all')
+    employeeFilter.set('department', selectedDepartment);
+  const employeeFilterQs = employeeFilter.toString();
+  const employeeHref = (base: string) => {
+    if (!employeeFilterQs) return base;
+    return base.includes('?') ? `${base}&${employeeFilterQs}` : `${base}?${employeeFilterQs}`;
+  };
+
+  const assetFilter = new URLSearchParams();
+  if (selectedCompany !== 'all') assetFilter.set('companyId', selectedCompany);
+  const assetFilterQs = assetFilter.toString();
+  const assetHref = (base: string) => {
+    if (!assetFilterQs) return base;
+    return base.includes('?') ? `${base}&${assetFilterQs}` : `${base}?${assetFilterQs}`;
+  };
 
   return (
-    <div className="font-sans text-zinc-900 antialiased">
+    <div className="font-sans text-core-text antialiased">
       {/* Hero — quiet greeting + scope chip */}
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
+      <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-zinc-900">
+          <h1
+            className="text-[28px] font-semibold text-core-text leading-[1.1]"
+            style={{ letterSpacing: '-0.025em' }}
+          >
             {greeting}
           </h1>
-          <p className="mt-1 text-[13px] text-zinc-500">{today}</p>
+          <p className="mt-2 text-[14px] text-core-text2">
+            {today} · Viewing {scopeLabel.toLowerCase()}
+          </p>
         </div>
-        <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-zinc-200/85 bg-white px-3 text-[11.5px] font-medium text-zinc-700">
-          <span
-            className="h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: '#14B8A6' }}
-          />
-          Viewing · {scopeLabel}
+        <span className="inline-flex items-center gap-[6px] rounded-full border border-core-border bg-core-surface px-3 py-[7px] text-[12.5px] font-medium text-core-text2">
+          <span className="h-[6px] w-[6px] rounded-full bg-core-green" />
+          {scopeLabel}
         </span>
       </div>
 
-      {/* KPI strip */}
-      {/* Forward the dashboard's active company/department filter onto each
-          tile's destination so a user filtering by "99 Tech" doesn't lose
-          their scope when they click into the list view. */}
-      {(() => {
-        const employeeFilter = new URLSearchParams();
-        if (selectedCompany !== 'all') employeeFilter.set('company', selectedCompany);
-        if (selectedDepartment !== 'all') employeeFilter.set('department', selectedDepartment);
-        const employeeFilterQs = employeeFilter.toString();
-        const withEmployeeFilters = (base: string) => {
-          if (!employeeFilterQs) return base;
-          return base.includes('?') ? `${base}&${employeeFilterQs}` : `${base}?${employeeFilterQs}`;
-        };
-
-        const assetFilter = new URLSearchParams();
-        if (selectedCompany !== 'all') assetFilter.set('companyId', selectedCompany);
-        const assetFilterQs = assetFilter.toString();
-        const withAssetFilters = (base: string) => {
-          if (!assetFilterQs) return base;
-          return base.includes('?') ? `${base}&${assetFilterQs}` : `${base}?${assetFilterQs}`;
-        };
-
-        return (
-          <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <KpiTile
-              href={withEmployeeFilters('/employees')}
-              label="Total employees"
-              value={totalEmployees}
-              delta={`${totalEmployees - exitedEmployees} active`}
-              deltaTone="neutral"
-            />
-            <KpiTile
-              href={withEmployeeFilters('/employees?status=exited')}
-              label="Exited"
-              value={exitedEmployees}
-              delta={`${totalEmployees > 0 ? Math.round((exitedEmployees / totalEmployees) * 100) : 0}% of total`}
-              deltaTone="negative"
-            />
-            <KpiTile
-              href={withAssetFilters('/assets')}
-              label="Assets under custody"
-              value={assetsCount}
-              delta={fmtMoney(assetsValue)}
-              deltaTone="neutral"
-            />
-            <KpiTile
-              href="/expenses?status=PENDING"
-              label="Pending approvals"
-              value={pendingApprovalsCount}
-              delta={fmtMoney(pendingApprovalsSum)}
-              deltaTone={pendingApprovalsCount > 0 ? 'warning' : 'neutral'}
-            />
-            <KpiTile
-              href={withAssetFilters('/assets?overdue=1')}
-              label="Overdue returns"
-              value={overdueReturnsCount}
-              delta={overdueReturnsCount > 0 ? 'Action needed' : 'All clear'}
-              deltaTone={overdueReturnsCount > 0 ? 'negative' : 'positive'}
-            />
-          </div>
-        );
-      })()}
+      {/* KPI strip — 5 tiles, varied tones for visual rhythm */}
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <KpiTile
+          tone="green"
+          href={employeeHref('/employees')}
+          label="Total employees"
+          value={totalEmployees}
+          meta={`${totalEmployees - exitedEmployees} active`}
+        />
+        <KpiTile
+          tone="rose"
+          href={employeeHref('/employees?status=exited')}
+          label="Exited"
+          value={exitedEmployees}
+          meta={`${
+            totalEmployees > 0
+              ? Math.round((exitedEmployees / totalEmployees) * 100)
+              : 0
+          }% of total`}
+        />
+        <KpiTile
+          tone="blue"
+          href={assetHref('/assets')}
+          label="Assets under custody"
+          value={assetsCount}
+          meta={fmtMoney(assetsValue)}
+        />
+        <KpiTile
+          tone="amber"
+          href="/expenses?status=PENDING"
+          label="Pending approvals"
+          value={pendingApprovalsCount}
+          meta={fmtMoney(pendingApprovalsSum)}
+        />
+        <KpiTile
+          tone="violet"
+          href={assetHref('/assets?overdue=1')}
+          label="Overdue returns"
+          value={overdueReturnsCount}
+          meta={overdueReturnsCount > 0 ? 'Action needed' : 'All clear'}
+        />
+      </div>
 
       {/* Recent activity + right rail */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         {/* Recent Activity */}
-        <SurfaceCard className="lg:col-span-7">
-          <SurfaceHeader
+        <div className="lg:col-span-7">
+          <Card
             title="Recent activity"
+            subtitle="Last 7 days"
             action={
               <Link
                 href="/audit"
-                className="inline-flex items-center gap-1 text-[12px] font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+                className="inline-flex items-center gap-1 text-[12.5px] font-medium text-core-greenFg transition hover:opacity-80"
               >
                 View all
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14 M12 5l7 7-7 7" />
-                </svg>
+                <Glyph name="arrowRight" size={12} />
               </Link>
             }
-          />
-          <div>
+            padded={false}
+          >
             {activity.length === 0 ? (
               <div className="flex flex-col items-center px-6 py-10 text-center">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 8v4 M12 16h.01" />
-                  </svg>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-core-surface2 text-core-text3">
+                  <Glyph name="bell" size={14} />
                 </div>
-                <p className="mt-2 text-[12.5px] text-zinc-500">
+                <p className="mt-2 text-[12.5px] text-core-text2">
                   No recent activity yet.
                 </p>
               </div>
@@ -349,136 +337,148 @@ export default async function LedgerDashboard({
                 {activity.map((item, i) => (
                   <li
                     key={item.key}
-                    className={`flex items-start gap-3 px-4 py-3 ${
-                      i > 0 ? 'border-t border-zinc-100' : ''
+                    className={`flex items-start gap-[14px] px-5 py-[14px] ${
+                      i > 0 ? 'border-t border-core-border' : ''
                     }`}
                   >
-                    <span
-                      className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
-                        item.kind === 'EXPENSE'
-                          ? 'bg-amber-50 text-amber-700'
-                          : item.verb === 'returned'
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'bg-zinc-100 text-zinc-700'
-                      }`}
-                    >
-                      {initialsOf(item.who)}
-                    </span>
+                    <Avi
+                      seed={item.who}
+                      initials={initialsOf(item.who)}
+                      size={36}
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
-                        <p className="text-[13px] text-zinc-800">
-                          <span className="font-medium text-zinc-900">{item.who}</span>{' '}
-                          <span className="text-zinc-500">{item.verb}</span>{' '}
-                          <span className="text-zinc-800">{item.what}</span>
+                        <p className="text-[13.5px]">
+                          <span className="font-semibold text-core-text">
+                            {item.who}
+                          </span>{' '}
+                          <span className="text-core-text2">{item.verb}</span>{' '}
+                          <span className="font-medium text-core-text">
+                            {item.what}
+                          </span>
                         </p>
-                        <span className="flex-shrink-0 text-[10.5px] tabular-nums text-zinc-400">
+                        <span className="flex-shrink-0 text-[11.5px] tabular-nums text-core-text3">
                           {fmtRelative(item.time)}
                         </span>
                       </div>
                       {item.meta && (
-                        <p className="mt-0.5 text-[11.5px] text-zinc-500 tabular-nums">
-                          {item.meta}
-                        </p>
+                        <div className="mt-[3px]">
+                          {item.kind === 'ASSIGNMENT' ? (
+                            <Tag>{item.meta}</Tag>
+                          ) : (
+                            <span className="text-[11.5px] tabular-nums text-core-text3">
+                              {item.meta}
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
                   </li>
                 ))}
               </ul>
             )}
-          </div>
-        </SurfaceCard>
+          </Card>
+        </div>
 
         {/* Right rail */}
         <div className="space-y-4 lg:col-span-5">
           {/* Expenses overview */}
-          <SurfaceCard>
-            <SurfaceHeader title="Expenses overview" />
-            <div className="px-4 pb-4">
-              {/* Stacked bar */}
-              <div className="mb-4 flex h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
-                {expenseStatusData.map((s) => {
-                  const pct = (s.amount / (expenseTotalAmount || 1)) * 100;
-                  if (pct === 0) return null;
-                  return (
-                    <div
-                      key={s.label}
-                      className={EXPENSE_TINT_BAR[s.label] || 'bg-zinc-300'}
-                      style={{ width: `${pct}%` }}
-                      title={`${s.label}: ${fmtMoney(s.amount)}`}
-                    />
-                  );
-                })}
-              </div>
-
-              {/* Legend */}
-              <div className="space-y-2">
-                {expenseStatusData.map((s) => (
+          <Card title="Expenses overview" padded>
+            {/* Stacked bar */}
+            <div className="mb-4 flex h-[6px] w-full overflow-hidden rounded-full bg-core-surface2">
+              {expenseStatusData.map((s) => {
+                const pct = (s.amount / expenseTotalAmount) * 100;
+                if (pct === 0) return null;
+                return (
                   <div
                     key={s.label}
-                    className="flex items-center justify-between text-[12.5px]"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${EXPENSE_TINT_DOT[s.label] || 'bg-zinc-400'}`}
-                      />
-                      <span className="font-medium text-zinc-800">{s.label}</span>
-                      <span className="text-[10.5px] tabular-nums text-zinc-400">
-                        {s.count}
-                      </span>
-                    </div>
-                    <span className="font-medium tabular-nums text-zinc-900">
-                      {fmtMoney(s.amount)}
+                    className={s.dot}
+                    style={{ width: `${pct}%` }}
+                    title={`${s.label}: ${fmtMoney(s.amount)}`}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="space-y-[10px]">
+              {expenseStatusData.map((s) => (
+                <div
+                  key={s.label}
+                  className="flex items-center justify-between text-[13px]"
+                >
+                  <div className="flex items-center gap-[10px]">
+                    <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+                    <span className="font-medium text-core-text">
+                      {s.label}
+                    </span>
+                    <span className="text-[11px] tabular-nums text-core-text3">
+                      {s.count}
                     </span>
                   </div>
-                ))}
-              </div>
-
-              {/* Total */}
-              <div className="mt-3 flex items-center justify-between border-t border-zinc-100 pt-3">
-                <span className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
-                  Total
-                </span>
-                <span className="text-[13px] font-semibold tabular-nums text-zinc-900">
-                  {fmtMoney(expenseTotal)}
-                </span>
-              </div>
+                  <span className="font-mono text-[13px] font-semibold tabular-nums text-core-text">
+                    {fmtMoney(s.amount)}
+                  </span>
+                </div>
+              ))}
             </div>
-          </SurfaceCard>
 
-          {/* Burn by category */}
-          <SurfaceCard>
-            <SurfaceHeader
-              title="Burn this month"
-              action={
-                <span className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
-                  {now.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
-                </span>
-              }
-            />
-            <div className="flex items-center gap-5 px-4 pb-4">
+            {/* Total */}
+            <div className="mt-[14px] flex items-center justify-between border-t border-core-border pt-[14px]">
+              <span className="text-[13px] font-semibold text-core-text">
+                Total
+              </span>
+              <span className="font-mono text-[14px] font-bold tabular-nums text-core-text">
+                {fmtMoney(expenseTotal)}
+              </span>
+            </div>
+          </Card>
+
+          {/* Burn this month */}
+          <Card
+            title="Burn this month"
+            action={
+              <span className="font-mono text-[11px] font-medium uppercase text-core-text3" style={{ letterSpacing: '0.04em' }}>
+                {now.toLocaleDateString('en-US', {
+                  month: 'short',
+                  year: '2-digit',
+                })}
+              </span>
+            }
+            padded
+          >
+            <div className="flex items-center gap-[18px]">
               <BurnDonut total={burnTotal} slices={burnByCategory} />
               <div className="flex-1 space-y-2">
                 {burnByCategory.length === 0 ? (
-                  <p className="text-[12px] text-zinc-500">
+                  <p className="text-[12.5px] text-core-text2">
                     No approved expenses this month yet.
                   </p>
                 ) : (
                   burnByCategory.map((b, i) => {
                     const amount = Number(b._sum.amount) || 0;
-                    const pct = burnTotal > 0 ? Math.round((amount / burnTotal) * 100) : 0;
+                    const pct =
+                      burnTotal > 0
+                        ? Math.round((amount / burnTotal) * 100)
+                        : 0;
                     return (
                       <div
                         key={b.categoryId || i}
                         className="flex items-center justify-between text-[12px]"
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-[10px]">
                           <span
-                            className="h-1.5 w-1.5 rounded-full"
-                            style={{ backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }}
+                            className="h-2 w-2 rounded-full"
+                            style={{
+                              backgroundColor:
+                                DONUT_COLORS[i % DONUT_COLORS.length],
+                            }}
                           />
-                          <span className="text-zinc-700">{catName(b.categoryId)}</span>
+                          <span className="text-core-text2">
+                            {catName(b.categoryId)}
+                          </span>
                         </div>
-                        <span className="font-medium tabular-nums text-zinc-900">
+                        <span className="font-medium tabular-nums text-core-text">
                           {pct}%
                         </span>
                       </div>
@@ -487,7 +487,7 @@ export default async function LedgerDashboard({
                 )}
               </div>
             </div>
-          </SurfaceCard>
+          </Card>
         </div>
       </div>
     </div>
@@ -495,97 +495,10 @@ export default async function LedgerDashboard({
 }
 
 // ============================================================================
-// Local helpers (new aesthetic)
+// Local helpers
 // ============================================================================
-const EXPENSE_TINT_BAR: Record<string, string> = {
-  Approved: 'bg-emerald-500',
-  Pending: 'bg-amber-500',
-  Rejected: 'bg-rose-500',
-  Draft: 'bg-zinc-400',
-};
-const EXPENSE_TINT_DOT: Record<string, string> = {
-  Approved: 'bg-emerald-500',
-  Pending: 'bg-amber-500',
-  Rejected: 'bg-rose-500',
-  Draft: 'bg-zinc-400',
-};
-const DONUT_COLORS = ['#0B1F3A', '#71717A', '#14B8A6', '#F59E0B', '#A1A1AA'];
 
-function SurfaceCard({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={`overflow-hidden rounded-lg border border-zinc-200/85 bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function SurfaceHeader({
-  title,
-  action,
-}: {
-  title: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
-      <h2 className="text-[13px] font-semibold text-zinc-900">{title}</h2>
-      {action}
-    </div>
-  );
-}
-
-function KpiTile({
-  href,
-  label,
-  value,
-  delta,
-  deltaTone = 'neutral',
-}: {
-  href: string;
-  label: string;
-  value: number | string;
-  delta?: string;
-  deltaTone?: 'neutral' | 'positive' | 'negative' | 'warning';
-}) {
-  const toneClass =
-    deltaTone === 'positive'
-      ? 'text-emerald-600'
-      : deltaTone === 'negative'
-        ? 'text-rose-600'
-        : deltaTone === 'warning'
-          ? 'text-amber-700'
-          : 'text-zinc-500';
-  return (
-    <Link
-      href={href}
-      className="group block rounded-lg border border-zinc-200/85 bg-white p-4 transition-all duration-200 hover:border-zinc-300 hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]"
-    >
-      <p className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
-        {label}
-      </p>
-      <div className="mt-2.5 flex items-baseline justify-between gap-2">
-        <span className="text-[24px] font-semibold tracking-tight tabular-nums text-zinc-900 leading-none">
-          {value}
-        </span>
-        {delta && (
-          <span className={`text-[11px] font-medium ${toneClass}`}>{delta}</span>
-        )}
-      </div>
-    </Link>
-  );
-}
-
-// ============================================================================
-// Helper components
-// ============================================================================
+const DONUT_COLORS = ['#8FBF3F', '#2C6FBA', '#A66600', '#6B4CBF', '#B84477'];
 
 function BurnDonut({
   total,
@@ -607,7 +520,7 @@ function BurnDonut({
           cy="18"
           r={radius}
           fill="none"
-          stroke="#F4F4F5"
+          stroke="#F0F2EC"
           strokeWidth="3"
         />
         {total > 0 &&
@@ -635,20 +548,19 @@ function BurnDonut({
           })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[12px] font-semibold tabular-nums text-zinc-900">
+        <span className="font-mono text-[12px] font-semibold tabular-nums text-core-text">
           {fmtMoney(total)}
         </span>
-        <span className="text-[9px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+        <span
+          className="text-[9px] font-semibold uppercase text-core-text3"
+          style={{ letterSpacing: '0.06em' }}
+        >
           Total
         </span>
       </div>
     </div>
   );
 }
-
-// ============================================================================
-// Helpers
-// ============================================================================
 
 function fmtMoney(n: number): string {
   if (!n) return '$0';
@@ -674,5 +586,8 @@ function fmtRelative(d: Date): string {
   if (hrs < 24) return `${hrs}h ago`;
   if (days === 1) return 'yesterday';
   if (days < 7) return `${days}d ago`;
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return new Date(d).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
 }
