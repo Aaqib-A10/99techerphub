@@ -335,11 +335,11 @@ export default function EmployeeDetailClient({
   return (
     <>
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded flex items-start justify-between gap-3">
+        <div className="mb-4 p-3 bg-core-roseSoft border border-red-400 text-core-roseFg rounded flex items-start justify-between gap-3">
           <span className="text-sm">{error}</span>
           <button
             onClick={() => setError('')}
-            className="text-red-700 hover:text-red-900 text-lg leading-none"
+            className="text-core-roseFg hover:text-core-roseFg text-lg leading-none"
             aria-label="Dismiss"
           >
             ×
@@ -347,11 +347,11 @@ export default function EmployeeDetailClient({
         </div>
       )}
       {successMsg && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-300 text-green-800 rounded flex items-start justify-between gap-3">
+        <div className="mb-4 p-3 bg-core-greenSoft border border-core-border text-core-greenFg rounded flex items-start justify-between gap-3">
           <span className="text-sm">✓ {successMsg}</span>
           <button
             onClick={() => setSuccessMsg('')}
-            className="text-green-700 hover:text-green-900 text-lg leading-none"
+            className="text-core-greenFg hover:text-core-greenFg text-lg leading-none"
             aria-label="Dismiss"
           >
             ×
@@ -482,22 +482,22 @@ export default function EmployeeDetailClient({
         <div className="card">
           <div className="card-header">
             <h3 className="section-heading">Employee Activity Timeline</h3>
-            <p className="text-sm text-gray-600 mt-1">Comprehensive activity feed from audit logs</p>
+            <p className="text-sm text-core-text2 mt-1">Comprehensive activity feed from audit logs</p>
           </div>
           <div className="card-body">
             {timelineError && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              <div className="mb-4 p-3 bg-core-roseSoft border border-red-400 text-core-roseFg rounded">
                 {timelineError}
               </div>
             )}
 
             {timelineLoading && timelineData.length === 0 ? (
               <div className="flex items-center justify-center py-12">
-                <div className="text-gray-500">Loading timeline...</div>
+                <div className="text-core-text3">Loading timeline...</div>
               </div>
             ) : timelineData.length === 0 ? (
               <div className="flex items-center justify-center py-12">
-                <div className="text-gray-500">No activity recorded yet</div>
+                <div className="text-core-text3">No activity recorded yet</div>
               </div>
             ) : (
               <>
@@ -516,7 +516,7 @@ export default function EmployeeDetailClient({
                     <button
                       onClick={handleLoadMoreTimeline}
                       disabled={timelineLoading}
-                      className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 disabled:opacity-50"
+                      className="px-4 py-2 bg-core-border text-core-text rounded hover:bg-core-border disabled:opacity-50"
                     >
                       {timelineLoading ? 'Loading...' : 'Load More'}
                     </button>
@@ -627,7 +627,7 @@ export default function EmployeeDetailClient({
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div className="flex justify-between">
-      <span className="text-sm text-gray-500">{label}</span>
+      <span className="text-sm text-core-text3">{label}</span>
       <span className="text-sm font-medium">{value || '-'}</span>
     </div>
   );
@@ -641,12 +641,12 @@ function TimelineEntryComponent({
   isLast: boolean;
 }) {
   const colorMap = {
-    blue: { bg: 'bg-blue-100', dot: 'bg-blue-500', text: 'text-blue-700' },
-    green: { bg: 'bg-green-100', dot: 'bg-green-500', text: 'text-green-700' },
-    yellow: { bg: 'bg-yellow-100', dot: 'bg-yellow-500', text: 'text-yellow-700' },
-    red: { bg: 'bg-red-100', dot: 'bg-red-500', text: 'text-red-700' },
-    purple: { bg: 'bg-purple-100', dot: 'bg-purple-500', text: 'text-purple-700' },
-    orange: { bg: 'bg-orange-100', dot: 'bg-orange-500', text: 'text-orange-700' },
+    blue: { bg: 'bg-core-blueSoft', dot: 'bg-blue-500', text: 'text-core-blueFg' },
+    green: { bg: 'bg-core-greenSoft', dot: 'bg-green-500', text: 'text-core-greenFg' },
+    yellow: { bg: 'bg-core-amberSoft', dot: 'bg-yellow-500', text: 'text-core-amberFg' },
+    red: { bg: 'bg-core-roseSoft', dot: 'bg-red-500', text: 'text-core-roseFg' },
+    purple: { bg: 'bg-core-violetSoft', dot: 'bg-purple-500', text: 'text-core-violetFg' },
+    orange: { bg: 'bg-core-amberSoft', dot: 'bg-orange-500', text: 'text-core-amberFg' },
   };
 
   const colors = colorMap[entry.color as keyof typeof colorMap] || colorMap.blue;
@@ -668,7 +668,7 @@ function TimelineEntryComponent({
         <div className={`w-10 h-10 rounded-full ${colors.bg} flex items-center justify-center text-lg`}>
           {entry.icon}
         </div>
-        {!isLast && <div className="w-0.5 h-20 bg-gray-200 mt-2" />}
+        {!isLast && <div className="w-0.5 h-20 bg-core-border mt-2" />}
       </div>
       <div className="pb-4 flex-grow">
         <div className="flex items-start justify-between gap-4">
@@ -681,8 +681,8 @@ function TimelineEntryComponent({
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-600 mb-2">{entry.description}</p>
-            <div className="flex gap-3 text-xs text-gray-500">
+            <p className="text-sm text-core-text2 mb-2">{entry.description}</p>
+            <div className="flex gap-3 text-xs text-core-text3">
               <span>{dateStr}</span>
               <span>{timeStr}</span>
             </div>
@@ -779,28 +779,28 @@ function DocumentSlot({
   };
 
   return (
-    <div className={`border rounded-lg p-4 ${existingDoc ? 'border-green-200 bg-green-50/30' : docType.required ? 'border-red-200 bg-red-50/20' : 'border-gray-200'}`}>
+    <div className={`border rounded-lg p-4 ${existingDoc ? 'border-core-border bg-core-greenSoft/30' : docType.required ? 'border-core-border bg-core-roseSoft/20' : 'border-core-border'}`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {existingDoc ? (
             <span className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">{'\u2713'}</span>
           ) : (
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${docType.required ? 'bg-red-100 text-red-500' : 'bg-gray-100 text-gray-400'}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${docType.required ? 'bg-core-roseSoft text-core-roseFg' : 'bg-core-surface2 text-core-text3'}`}>
               {docType.required ? '!' : '?'}
             </span>
           )}
-          <h4 className="text-sm font-semibold text-gray-800">{docType.label}</h4>
+          <h4 className="text-sm font-semibold text-core-text">{docType.label}</h4>
         </div>
-        <span className="text-[10px] text-gray-400 font-mono">{docType.accept.replace(/\./g, '').toUpperCase()}</span>
+        <span className="text-[10px] text-core-text3 font-mono">{docType.accept.replace(/\./g, '').toUpperCase()}</span>
       </div>
 
-      {error && <p className="text-xs text-red-600 mb-2">{error}</p>}
+      {error && <p className="text-xs text-core-roseFg mb-2">{error}</p>}
 
       {existingDoc ? (
-        <div className="flex items-center justify-between bg-white rounded border border-gray-100 px-3 py-2">
+        <div className="flex items-center justify-between bg-core-surface rounded border border-core-border px-3 py-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-700 truncate">{existingDoc.fileName}</p>
-            <p className="text-[10px] text-gray-400">
+            <p className="text-xs font-medium text-core-text2 truncate">{existingDoc.fileName}</p>
+            <p className="text-[10px] text-core-text3">
               {new Date(existingDoc.uploadedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
             </p>
           </div>
@@ -809,11 +809,11 @@ function DocumentSlot({
               href={existingDoc.fileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs hover:bg-blue-100 font-medium"
+              className="px-2 py-1 bg-core-blueSoft text-core-blueFg rounded text-xs hover:bg-core-blueSoft font-medium"
             >
               View
             </a>
-            <button onClick={handleDelete} className="px-2 py-1 bg-red-50 text-red-600 rounded text-xs hover:bg-red-100 font-medium">
+            <button onClick={handleDelete} className="px-2 py-1 bg-core-roseSoft text-core-roseFg rounded text-xs hover:bg-core-roseSoft font-medium">
               Remove
             </button>
           </div>
@@ -825,15 +825,15 @@ function DocumentSlot({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <div className={`border-2 border-dashed rounded-lg p-3 text-center transition-colors ${uploading ? 'border-gray-200 bg-gray-50' : isDragging ? 'border-brand-primary bg-brand-primary/10' : 'border-gray-300 hover:border-brand-primary hover:bg-brand-primary/5'}`}>
+          <div className={`border-2 border-dashed rounded-lg p-3 text-center transition-colors ${uploading ? 'border-core-border bg-core-surface2' : isDragging ? 'border-core-text bg-core-text/10' : 'border-core-border hover:border-core-text hover:bg-core-text/5'}`}>
             {uploading ? (
-              <p className="text-xs text-gray-500">Uploading...</p>
+              <p className="text-xs text-core-text3">Uploading...</p>
             ) : (
               <>
-                <svg className="w-6 h-6 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 mx-auto text-core-text3 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <p className="text-xs text-gray-500">{isDragging ? 'Drop file here' : 'Drag & drop, or click to upload'}</p>
+                <p className="text-xs text-core-text3">{isDragging ? 'Drop file here' : 'Drag & drop, or click to upload'}</p>
               </>
             )}
           </div>
@@ -882,7 +882,7 @@ function DocumentsTab({ employee }: { employee: any }) {
       <div className="card">
         <div className="card-header flex justify-between items-center">
           <h3 className="section-heading">Required Documents</h3>
-          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${requiredUploaded === requiredTypes.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${requiredUploaded === requiredTypes.length ? 'bg-core-greenSoft text-core-greenFg' : 'bg-core-amberSoft text-core-amberFg'}`}>
             {requiredUploaded}/{requiredTypes.length} uploaded
           </span>
         </div>

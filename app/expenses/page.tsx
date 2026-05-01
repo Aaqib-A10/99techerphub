@@ -6,6 +6,7 @@ import ExportButton from '@/components/ExportButton';
 import ExpenseTable from './ExpenseTable';
 import PageHero from '@/app/components/PageHero';
 import DateFilter from '@/app/components/DateFilter';
+import { KpiTile } from '@/app/components/design';
 
 const VALID_STATUSES = ['DRAFT', 'PENDING', 'APPROVED', 'REJECTED', 'NEEDS_REVISION'] as const;
 type ExpenseStatusFilter = (typeof VALID_STATUSES)[number];
@@ -65,15 +66,8 @@ export default async function ExpensesPage({
     return qs ? `/expenses?${qs}` : '/expenses';
   };
 
-  const cardActiveClass = 'ring-2 ring-emerald-500 ring-offset-1';
-
-  const statusColors: Record<string, string> = {
-    DRAFT: 'badge-gray',
-    PENDING: 'badge-yellow',
-    APPROVED: 'badge-green',
-    REJECTED: 'badge-red',
-    NEEDS_REVISION: 'badge-blue',
-  };
+  const cardActiveClass =
+    'rounded-2xl ring-2 ring-core-text/15 ring-offset-2 ring-offset-core-bg';
 
   return (
     <div>
@@ -100,38 +94,44 @@ export default async function ExpensesPage({
         }
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* KPI strip — clickable, deep-link to filter view */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-4">
         <Link
           href={buildHref()}
-          className={`stat-card block ${activeStatus === null ? cardActiveClass : ''}`}
+          className={`block transition focus:outline-none ${
+            activeStatus === null ? cardActiveClass : 'hover:opacity-90'
+          }`}
         >
-          <div className="stat-label">Total Expenses</div>
-          <div className="stat-value">
-            {(totalExpenses._sum.amount || 0).toLocaleString()}
-          </div>
-          <div className="stat-change">{dateRange ? 'In selected range' : 'All time'}</div>
+          <KpiTile
+            tone="blue"
+            label="Total Expenses"
+            value={(totalExpenses._sum.amount || 0).toLocaleString()}
+            meta={dateRange ? 'In selected range' : 'All time'}
+          />
         </Link>
         <Link
           href={buildHref('PENDING')}
-          className={`stat-card block ${activeStatus === 'PENDING' ? cardActiveClass : ''}`}
+          className={`block transition focus:outline-none ${
+            activeStatus === 'PENDING' ? cardActiveClass : 'hover:opacity-90'
+          }`}
         >
-          <div className="stat-label">Pending Approval</div>
-          <div className="stat-value text-yellow-600">{pendingCount}</div>
+          <KpiTile tone="amber" label="Pending Approval" value={pendingCount} />
         </Link>
         <Link
           href={buildHref('APPROVED')}
-          className={`stat-card block ${activeStatus === 'APPROVED' ? cardActiveClass : ''}`}
+          className={`block transition focus:outline-none ${
+            activeStatus === 'APPROVED' ? cardActiveClass : 'hover:opacity-90'
+          }`}
         >
-          <div className="stat-label">Approved</div>
-          <div className="stat-value text-green-600">{approvedCount}</div>
+          <KpiTile tone="green" label="Approved" value={approvedCount} />
         </Link>
         <Link
           href={buildHref('REJECTED')}
-          className={`stat-card block ${activeStatus === 'REJECTED' ? cardActiveClass : ''}`}
+          className={`block transition focus:outline-none ${
+            activeStatus === 'REJECTED' ? cardActiveClass : 'hover:opacity-90'
+          }`}
         >
-          <div className="stat-label">Rejected</div>
-          <div className="stat-value text-red-600">{rejectedCount}</div>
+          <KpiTile tone="rose" label="Rejected" value={rejectedCount} />
         </Link>
       </div>
 
@@ -149,7 +149,7 @@ export default async function ExpensesPage({
               : 'All Expenses'}
           </h2>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">{expenses.length} records</span>
+            <span className="text-sm text-core-text3">{expenses.length} records</span>
             <ExportButton
               module="expenses"
               filters={{

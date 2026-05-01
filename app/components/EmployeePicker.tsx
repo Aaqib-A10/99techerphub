@@ -176,7 +176,7 @@ export default function EmployeePicker({
       <div className="relative">
         {/* Search icon */}
         <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-core-text3 pointer-events-none"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -213,7 +213,7 @@ export default function EmployeePicker({
             type="button"
             onClick={clear}
             tabIndex={-1}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-700"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-core-surface2 text-core-text3 hover:text-core-text2"
             aria-label="Clear selection"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +227,7 @@ export default function EmployeePicker({
         <ul
           id="employee-picker-list"
           role="listbox"
-          className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"
+          className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-md border border-core-border bg-core-surface shadow-lg"
         >
           {filtered.map((e, idx) => {
             const isHi = idx === highlight;
@@ -243,27 +243,27 @@ export default function EmployeePicker({
                 }}
                 onMouseEnter={() => setHighlight(idx)}
                 className={`px-3 py-2 cursor-pointer text-sm border-b border-gray-50 last:border-0 ${
-                  isHi ? 'bg-brand-primary/10' : ''
+                  isHi ? 'bg-core-text/10' : ''
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="font-medium text-gray-900 truncate">
+                    <div className="font-medium text-core-text truncate">
                       {fullName(e)}
                       {e.isActive === false && (
-                        <span className="ml-2 text-[10px] text-red-500 font-normal uppercase tracking-wide">
+                        <span className="ml-2 text-[10px] text-core-roseFg font-normal uppercase tracking-wide">
                           inactive
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 truncate">
+                    <div className="text-xs text-core-text3 truncate">
                       <span className="mono">{e.empCode}</span>
                       {e.designation ? ` · ${e.designation}` : ''}
                       {e.department?.name ? ` · ${e.department.name}` : ''}
                     </div>
                   </div>
                   {isSel && (
-                    <span className="text-xs text-brand-primary font-semibold flex-shrink-0">
+                    <span className="text-xs text-core-text2 font-semibold flex-shrink-0">
                       ✓
                     </span>
                   )}
@@ -275,7 +275,7 @@ export default function EmployeePicker({
       )}
 
       {open && filtered.length === 0 && query.trim() && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg px-3 py-2 text-sm text-gray-500">
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-core-border bg-core-surface shadow-lg px-3 py-2 text-sm text-core-text3">
           No employees match &ldquo;{query.trim()}&rdquo;
         </div>
       )}

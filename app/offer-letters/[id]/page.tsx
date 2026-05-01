@@ -89,63 +89,63 @@ export default async function OfferLetterDetailPage({
             <div className="card-body space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-gray-500 text-sm">Position</span>
+                  <span className="text-core-text3 text-sm">Position</span>
                   <div className="font-medium mt-1">{offerLetter.position}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Company</span>
+                  <span className="text-core-text3 text-sm">Company</span>
                   <div className="font-medium mt-1">{offerLetter.companyName || '-'}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Department</span>
+                  <span className="text-core-text3 text-sm">Department</span>
                   <div className="font-medium mt-1">{offerLetter.department || '-'}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Start Date</span>
+                  <span className="text-core-text3 text-sm">Start Date</span>
                   <div className="font-medium mt-1">{formatDate(offerLetter.startDate)}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Reporting To</span>
+                  <span className="text-core-text3 text-sm">Reporting To</span>
                   <div className="font-medium mt-1">{offerLetter.reportingTo || '-'}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Contract Type</span>
+                  <span className="text-core-text3 text-sm">Contract Type</span>
                   <div className="font-medium mt-1">{offerLetter.contractType || '-'}</div>
                 </div>
               </div>
 
               {offerLetter.candidateEmail && (
                 <div className="pt-4 border-t">
-                  <span className="text-gray-500 text-sm">Candidate Email</span>
+                  <span className="text-core-text3 text-sm">Candidate Email</span>
                   <div className="font-medium mt-1">{offerLetter.candidateEmail}</div>
                 </div>
               )}
 
               {offerLetter.templateType === 'PROBATION' && offerLetter.probationPeriod && (
                 <div className="pt-2 border-t">
-                  <span className="text-gray-500 text-sm">Probation Period</span>
+                  <span className="text-core-text3 text-sm">Probation Period</span>
                   <div className="font-medium mt-1">{offerLetter.probationPeriod}</div>
                 </div>
               )}
 
               {offerLetter.benefits && (
                 <div className="pt-4 border-t">
-                  <span className="text-gray-500 text-sm">Benefits</span>
-                  <p className="mt-2 text-gray-700 whitespace-pre-wrap">{offerLetter.benefits}</p>
+                  <span className="text-core-text3 text-sm">Benefits</span>
+                  <p className="mt-2 text-core-text2 whitespace-pre-wrap">{offerLetter.benefits}</p>
                 </div>
               )}
 
               {offerLetter.workingHours && (
                 <div className="pt-4 border-t">
-                  <span className="text-gray-500 text-sm">Working Hours</span>
-                  <p className="mt-2 text-gray-700 whitespace-pre-wrap">{offerLetter.workingHours}</p>
+                  <span className="text-core-text3 text-sm">Working Hours</span>
+                  <p className="mt-2 text-core-text2 whitespace-pre-wrap">{offerLetter.workingHours}</p>
                 </div>
               )}
 
               {offerLetter.terms && (
                 <div className="pt-4 border-t">
-                  <span className="text-gray-500 text-sm">Terms & Conditions</span>
-                  <p className="mt-2 text-gray-700 whitespace-pre-wrap">{offerLetter.terms}</p>
+                  <span className="text-core-text3 text-sm">Terms & Conditions</span>
+                  <p className="mt-2 text-core-text2 whitespace-pre-wrap">{offerLetter.terms}</p>
                 </div>
               )}
             </div>
@@ -159,12 +159,12 @@ export default async function OfferLetterDetailPage({
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 rounded-full bg-brand-primary"></div>
-                    <div className="w-0.5 h-16 bg-gray-200 mt-2"></div>
+                    <div className="w-3 h-3 rounded-full bg-core-text"></div>
+                    <div className="w-0.5 h-16 bg-core-border mt-2"></div>
                   </div>
                   <div className="pb-4">
                     <div className="font-semibold">Created</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-core-text2">
                       {new Date(offerLetter.createdAt).toLocaleString()}
                     </div>
                   </div>
@@ -174,11 +174,11 @@ export default async function OfferLetterDetailPage({
                   <div className="flex gap-4">
                     <div className="flex flex-col items-center">
                       <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                      <div className="w-0.5 h-16 bg-gray-200 mt-2"></div>
+                      <div className="w-0.5 h-16 bg-core-border mt-2"></div>
                     </div>
                     <div className="pb-4">
                       <div className="font-semibold">Sent</div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-core-text2">
                         {new Date(offerLetter.sentAt).toLocaleString()}
                       </div>
                     </div>
@@ -192,7 +192,7 @@ export default async function OfferLetterDetailPage({
                     </div>
                     <div>
                       <div className="font-semibold">Accepted</div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-core-text2">
                         {new Date(offerLetter.acceptedDate).toLocaleString()}
                       </div>
                     </div>
@@ -210,10 +210,10 @@ export default async function OfferLetterDetailPage({
               <div className="card-body">
                 <div className="space-y-3">
                   {auditLogs.map((log) => (
-                    <div key={log.id} className="p-3 bg-gray-50 rounded text-sm">
+                    <div key={log.id} className="p-3 bg-core-surface2 rounded text-sm">
                       <div className="flex justify-between">
                         <span className="font-medium">{log.action}</span>
-                        <span className="text-gray-500">
+                        <span className="text-core-text3">
                           {new Date(log.createdAt).toLocaleString()}
                         </span>
                       </div>

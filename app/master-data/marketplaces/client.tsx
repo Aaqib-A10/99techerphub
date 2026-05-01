@@ -76,30 +76,30 @@ export default function MarketplacesClient({ initial }: { initial: Row[] }) {
   return (
     <div className="space-y-4">
       {/* Add row */}
-      <div className="rounded-lg bg-white ring-1 ring-[rgba(228,228,231,0.85)] p-3 flex flex-wrap gap-2 items-center">
+      <div className="rounded-lg bg-core-surface ring-1 ring-[rgba(228,228,231,0.85)] p-3 flex flex-wrap gap-2 items-center">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') add(); }}
           placeholder="Add marketplace (e.g. Etsy, Newegg)"
-          className="h-9 flex-1 min-w-[220px] rounded-md bg-white px-3 text-[13px] ring-1 ring-[rgba(228,228,231,0.85)] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          className="h-9 flex-1 min-w-[220px] rounded-md bg-core-surface px-3 text-[13px] ring-1 ring-[rgba(228,228,231,0.85)] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
           disabled={adding}
         />
         <button
           type="button"
           onClick={add}
           disabled={adding || !name.trim()}
-          className="h-9 px-4 rounded-md text-[13px] font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:bg-zinc-300 disabled:cursor-not-allowed"
+          className="h-9 px-4 rounded-md text-[13px] font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:bg-core-border disabled:cursor-not-allowed"
         >
           {adding ? 'Adding…' : 'Add'}
         </button>
-        {error && <span className="text-[12px] text-red-600 w-full">{error}</span>}
+        {error && <span className="text-[12px] text-core-roseFg w-full">{error}</span>}
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-lg bg-white ring-1 ring-[rgba(228,228,231,0.85)]">
+      <div className="overflow-hidden rounded-lg bg-core-surface ring-1 ring-[rgba(228,228,231,0.85)]">
         <table className="min-w-full text-[13px]">
-          <thead className="bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500">
+          <thead className="bg-core-surface2 text-[11px] uppercase tracking-wide text-core-text3">
             <tr>
               <th className="text-left font-semibold px-3 py-2">Name</th>
               <th className="text-left font-semibold px-3 py-2">Employees</th>
@@ -107,9 +107,9 @@ export default function MarketplacesClient({ initial }: { initial: Row[] }) {
               <th className="text-left font-semibold px-3 py-2 col-sticky-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-100">
+          <tbody className="divide-y divide-core-border">
             {rows.length === 0 && (
-              <tr><td colSpan={4} className="px-3 py-8 text-center text-zinc-400">No marketplaces yet — add your first above.</td></tr>
+              <tr><td colSpan={4} className="px-3 py-8 text-center text-core-text3">No marketplaces yet — add your first above.</td></tr>
             )}
             {rows.map((r) => (
               <tr key={r.id} className={r.isActive ? '' : 'opacity-60'}>
@@ -120,8 +120,8 @@ export default function MarketplacesClient({ initial }: { initial: Row[] }) {
                 <td className="px-3 py-2">
                   <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
                     r.isActive
-                      ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                      : 'bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200'
+                      ? 'bg-core-greenSoft text-core-greenFg ring-1 ring-core-greenFg'
+                      : 'bg-core-surface2 text-core-text3 ring-1 ring-core-border'
                   }`}>
                     {r.isActive ? 'Active' : 'Inactive'}
                   </span>
@@ -130,7 +130,7 @@ export default function MarketplacesClient({ initial }: { initial: Row[] }) {
                   <button
                     type="button"
                     onClick={() => toggleActive(r)}
-                    className="text-[12px] text-blue-700 hover:underline"
+                    className="text-[12px] text-core-blueFg hover:underline"
                   >
                     {r.isActive ? 'Deactivate' : 'Reactivate'}
                   </button>
@@ -149,7 +149,7 @@ function EditableName({ value, onSave }: { value: string; onSave: (v: string) =>
   const [draft, setDraft] = useState(value);
   if (!editing) {
     return (
-      <button type="button" className="text-zinc-900 hover:text-blue-700" onClick={() => { setDraft(value); setEditing(true); }}>
+      <button type="button" className="text-core-text hover:text-core-blueFg" onClick={() => { setDraft(value); setEditing(true); }}>
         {value}
       </button>
     );

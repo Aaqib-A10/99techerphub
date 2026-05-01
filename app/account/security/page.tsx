@@ -36,9 +36,9 @@ export default async function AccountSecurityPage() {
           <SecurityForm email={user.email} isSsoOnly={isSsoOnly} />
         </div>
 
-        <aside className="space-y-3 text-[12.5px] text-zinc-600">
-          <div className="rounded-lg ring-1 ring-zinc-200/85 bg-white p-4">
-            <h3 className="text-[13px] font-semibold text-zinc-900 mb-2">
+        <aside className="space-y-3 text-[12.5px] text-core-text2">
+          <div className="rounded-lg ring-1 ring-core-border/85 bg-core-surface p-4">
+            <h3 className="text-[13px] font-semibold text-core-text mb-2">
               What happens when you save
             </h3>
             <ul className="space-y-1.5 list-disc list-outside pl-4">
@@ -56,8 +56,8 @@ export default async function AccountSecurityPage() {
               <li>The change is recorded in the audit log.</li>
             </ul>
           </div>
-          <div className="rounded-lg ring-1 ring-zinc-200/85 bg-white p-4">
-            <h3 className="text-[13px] font-semibold text-zinc-900 mb-2">
+          <div className="rounded-lg ring-1 ring-core-border/85 bg-core-surface p-4">
+            <h3 className="text-[13px] font-semibold text-core-text mb-2">
               Forgot your password later?
             </h3>
             <p>

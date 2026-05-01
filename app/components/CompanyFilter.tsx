@@ -89,7 +89,7 @@ export default function DashboardFilters({
     <div className="space-y-3">
       {/* Company pill row — compact, single line */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mr-1">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-core-text3 mr-1">
           Company
         </span>
         {COMPANIES.map((company) => {
@@ -100,8 +100,8 @@ export default function DashboardFilters({
               onClick={() => go(company.id, selectedDateRange, selectedLocation)}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                 isActive
-                  ? 'bg-brand-primary text-white shadow-sm ring-1 ring-brand-primary/30'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-brand-primary/40 hover:text-brand-primary'
+                  ? 'bg-core-text text-white shadow-sm ring-1 ring-core-text/30'
+                  : 'bg-core-surface text-core-text2 border border-core-border hover:border-core-text/40 hover:text-core-text2'
               }`}
             >
               {company.displayName}
@@ -120,8 +120,8 @@ export default function DashboardFilters({
             }}
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
               selectedDateRange !== 'all'
-                ? 'border-blue-300 bg-blue-50 text-blue-700'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                ? 'border-core-border bg-core-blueSoft text-core-blueFg'
+                : 'border-core-border bg-core-surface text-core-text2 hover:border-core-border'
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +134,7 @@ export default function DashboardFilters({
           </button>
 
           {dateOpen && (
-            <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-md shadow-lg z-30 min-w-48 overflow-hidden">
+            <div className="absolute top-full mt-1 left-0 bg-core-surface border border-core-border rounded-md shadow-lg z-30 min-w-48 overflow-hidden">
               {DATE_RANGES.map((dr) => (
                 <button
                   key={dr.id}
@@ -144,8 +144,8 @@ export default function DashboardFilters({
                   }}
                   className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
                     selectedDateRange === dr.id
-                      ? 'bg-blue-50 text-blue-700 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-core-blueSoft text-core-blueFg font-semibold'
+                      : 'text-core-text2 hover:bg-core-surface2'
                   }`}
                 >
                   {dr.label}
@@ -163,8 +163,8 @@ export default function DashboardFilters({
             }}
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
               selectedLocation !== 'all'
-                ? 'border-purple-300 bg-purple-50 text-purple-700'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                ? 'border-core-border bg-core-violetSoft text-core-violetFg'
+                : 'border-core-border bg-core-surface text-core-text2 hover:border-core-border'
             }`}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +178,7 @@ export default function DashboardFilters({
           </button>
 
           {locOpen && (
-            <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-md shadow-lg z-30 min-w-56 overflow-hidden">
+            <div className="absolute top-full mt-1 left-0 bg-core-surface border border-core-border rounded-md shadow-lg z-30 min-w-56 overflow-hidden">
               {LOCATIONS.map((loc) => (
                 <button
                   key={loc.id}
@@ -188,8 +188,8 @@ export default function DashboardFilters({
                   }}
                   className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
                     selectedLocation === loc.id
-                      ? 'bg-purple-50 text-purple-700 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-core-violetSoft text-core-violetFg font-semibold'
+                      : 'text-core-text2 hover:bg-core-surface2'
                   }`}
                 >
                   {loc.label}
@@ -202,7 +202,7 @@ export default function DashboardFilters({
         {hasAnyFilter && (
           <button
             onClick={() => router.push('/')}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-core-text3 hover:text-core-text2 hover:bg-core-surface2 transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

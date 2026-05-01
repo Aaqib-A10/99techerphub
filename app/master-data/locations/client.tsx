@@ -65,7 +65,7 @@ export default function LocationsClient({
 
   return (
     <div>
-      {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+      {error && <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
 
       <div className="flex justify-end mb-4">
         <button
@@ -143,7 +143,7 @@ export default function LocationsClient({
             <tbody>
               {locations.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-gray-500">
+                  <td colSpan={5} className="text-center py-12 text-core-text3">
                     No locations found
                   </td>
                 </tr>
@@ -151,7 +151,7 @@ export default function LocationsClient({
                 locations.map((location) => (
                   <tr key={location.id}>
                     <td className="font-semibold">{location.name}</td>
-                    <td className="text-sm text-gray-600">{location.address || '-'}</td>
+                    <td className="text-sm text-core-text2">{location.address || '-'}</td>
                     <td>{location.country}</td>
                     <td className="text-center">{employeeCounts[location.id] || 0}</td>
                     <td className="text-center">{assetCounts[location.id] || 0}</td>

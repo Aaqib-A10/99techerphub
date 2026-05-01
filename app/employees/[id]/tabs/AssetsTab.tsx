@@ -77,7 +77,7 @@ export default function AssetsTab({ assetAssignments, isActive }: Props) {
             <tbody>
               {assetAssignments.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-500">
+                  <td colSpan={7} className="text-center py-8 text-core-text3">
                     No assets assigned
                   </td>
                 </tr>
@@ -93,7 +93,7 @@ export default function AssetsTab({ assetAssignments, isActive }: Props) {
                       <td className="font-mono text-sm">
                         <Link
                           href={`/assets/${a.asset.id}`}
-                          className="text-brand-primary hover:underline"
+                          className="text-core-text2 hover:underline"
                         >
                           {a.asset.assetTag}
                         </Link>
@@ -108,7 +108,7 @@ export default function AssetsTab({ assetAssignments, isActive }: Props) {
                           ? new Date(a.returnedDate).toLocaleDateString()
                           : '-'}
                       </td>
-                      <td className="text-sm text-gray-600">
+                      <td className="text-sm text-core-text2">
                         {formatTenureMonthsFirst(days)}
                       </td>
                       <td>
@@ -142,9 +142,9 @@ function SummaryCard({
   return (
     <div className="card">
       <div className="card-body">
-        <div className="text-xs text-gray-500 uppercase tracking-wide">{label}</div>
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
-        <div className="text-xs text-gray-500">{sub}</div>
+        <div className="text-xs text-core-text3 uppercase tracking-wide">{label}</div>
+        <div className="text-2xl font-bold text-core-text">{value}</div>
+        <div className="text-xs text-core-text3">{sub}</div>
       </div>
     </div>
   );

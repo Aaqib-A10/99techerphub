@@ -6,12 +6,12 @@ interface StatusBadgeProps {
 
 export default function StatusBadge({ condition }: StatusBadgeProps) {
   const statusConfig: Record<AssetCondition, { bg: string; text: string }> = {
-    NEW: { bg: 'bg-blue-100', text: 'text-blue-800' },
-    WORKING: { bg: 'bg-green-100', text: 'text-green-800' },
-    DAMAGED: { bg: 'bg-red-100', text: 'text-red-800' },
-    IN_REPAIR: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
-    LOST: { bg: 'bg-gray-100', text: 'text-gray-800' },
-    RETIRED: { bg: 'bg-purple-100', text: 'text-purple-800' },
+    NEW: { bg: 'bg-core-blueSoft', text: 'text-core-blueFg' },
+    WORKING: { bg: 'bg-core-greenSoft', text: 'text-core-greenFg' },
+    DAMAGED: { bg: 'bg-core-roseSoft', text: 'text-core-roseFg' },
+    IN_REPAIR: { bg: 'bg-core-amberSoft', text: 'text-core-amberFg' },
+    LOST: { bg: 'bg-core-surface2', text: 'text-core-text' },
+    RETIRED: { bg: 'bg-core-violetSoft', text: 'text-core-violetFg' },
   };
 
   const config = statusConfig[condition];

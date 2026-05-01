@@ -323,22 +323,22 @@ export default function SettingsPage() {
 
       {/* Toasts */}
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg flex items-start justify-between gap-3">
+        <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg flex items-start justify-between gap-3">
           <span>{error}</span>
           <button
             onClick={() => setError('')}
-            className="text-red-700 hover:text-red-900 font-bold"
+            className="text-core-roseFg hover:text-core-roseFg font-bold"
           >
             ×
           </button>
         </div>
       )}
       {success && (
-        <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg flex items-start justify-between gap-3">
+        <div className="mb-4 p-4 bg-core-greenSoft text-core-greenFg rounded-lg flex items-start justify-between gap-3">
           <span>{success}</span>
           <button
             onClick={() => setSuccess('')}
-            className="text-green-700 hover:text-green-900 font-bold"
+            className="text-core-greenFg hover:text-core-greenFg font-bold"
           >
             ×
           </button>
@@ -349,7 +349,7 @@ export default function SettingsPage() {
       <div className="flex justify-between items-center mb-4 gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           {formConfig[activeTab].supportsActive && inactiveCount > 0 && (
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-core-text2">
               <input
                 type="checkbox"
                 checked={showInactive}
@@ -372,12 +372,12 @@ export default function SettingsPage() {
             <h2 className="section-heading">
               {mode === 'add' ? 'Add New' : 'Edit'} {currentTab.singular}
               {mode === 'edit' && editingId != null && (
-                <span className="ml-2 text-sm text-gray-500">#{editingId}</span>
+                <span className="ml-2 text-sm text-core-text3">#{editingId}</span>
               )}
             </h2>
             <button
               onClick={closeForm}
-              className="text-gray-500 hover:text-gray-700 text-xl leading-none"
+              className="text-core-text3 hover:text-core-text2 text-xl leading-none"
               aria-label="Close"
             >
               ×
@@ -404,7 +404,7 @@ export default function SettingsPage() {
                 ))}
                 {mode === 'edit' && formConfig[activeTab].supportsActive && (
                   <div className="flex items-end">
-                    <label className="flex items-center gap-2 text-sm text-gray-700 pb-2">
+                    <label className="flex items-center gap-2 text-sm text-core-text2 pb-2">
                       <input
                         type="checkbox"
                         checked={!!formData.isActive}
@@ -498,7 +498,7 @@ export default function SettingsPage() {
             <tbody>
               {visibleItems().length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-gray-500">
+                  <td colSpan={8} className="text-center py-12 text-core-text3">
                     No records found
                   </td>
                 </tr>
@@ -511,7 +511,7 @@ export default function SettingsPage() {
                       key={item.id}
                       className={isInactive ? 'opacity-60' : ''}
                     >
-                      <td className="text-sm text-gray-500">#{item.id}</td>
+                      <td className="text-sm text-core-text3">#{item.id}</td>
                       {activeTab === 'companies' && (
                         <>
                           <td>
@@ -550,7 +550,7 @@ export default function SettingsPage() {
                       {activeTab === 'locations' && (
                         <>
                           <td className="font-semibold">{item.name}</td>
-                          <td className="text-sm text-gray-600">
+                          <td className="text-sm text-core-text2">
                             {item.address || '-'}
                           </td>
                           <td>{item.country}</td>
@@ -562,7 +562,7 @@ export default function SettingsPage() {
                             <span className="badge badge-blue">{item.code}</span>
                           </td>
                           <td className="font-semibold">{item.name}</td>
-                          <td className="text-sm text-gray-600">
+                          <td className="text-sm text-core-text2">
                             {item.description || '-'}
                           </td>
                         </>
@@ -573,7 +573,7 @@ export default function SettingsPage() {
                             <span className="badge badge-blue">{item.code}</span>
                           </td>
                           <td className="font-semibold">{item.name}</td>
-                          <td className="text-sm text-gray-600">
+                          <td className="text-sm text-core-text2">
                             {item.description || '-'}
                           </td>
                           <td>
@@ -591,7 +591,7 @@ export default function SettingsPage() {
                         <div className="inline-flex gap-2">
                           <button
                             onClick={() => openEdit(item)}
-                            className="px-3 py-1 text-xs font-semibold rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                            className="px-3 py-1 text-xs font-semibold rounded-md bg-core-blueSoft text-core-blueFg hover:bg-core-blueSoft border border-core-border"
                           >
                             ✏️ Edit
                           </button>
@@ -599,7 +599,7 @@ export default function SettingsPage() {
                             <button
                               onClick={() => doRestore(item.id)}
                               disabled={loading}
-                              className="px-3 py-1 text-xs font-semibold rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 disabled:opacity-50"
+                              className="px-3 py-1 text-xs font-semibold rounded-md bg-core-greenSoft text-core-greenFg hover:bg-core-green border border-core-border disabled:opacity-50"
                             >
                               ♻️ Restore
                             </button>
@@ -614,7 +614,7 @@ export default function SettingsPage() {
                                     `#${item.id}`,
                                 })
                               }
-                              className="px-3 py-1 text-xs font-semibold rounded-md bg-red-50 text-red-700 hover:bg-red-100 border border-red-200"
+                              className="px-3 py-1 text-xs font-semibold rounded-md bg-core-roseSoft text-core-roseFg hover:bg-core-roseSoft border border-core-border"
                             >
                               🗑️ Delete
                             </button>
@@ -637,13 +637,13 @@ export default function SettingsPage() {
           onClick={() => setConfirmDelete(null)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+            className="bg-core-surface rounded-lg shadow-xl max-w-md w-full p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="section-heading mb-2">
               Delete {currentTab.singular}?
             </h3>
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-sm text-core-text2 mb-6">
               Are you sure you want to delete{' '}
               <span className="font-semibold">{confirmDelete.label}</span>?{' '}
               {formConfig[activeTab].supportsActive
@@ -671,7 +671,7 @@ export default function SettingsPage() {
 
       {/* Email Templates Section */}
       <div className="mt-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <h2 className="text-2xl font-bold text-core-text mb-6">
           Communication Management
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -686,7 +686,7 @@ export default function SettingsPage() {
                   <h3 className="section-heading">
                     Email Templates
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-core-text2">
                     Manage email templates for offers, onboarding, expenses,
                     and payroll
                   </p>

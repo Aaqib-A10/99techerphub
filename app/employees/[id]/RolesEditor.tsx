@@ -84,26 +84,26 @@ export default function RolesEditor({
   };
 
   return (
-    <section className="mb-6 rounded-xl bg-white ring-1 ring-[rgba(228,228,231,0.85)] p-4">
+    <section className="mb-6 rounded-xl bg-core-surface ring-1 ring-[rgba(228,228,231,0.85)] p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h2 className="text-[15px] font-semibold text-zinc-900">Responsibility</h2>
-          <p className="text-[12px] text-zinc-500 mt-0.5">
+          <h2 className="text-[15px] font-semibold text-core-text">Responsibility</h2>
+          <p className="text-[12px] text-core-text3 mt-0.5">
             What this person is accountable for, and which marketplaces they own.
           </p>
         </div>
         {!canEdit && (
-          <span className="text-[11px] text-zinc-400 italic">read-only</span>
+          <span className="text-[11px] text-core-text3 italic">read-only</span>
         )}
       </div>
 
       {error && (
-        <div className="mb-3 rounded-md bg-red-50 ring-1 ring-red-200 text-red-700 text-[12px] px-3 py-2">
+        <div className="mb-3 rounded-md bg-core-roseSoft ring-1 ring-red-200 text-core-roseFg text-[12px] px-3 py-2">
           {error}
         </div>
       )}
       {savedAt && !error && (
-        <div className="mb-3 rounded-md bg-emerald-50 ring-1 ring-emerald-200 text-emerald-800 text-[12px] px-3 py-2">
+        <div className="mb-3 rounded-md bg-core-greenSoft ring-1 ring-core-greenFg text-core-greenFg text-[12px] px-3 py-2">
           ✓ Saved at {savedAt}
         </div>
       )}
@@ -111,7 +111,7 @@ export default function RolesEditor({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Responsibilities textarea */}
         <div className="md:col-span-2">
-          <label className="text-[11px] uppercase tracking-wide text-zinc-500 font-semibold">
+          <label className="text-[11px] uppercase tracking-wide text-core-text3 font-semibold">
             Responsibilities
           </label>
           <textarea
@@ -120,20 +120,20 @@ export default function RolesEditor({
             disabled={!canEdit || saving}
             placeholder={canEdit ? 'e.g. Owns daily Amazon FBA replenishment for the perfume catalog. Approves CSR refunds up to $200. Reports weekly P&L to Hammad.' : 'No responsibilities recorded.'}
             rows={6}
-            className="mt-1 w-full rounded-md bg-white px-3 py-2 text-[13px] ring-1 ring-[rgba(228,228,231,0.85)] focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:bg-zinc-50 disabled:text-zinc-700 disabled:cursor-not-allowed"
+            className="mt-1 w-full rounded-md bg-core-surface px-3 py-2 text-[13px] ring-1 ring-[rgba(228,228,231,0.85)] focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:bg-core-surface2 disabled:text-core-text2 disabled:cursor-not-allowed"
           />
-          <p className="text-[11px] text-zinc-400 mt-1">
+          <p className="text-[11px] text-core-text3 mt-1">
             Plain text or simple markdown. Visible to anyone in People → Responsibility.
           </p>
         </div>
 
         {/* Marketplaces multi-select */}
         <div>
-          <label className="text-[11px] uppercase tracking-wide text-zinc-500 font-semibold">
+          <label className="text-[11px] uppercase tracking-wide text-core-text3 font-semibold">
             Marketplaces
           </label>
           {marketplaceOptions.length === 0 ? (
-            <p className="text-[12px] text-zinc-400 mt-2">
+            <p className="text-[12px] text-core-text3 mt-2">
               No marketplaces in catalog yet. Admins can add them in Master Data.
             </p>
           ) : (
@@ -144,8 +144,8 @@ export default function RolesEditor({
                   <label
                     key={m.id}
                     className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] ${
-                      canEdit ? 'cursor-pointer hover:bg-zinc-50' : 'cursor-default'
-                    } ${checked ? 'bg-blue-50 ring-1 ring-blue-200' : ''}`}
+                      canEdit ? 'cursor-pointer hover:bg-core-surface2' : 'cursor-default'
+                    } ${checked ? 'bg-core-blueSoft ring-1 ring-blue-200' : ''}`}
                   >
                     <input
                       type="checkbox"
@@ -154,7 +154,7 @@ export default function RolesEditor({
                       onChange={() => toggle(m.id)}
                       className="h-4 w-4"
                     />
-                    <span className={checked ? 'text-blue-800 font-medium' : 'text-zinc-700'}>
+                    <span className={checked ? 'text-core-blueFg font-medium' : 'text-core-text2'}>
                       {m.name}
                     </span>
                   </label>
@@ -171,7 +171,7 @@ export default function RolesEditor({
             type="button"
             disabled={!dirty || saving}
             onClick={save}
-            className="h-9 px-4 rounded-md text-[13px] font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:bg-zinc-300 disabled:cursor-not-allowed"
+            className="h-9 px-4 rounded-md text-[13px] font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:bg-core-border disabled:cursor-not-allowed"
           >
             {saving ? 'Saving…' : 'Save changes'}
           </button>
@@ -184,7 +184,7 @@ export default function RolesEditor({
                 setError('');
                 setSavedAt(null);
               }}
-              className="h-9 px-3 rounded-md text-[13px] text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50"
+              className="h-9 px-3 rounded-md text-[13px] text-core-text2 ring-1 ring-core-border hover:bg-core-surface2"
             >
               Discard
             </button>

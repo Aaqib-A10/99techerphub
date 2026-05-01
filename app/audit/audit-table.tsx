@@ -41,9 +41,9 @@ const moduleColors: Record<string, string> = {
 };
 
 const actionColors: Record<string, string> = {
-  CREATE: 'bg-green-100 text-green-800',
-  UPDATE: 'bg-yellow-100 text-yellow-800',
-  DELETE: 'bg-red-100 text-red-800',
+  CREATE: 'bg-core-greenSoft text-core-greenFg',
+  UPDATE: 'bg-core-amberSoft text-core-amberFg',
+  DELETE: 'bg-core-roseSoft text-core-roseFg',
 };
 
 export default function AuditTable({
@@ -164,7 +164,7 @@ export default function AuditTable({
   if (loading) {
     return (
       <div className="card">
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-core-text3">
           Loading audit logs...
         </div>
       </div>
@@ -175,14 +175,14 @@ export default function AuditTable({
     <div className="card">
       <div className="card-header flex justify-between items-center">
         <h2 className="section-heading">Audit Logs</h2>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-core-text3">
           Showing {logs.length} of {pagination.total} records
         </span>
       </div>
 
       <div className="table-wrapper">
         {logs.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-core-text3">
             No audit logs found
           </div>
         ) : (
@@ -214,13 +214,13 @@ export default function AuditTable({
                         {log.module}
                       </span>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-core-text3">-</span>
                     )}
                   </td>
                   <td>
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        actionColors[log.action] || 'bg-gray-100 text-gray-800'
+                        actionColors[log.action] || 'bg-core-surface2 text-core-text'
                       }`}
                     >
                       {log.action}
@@ -238,13 +238,13 @@ export default function AuditTable({
                           expandedId === log.id ? null : log.id
                         )
                       }
-                      className="text-brand-primary hover:underline text-sm font-medium"
+                      className="text-core-text2 hover:underline text-sm font-medium"
                     >
                       {expandedId === log.id ? 'Hide' : 'Show'} Changes
                     </button>
                     <Link
                       href={`/audit/${log.id}`}
-                      className="text-brand-primary hover:text-brand-secondary text-sm font-medium"
+                      className="text-core-text2 hover:text-core-greenFg text-sm font-medium"
                     >
                       View Details →
                     </Link>
@@ -257,29 +257,29 @@ export default function AuditTable({
       </div>
 
       {logs.length > 0 && expandedId && (
-        <div className="border-t border-gray-200 p-4 bg-gray-50">
+        <div className="border-t border-core-border p-4 bg-core-surface2">
           {logs.find((log) => log.id === expandedId) && (
             <ChangeDetails log={logs.find((log) => log.id === expandedId)!} />
           )}
         </div>
       )}
 
-      <div className="flex items-center justify-between p-4 border-t border-gray-200">
-        <div className="text-sm text-gray-600">
+      <div className="flex items-center justify-between p-4 border-t border-core-border">
+        <div className="text-sm text-core-text2">
           Page {pagination.page} of {pagination.totalPages || 1}
         </div>
         <div className="flex gap-2">
           <button
             onClick={handlePrevious}
             disabled={page === 1}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="px-4 py-2 bg-core-border text-core-text2 rounded-lg hover:bg-core-border disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             Previous
           </button>
           <button
             onClick={handleNext}
             disabled={page >= pagination.totalPages}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="px-4 py-2 bg-core-border text-core-text2 rounded-lg hover:bg-core-border disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             Next
           </button>
@@ -314,15 +314,15 @@ function ChangeDetails({ log }: { log: AuditLog }) {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-gray-900 mb-3">Changed Fields</h3>
+      <h3 className="font-semibold text-core-text mb-3">Changed Fields</h3>
       {diff.map((field) => (
-        <div key={field.key} className="grid grid-cols-2 gap-4 p-3 bg-white rounded border border-gray-200">
+        <div key={field.key} className="grid grid-cols-2 gap-4 p-3 bg-core-surface rounded border border-core-border">
           <div>
-            <p className="text-xs text-gray-600 font-medium mb-1">
+            <p className="text-xs text-core-text2 font-medium mb-1">
               Old: {field.key}
             </p>
-            <div className="bg-red-50 p-2 rounded border border-red-200">
-              <code className="text-xs text-red-900 whitespace-pre-wrap break-words">
+            <div className="bg-core-roseSoft p-2 rounded border border-core-border">
+              <code className="text-xs text-core-roseFg whitespace-pre-wrap break-words">
                 {field.oldValue === null
                   ? '(null)'
                   : typeof field.oldValue === 'object'
@@ -332,11 +332,11 @@ function ChangeDetails({ log }: { log: AuditLog }) {
             </div>
           </div>
           <div>
-            <p className="text-xs text-gray-600 font-medium mb-1">
+            <p className="text-xs text-core-text2 font-medium mb-1">
               New: {field.key}
             </p>
-            <div className="bg-green-50 p-2 rounded border border-green-200">
-              <code className="text-xs text-green-900 whitespace-pre-wrap break-words">
+            <div className="bg-core-greenSoft p-2 rounded border border-core-border">
+              <code className="text-xs text-core-greenFg whitespace-pre-wrap break-words">
                 {field.newValue === null
                   ? '(null)'
                   : typeof field.newValue === 'object'
@@ -348,7 +348,7 @@ function ChangeDetails({ log }: { log: AuditLog }) {
         </div>
       ))}
       {diff.length === 0 && (
-        <p className="text-sm text-gray-500">No changed fields</p>
+        <p className="text-sm text-core-text3">No changed fields</p>
       )}
     </div>
   );

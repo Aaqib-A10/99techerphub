@@ -123,12 +123,12 @@ function Sparkline({
 // ────────────────────────────────────────────────────────────────────
 type Status = 'Received' | 'Audited' | 'Sold' | 'Flagged' | 'Disposed' | 'In Transit';
 const STATUS_STYLES: Record<Status, string> = {
-  Received: 'bg-zinc-100 text-zinc-700 ring-zinc-200',
-  Audited: 'bg-blue-50 text-blue-700 ring-blue-100',
-  Sold: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-  Flagged: 'bg-amber-50 text-amber-800 ring-amber-100',
-  Disposed: 'bg-rose-50 text-rose-700 ring-rose-100',
-  'In Transit': 'bg-violet-50 text-violet-700 ring-violet-100',
+  Received: 'bg-core-surface2 text-core-text2 ring-core-border',
+  Audited: 'bg-core-blueSoft text-core-blueFg ring-blue-100',
+  Sold: 'bg-core-greenSoft text-core-greenFg ring-core-greenFg',
+  Flagged: 'bg-core-amberSoft text-core-amberFg ring-amber-100',
+  Disposed: 'bg-core-roseSoft text-core-roseFg ring-rose-100',
+  'In Transit': 'bg-core-violetSoft text-core-violetFg ring-violet-100',
 };
 function StatusBadge({ status }: { status: Status }) {
   return (
@@ -186,7 +186,7 @@ function Sidebar({ active = 'inventory' as keyof typeof ICONS }) {
   ];
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 w-14 border-r border-zinc-200/70 bg-[#FAFAFA] flex flex-col items-center py-3">
+    <aside className="fixed inset-y-0 left-0 z-30 w-14 border-r border-core-border/70 bg-[#FAFAFA] flex flex-col items-center py-3">
       {/* Wordmark */}
       <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#0B1F3A] text-white text-[11px] font-semibold tracking-tight">
         99
@@ -200,8 +200,8 @@ function Sidebar({ active = 'inventory' as keyof typeof ICONS }) {
               key={it.key}
               type="button"
               title={it.label}
-              className={`group relative flex h-9 w-9 items-center justify-center rounded-md text-zinc-500 transition-all duration-200 hover:text-zinc-900 hover:bg-zinc-200/60 ${
-                isActive ? 'text-zinc-900 bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]' : ''
+              className={`group relative flex h-9 w-9 items-center justify-center rounded-md text-core-text3 transition-all duration-200 hover:text-core-text hover:bg-core-border/60 ${
+                isActive ? 'text-core-text bg-core-surface shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]' : ''
               }`}
             >
               {isActive && (
@@ -209,7 +209,7 @@ function Sidebar({ active = 'inventory' as keyof typeof ICONS }) {
               )}
               <Icon d={ICONS[it.key]} size={17} strokeWidth={1.5} />
               {/* Hover label */}
-              <span className="pointer-events-none absolute left-12 z-50 whitespace-nowrap rounded-md bg-zinc-900 px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+              <span className="pointer-events-none absolute left-12 z-50 whitespace-nowrap rounded-md bg-core-text px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
                 {it.label}
               </span>
             </button>
@@ -220,7 +220,7 @@ function Sidebar({ active = 'inventory' as keyof typeof ICONS }) {
       {/* Avatar */}
       <button
         type="button"
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-200 text-[11px] font-medium text-zinc-700 transition-opacity hover:opacity-80"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-core-border text-[11px] font-medium text-core-text2 transition-opacity hover:opacity-80"
         title="Asim Khan"
       >
         AK
@@ -234,34 +234,34 @@ function Sidebar({ active = 'inventory' as keyof typeof ICONS }) {
 // ────────────────────────────────────────────────────────────────────
 function Topbar() {
   return (
-    <header className="sticky top-0 z-20 h-14 border-b border-zinc-200/70 bg-[#FAFAFA]/90 backdrop-blur supports-[backdrop-filter]:bg-[#FAFAFA]/70">
+    <header className="sticky top-0 z-20 h-14 border-b border-core-border/70 bg-[#FAFAFA]/90 backdrop-blur supports-[backdrop-filter]:bg-[#FAFAFA]/70">
       <div className="flex h-full items-center justify-between px-6">
         {/* Left: breadcrumb */}
         <div className="flex items-center gap-2 text-[13px]">
-          <span className="text-zinc-500">99Core</span>
-          <Icon d={ICONS.chevronRight} size={14} className="text-zinc-300" />
-          <span className="text-zinc-500">Inventory</span>
-          <Icon d={ICONS.chevronRight} size={14} className="text-zinc-300" />
-          <span className="font-medium text-zinc-900">Audit</span>
+          <span className="text-core-text3">99Core</span>
+          <Icon d={ICONS.chevronRight} size={14} className="text-core-text3" />
+          <span className="text-core-text3">Inventory</span>
+          <Icon d={ICONS.chevronRight} size={14} className="text-core-text3" />
+          <span className="font-medium text-core-text">Audit</span>
         </div>
 
         {/* Right: search + actions */}
         <div className="flex items-center gap-2">
-          <div className="group relative hidden sm:flex h-8 w-72 items-center rounded-md border border-zinc-200/80 bg-white pl-2.5 pr-1.5 transition-all duration-200 hover:border-zinc-300 focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)]">
-            <Icon d={ICONS.search} size={14} className="text-zinc-400" />
+          <div className="group relative hidden sm:flex h-8 w-72 items-center rounded-md border border-core-border/80 bg-core-surface pl-2.5 pr-1.5 transition-all duration-200 hover:border-core-border focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)]">
+            <Icon d={ICONS.search} size={14} className="text-core-text3" />
             <input
               type="text"
               placeholder="Search assets, audits, customers…"
-              className="ml-2 flex-1 bg-transparent text-[13px] text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+              className="ml-2 flex-1 bg-transparent text-[13px] text-core-text placeholder:text-core-text3 focus:outline-none"
             />
-            <kbd className="inline-flex items-center gap-0.5 rounded border border-zinc-200 px-1 py-0.5 font-mono text-[10px] text-zinc-400">
+            <kbd className="inline-flex items-center gap-0.5 rounded border border-core-border px-1 py-0.5 font-mono text-[10px] text-core-text3">
               ⌘K
             </kbd>
           </div>
 
           <button
             type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-core-text3 transition-colors hover:bg-core-surface2 hover:text-core-text"
             title="Notifications"
           >
             <Icon d={ICONS.bell} size={16} />
@@ -294,25 +294,25 @@ function KpiCard({
 }) {
   const trendColor =
     trend === 'flat'
-      ? 'text-zinc-500'
+      ? 'text-core-text3'
       : positive
-        ? 'text-emerald-600'
-        : 'text-rose-600';
+        ? 'text-core-greenFg'
+        : 'text-core-roseFg';
   return (
-    <div className="rounded-lg bg-white p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] transition-shadow duration-300 hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]">
+    <div className="rounded-lg bg-core-surface p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] transition-shadow duration-300 hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]">
       <div className="flex items-start justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+        <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-core-text3">
           {label}
         </p>
-        <button className="-mr-1 -mt-1 rounded p-1 text-zinc-400 transition-opacity hover:opacity-70">
+        <button className="-mr-1 -mt-1 rounded p-1 text-core-text3 transition-opacity hover:opacity-70">
           <Icon d={ICONS.more} size={14} />
         </button>
       </div>
       <div className="mt-3 flex items-baseline gap-1.5">
-        <span className="text-[26px] font-semibold tracking-tight text-zinc-900 tabular-nums">
+        <span className="text-[26px] font-semibold tracking-tight text-core-text tabular-nums">
           {value}
         </span>
-        {unit && <span className="text-xs font-medium text-zinc-400">{unit}</span>}
+        {unit && <span className="text-xs font-medium text-core-text3">{unit}</span>}
       </div>
       <div className="mt-3 flex items-end justify-between">
         <span className={`text-[11px] font-medium ${trendColor}`}>{delta}</span>
@@ -341,13 +341,13 @@ function InventoryTable() {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
+    <div className="overflow-hidden rounded-lg bg-core-surface shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]">
       {/* Toolbar */}
-      <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3">
+      <div className="flex items-center justify-between border-b border-core-border px-5 py-3">
         <div className="flex items-center gap-2">
           {selected.size > 0 ? (
-            <span className="text-[12px] text-zinc-600">
-              <span className="font-medium text-zinc-900 tabular-nums">{selected.size}</span> selected
+            <span className="text-[12px] text-core-text2">
+              <span className="font-medium text-core-text tabular-nums">{selected.size}</span> selected
             </span>
           ) : (
             <>
@@ -356,8 +356,8 @@ function InventoryTable() {
                   key={chip}
                   className={`rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors duration-150 ${
                     i === 0
-                      ? 'bg-zinc-100 text-zinc-900'
-                      : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'
+                      ? 'bg-core-surface2 text-core-text'
+                      : 'text-core-text3 hover:bg-core-surface2 hover:text-core-text'
                   }`}
                 >
                   {chip}
@@ -367,16 +367,16 @@ function InventoryTable() {
           )}
         </div>
         <div className="flex items-center gap-1.5">
-          <button className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900">
+          <button className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-medium text-core-text2 transition-colors hover:bg-core-surface2 hover:text-core-text">
             <Icon d={ICONS.filter} size={13} />
             Filter
           </button>
-          <button className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900">
+          <button className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-medium text-core-text2 transition-colors hover:bg-core-surface2 hover:text-core-text">
             <Icon d={ICONS.sort} size={13} />
             Sort
           </button>
-          <span className="mx-1 h-4 w-px bg-zinc-200" />
-          <button className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900">
+          <span className="mx-1 h-4 w-px bg-core-border" />
+          <button className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12px] font-medium text-core-text2 transition-colors hover:bg-core-surface2 hover:text-core-text">
             <Icon d={ICONS.download} size={13} />
             Export
           </button>
@@ -384,13 +384,13 @@ function InventoryTable() {
       </div>
 
       {/* Header */}
-      <div className="grid grid-cols-[36px_minmax(140px,1fr)_minmax(160px,1.4fr)_minmax(160px,1.2fr)_120px_90px_120px_36px] gap-4 border-b border-zinc-100 px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-zinc-400">
+      <div className="grid grid-cols-[36px_minmax(140px,1fr)_minmax(160px,1.4fr)_minmax(160px,1.2fr)_120px_90px_120px_36px] gap-4 border-b border-core-border px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.06em] text-core-text3">
         <div className="flex items-center">
           <input
             type="checkbox"
             checked={allSelected}
             onChange={toggleAll}
-            className="h-3.5 w-3.5 cursor-pointer rounded border-zinc-300 text-zinc-900 focus:ring-0 focus:ring-offset-0"
+            className="h-3.5 w-3.5 cursor-pointer rounded border-core-border text-core-text focus:ring-0 focus:ring-offset-0"
           />
         </div>
         <div>Asset Tag</div>
@@ -410,7 +410,7 @@ function InventoryTable() {
             <div
               key={r.tag}
               className={`group grid grid-cols-[36px_minmax(140px,1fr)_minmax(160px,1.4fr)_minmax(160px,1.2fr)_120px_90px_120px_36px] gap-4 border-b border-zinc-50 px-5 py-3 text-[13px] transition-colors duration-150 ${
-                isSel ? 'bg-zinc-50/60' : 'hover:bg-zinc-50/40'
+                isSel ? 'bg-core-surface2/60' : 'hover:bg-core-surface2/40'
               }`}
             >
               <div className="flex items-center">
@@ -418,34 +418,34 @@ function InventoryTable() {
                   type="checkbox"
                   checked={isSel}
                   onChange={() => toggle(r.tag)}
-                  className="h-3.5 w-3.5 cursor-pointer rounded border-zinc-300 text-zinc-900 focus:ring-0 focus:ring-offset-0"
+                  className="h-3.5 w-3.5 cursor-pointer rounded border-core-border text-core-text focus:ring-0 focus:ring-offset-0"
                 />
               </div>
-              <div className="flex items-center font-mono text-[12px] tracking-tight text-zinc-900">
+              <div className="flex items-center font-mono text-[12px] tracking-tight text-core-text">
                 {r.tag}
               </div>
               <div className="flex flex-col justify-center">
-                <span className="font-medium text-zinc-900">{r.device}</span>
-                <span className="mt-0.5 text-[11.5px] text-zinc-500">{r.model}</span>
+                <span className="font-medium text-core-text">{r.device}</span>
+                <span className="mt-0.5 text-[11.5px] text-core-text3">{r.model}</span>
               </div>
-              <div className="flex items-center text-zinc-700">{r.customer}</div>
+              <div className="flex items-center text-core-text2">{r.customer}</div>
               <div className="flex items-center">
                 <StatusBadge status={r.status} />
               </div>
               <div className="flex items-center">
                 {r.grade === '—' ? (
-                  <span className="text-zinc-300">—</span>
+                  <span className="text-core-text3">—</span>
                 ) : (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded bg-zinc-100 px-1.5 text-[11px] font-semibold text-zinc-700">
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded bg-core-surface2 px-1.5 text-[11px] font-semibold text-core-text2">
                     {r.grade}
                   </span>
                 )}
               </div>
-              <div className="flex items-center justify-end font-mono tabular-nums text-zinc-900">
-                {r.recovery > 0 ? `$${r.recovery.toLocaleString()}` : <span className="text-zinc-300">—</span>}
+              <div className="flex items-center justify-end font-mono tabular-nums text-core-text">
+                {r.recovery > 0 ? `$${r.recovery.toLocaleString()}` : <span className="text-core-text3">—</span>}
               </div>
               <div className="flex items-center justify-end">
-                <button className="rounded p-1 text-zinc-400 opacity-0 transition-opacity duration-150 hover:bg-zinc-100 hover:text-zinc-900 group-hover:opacity-100">
+                <button className="rounded p-1 text-core-text3 opacity-0 transition-opacity duration-150 hover:bg-core-surface2 hover:text-core-text group-hover:opacity-100">
                   <Icon d={ICONS.more} size={14} />
                 </button>
               </div>
@@ -455,19 +455,19 @@ function InventoryTable() {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between px-5 py-3 text-[12px] text-zinc-500">
+      <div className="flex items-center justify-between px-5 py-3 text-[12px] text-core-text3">
         <span>
-          Showing <span className="font-medium text-zinc-900 tabular-nums">10</span> of{' '}
-          <span className="font-medium text-zinc-900 tabular-nums">2,847</span> assets
+          Showing <span className="font-medium text-core-text tabular-nums">10</span> of{' '}
+          <span className="font-medium text-core-text tabular-nums">2,847</span> assets
         </span>
         <div className="flex items-center gap-1">
-          <button className="rounded px-2 py-1 transition-colors hover:bg-zinc-50 hover:text-zinc-900">Previous</button>
-          <button className="rounded bg-zinc-100 px-2 py-1 font-medium text-zinc-900">1</button>
-          <button className="rounded px-2 py-1 transition-colors hover:bg-zinc-50 hover:text-zinc-900">2</button>
-          <button className="rounded px-2 py-1 transition-colors hover:bg-zinc-50 hover:text-zinc-900">3</button>
-          <span className="px-1 text-zinc-400">…</span>
-          <button className="rounded px-2 py-1 transition-colors hover:bg-zinc-50 hover:text-zinc-900">285</button>
-          <button className="rounded px-2 py-1 transition-colors hover:bg-zinc-50 hover:text-zinc-900">Next</button>
+          <button className="rounded px-2 py-1 transition-colors hover:bg-core-surface2 hover:text-core-text">Previous</button>
+          <button className="rounded bg-core-surface2 px-2 py-1 font-medium text-core-text">1</button>
+          <button className="rounded px-2 py-1 transition-colors hover:bg-core-surface2 hover:text-core-text">2</button>
+          <button className="rounded px-2 py-1 transition-colors hover:bg-core-surface2 hover:text-core-text">3</button>
+          <span className="px-1 text-core-text3">…</span>
+          <button className="rounded px-2 py-1 transition-colors hover:bg-core-surface2 hover:text-core-text">285</button>
+          <button className="rounded px-2 py-1 transition-colors hover:bg-core-surface2 hover:text-core-text">Next</button>
         </div>
       </div>
     </div>
@@ -485,7 +485,7 @@ export default function InventoryAuditLab() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] font-sans text-zinc-900 antialiased">
+    <div className="min-h-screen bg-[#FAFAFA] font-sans text-core-text antialiased">
       <Sidebar active="inventory" />
 
       <div className="pl-14">
@@ -496,10 +496,10 @@ export default function InventoryAuditLab() {
           <div className="flex items-end justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-[22px] font-semibold tracking-tight text-zinc-900">
+                <h1 className="text-[22px] font-semibold tracking-tight text-core-text">
                   Inventory Audit
                 </h1>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-600 ring-1 ring-zinc-200/70">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-core-surface px-2 py-0.5 text-[11px] font-medium text-core-text2 ring-1 ring-core-border/70">
                   <span className="relative flex h-1.5 w-1.5">
                     <span
                       className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
@@ -513,14 +513,14 @@ export default function InventoryAuditLab() {
                   Live
                 </span>
               </div>
-              <p className="mt-1.5 text-[13px] text-zinc-500">
+              <p className="mt-1.5 text-[13px] text-core-text3">
                 Hardware moving through receive, audit, grade, and resale.
               </p>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={fireToast}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-200/80 bg-white px-3 text-[13px] font-medium text-zinc-700 transition-all duration-200 hover:border-zinc-300 hover:bg-zinc-50"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-core-border/80 bg-core-surface px-3 text-[13px] font-medium text-core-text2 transition-all duration-200 hover:border-core-border hover:bg-core-surface2"
               >
                 <Icon d={ICONS.download} size={13} />
                 Export
@@ -581,8 +581,8 @@ export default function InventoryAuditLab() {
           toast ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
         }`}
       >
-        <div className="flex items-center gap-3 rounded-lg bg-zinc-900 px-4 py-2.5 text-[13px] text-white shadow-2xl">
-          <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+        <div className="flex items-center gap-3 rounded-lg bg-core-text px-4 py-2.5 text-[13px] text-white shadow-2xl">
+          <span className="flex h-1.5 w-1.5 rounded-full bg-core-green" />
           <span>{toast}</span>
         </div>
       </div>

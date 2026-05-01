@@ -22,10 +22,10 @@ interface Props {
 }
 
 const CATEGORY_META: Record<string, { label: string; accent: string }> = {
-  IT: { label: 'IT Setup', accent: 'border-blue-300 bg-blue-50' },
-  HR: { label: 'HR Documentation', accent: 'border-green-300 bg-green-50' },
-  FINANCE: { label: 'Finance', accent: 'border-yellow-300 bg-yellow-50' },
-  MANAGER: { label: 'Manager', accent: 'border-purple-300 bg-purple-50' },
+  IT: { label: 'IT Setup', accent: 'border-core-border bg-core-blueSoft' },
+  HR: { label: 'HR Documentation', accent: 'border-core-border bg-core-greenSoft' },
+  FINANCE: { label: 'Finance', accent: 'border-core-border bg-core-amberSoft' },
+  MANAGER: { label: 'Manager', accent: 'border-core-border bg-core-violetSoft' },
 };
 
 export default function OnboardingChecklistPanel({ employeeId }: Props) {
@@ -109,16 +109,16 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <p className="text-gray-500 text-sm">Loading onboarding checklist...</p>
+      <div className="bg-core-surface rounded-xl border border-core-border shadow-sm p-6">
+        <p className="text-core-text3 text-sm">Loading onboarding checklist...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl border border-red-200 shadow-sm p-6">
-        <p className="text-red-700 text-sm">{error}</p>
+      <div className="bg-core-surface rounded-xl border border-core-border shadow-sm p-6">
+        <p className="text-core-roseFg text-sm">{error}</p>
         <button onClick={load} className="btn btn-secondary mt-3">
           Retry
         </button>
@@ -128,11 +128,11 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
 
   if (tasks.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-center">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+      <div className="bg-core-surface rounded-xl border border-core-border shadow-sm p-6 text-center">
+        <h3 className="text-lg font-semibold text-core-text mb-2">
           No onboarding checklist yet
         </h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-core-text2 mb-4">
           This employee was created before auto-seeding, or their checklist was cleared.
           Generate the default IT + HR onboarding tasks now.
         </p>
@@ -160,19 +160,19 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
   return (
     <div className="space-y-6">
       {/* Progress header */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <div className="bg-core-surface rounded-xl border border-core-border shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Onboarding Progress</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-lg font-semibold text-core-text">Onboarding Progress</h3>
+            <p className="text-sm text-core-text2">
               {totalDone} of {tasks.length} tasks complete • {totalPending} pending
             </p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-brand-primary">{pct}%</div>
+            <div className="text-3xl font-bold text-core-text2">{pct}%</div>
           </div>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+        <div className="w-full bg-core-border rounded-full h-3 overflow-hidden">
           <div
             className="h-full bg-green-500 transition-all"
             style={{ width: `${pct}%` }}
@@ -184,7 +184,7 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
       {Object.keys(grouped)
         .sort()
         .map((cat) => {
-          const meta = CATEGORY_META[cat] || { label: cat, accent: 'border-gray-300 bg-gray-50' };
+          const meta = CATEGORY_META[cat] || { label: cat, accent: 'border-core-border bg-core-surface2' };
           const catTasks = grouped[cat];
           const catDone = catTasks.filter((t) => t.status === 'DONE').length;
           return (
@@ -192,13 +192,13 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
               key={cat}
               className={`rounded-xl border-2 shadow-sm ${meta.accent}`}
             >
-              <div className="px-6 py-4 border-b border-gray-200 bg-white/50 rounded-t-xl flex items-center justify-between">
-                <h4 className="text-base font-semibold text-gray-900">{meta.label}</h4>
-                <span className="text-xs text-gray-600 font-medium">
+              <div className="px-6 py-4 border-b border-core-border bg-core-surface/50 rounded-t-xl flex items-center justify-between">
+                <h4 className="text-base font-semibold text-core-text">{meta.label}</h4>
+                <span className="text-xs text-core-text2 font-medium">
                   {catDone}/{catTasks.length} done
                 </span>
               </div>
-              <div className="divide-y divide-gray-200 bg-white rounded-b-xl">
+              <div className="divide-y divide-core-border bg-core-surface rounded-b-xl">
                 {catTasks.map((task) => {
                   const isDone = task.status === 'DONE';
                   const isSkipped = task.status === 'SKIPPED';
@@ -211,7 +211,7 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
                   return (
                     <div
                       key={task.id}
-                      className="px-6 py-4 flex items-start gap-4 hover:bg-gray-50"
+                      className="px-6 py-4 flex items-start gap-4 hover:bg-core-surface2"
                     >
                       <button
                         onClick={() =>
@@ -221,7 +221,7 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
                         className={`mt-0.5 w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${
                           isDone
                             ? 'bg-green-500 border-green-500 text-white'
-                            : 'border-gray-300 hover:border-green-400 bg-white'
+                            : 'border-core-border hover:border-green-400 bg-core-surface'
                         } ${updating === task.id ? 'opacity-50' : ''}`}
                         aria-label={isDone ? 'Mark pending' : 'Mark done'}
                       >
@@ -246,29 +246,29 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
                         <div
                           className={`text-sm font-medium ${
                             isDone
-                              ? 'text-gray-500 line-through'
+                              ? 'text-core-text3 line-through'
                               : isSkipped
-                              ? 'text-gray-400 italic'
-                              : 'text-gray-900'
+                              ? 'text-core-text3 italic'
+                              : 'text-core-text'
                           }`}
                         >
                           {task.title}
                         </div>
                         {task.description && (
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="text-xs text-core-text3 mt-0.5">
                             {task.description}
                           </div>
                         )}
                         <div className="text-xs mt-1 flex flex-wrap gap-3">
-                          <span className="text-gray-400">
+                          <span className="text-core-text3">
                             Owner: {task.ownerRole.replace(/_/g, ' ')}
                           </span>
                           {task.dueDate && (
                             <span
                               className={
                                 isOverdue
-                                  ? 'text-red-600 font-semibold'
-                                  : 'text-gray-400'
+                                  ? 'text-core-roseFg font-semibold'
+                                  : 'text-core-text3'
                               }
                             >
                               Due: {new Date(task.dueDate).toLocaleDateString()}
@@ -276,7 +276,7 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
                             </span>
                           )}
                           {task.completedAt && (
-                            <span className="text-green-600">
+                            <span className="text-core-greenFg">
                               ✓ {new Date(task.completedAt).toLocaleDateString()}
                             </span>
                           )}
@@ -288,7 +288,7 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
                           <button
                             onClick={() => updateTask(task.id, 'SKIPPED')}
                             disabled={updating === task.id}
-                            className="text-xs text-gray-500 hover:text-gray-700 px-2"
+                            className="text-xs text-core-text3 hover:text-core-text2 px-2"
                           >
                             Skip
                           </button>
@@ -297,7 +297,7 @@ export default function OnboardingChecklistPanel({ employeeId }: Props) {
                           <button
                             onClick={() => updateTask(task.id, 'PENDING')}
                             disabled={updating === task.id}
-                            className="text-xs text-blue-600 hover:text-blue-800 px-2"
+                            className="text-xs text-core-blueFg hover:text-core-blueFg px-2"
                           >
                             Restore
                           </button>

@@ -112,7 +112,7 @@ export default function ExpenseCategoriesClient({
 
   return (
     <div>
-      {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+      {error && <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
 
       <div className="flex justify-end mb-4">
         <button
@@ -226,7 +226,7 @@ export default function ExpenseCategoriesClient({
             <tbody>
               {categories.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-gray-500">
+                  <td colSpan={8} className="text-center py-12 text-core-text3">
                     No categories found
                   </td>
                 </tr>
@@ -237,7 +237,7 @@ export default function ExpenseCategoriesClient({
                       <span className="badge badge-blue font-mono">{category.code}</span>
                     </td>
                     <td className="font-semibold">{category.name}</td>
-                    <td className="text-sm text-gray-600">{category.description || '-'}</td>
+                    <td className="text-sm text-core-text2">{category.description || '-'}</td>
                     <td>
                       <span
                         className={`badge ${
@@ -247,7 +247,7 @@ export default function ExpenseCategoriesClient({
                         {category.isGlobal ? 'Global' : 'Dept Specific'}
                       </span>
                     </td>
-                    <td className="text-sm text-gray-600">
+                    <td className="text-sm text-core-text2">
                       {category.departmentId
                         ? departments.find((d) => d.id === category.departmentId)?.name || '-'
                         : '-'}
@@ -266,7 +266,7 @@ export default function ExpenseCategoriesClient({
                       {category.isActive && (
                         <button
                           onClick={() => handleDeactivate(category.id)}
-                          className="text-sm text-red-600 hover:text-red-700 font-medium"
+                          className="text-sm text-core-roseFg hover:text-core-roseFg font-medium"
                         >
                           Deactivate
                         </button>

@@ -53,13 +53,13 @@ export default function FilterChip({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`inline-flex h-8 max-w-[200px] items-center gap-1.5 rounded-md border bg-white pl-2.5 pr-1.5 text-[12.5px] font-medium transition-all duration-150 ${
+        className={`inline-flex h-8 max-w-[200px] items-center gap-1.5 rounded-md border bg-core-surface pl-2.5 pr-1.5 text-[12.5px] font-medium transition-all duration-150 ${
           isActive
-            ? 'border-zinc-300 text-zinc-900 shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]'
-            : 'border-zinc-200/95 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'
+            ? 'border-core-border text-core-text shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]'
+            : 'border-core-border/95 text-core-text2 hover:border-core-border hover:bg-core-surface2'
         }`}
       >
-        {icon && <span className="flex-shrink-0 text-zinc-400">{icon}</span>}
+        {icon && <span className="flex-shrink-0 text-core-text3">{icon}</span>}
         <span className="truncate">{display}</span>
         <svg
           width="12"
@@ -70,7 +70,7 @@ export default function FilterChip({
           strokeWidth={1.6}
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={`flex-shrink-0 text-zinc-400 transition-transform duration-150 ${
+          className={`flex-shrink-0 text-core-text3 transition-transform duration-150 ${
             open ? 'rotate-180' : ''
           }`}
         >
@@ -79,7 +79,7 @@ export default function FilterChip({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-30 mt-1 min-w-[180px] overflow-hidden rounded-md border border-zinc-200/85 bg-white shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
+        <div className="absolute left-0 top-full z-30 mt-1 min-w-[180px] overflow-hidden rounded-md border border-core-border/85 bg-core-surface shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
           <div className="max-h-72 overflow-y-auto py-1">
             {/* All / clear option */}
             <button
@@ -89,7 +89,7 @@ export default function FilterChip({
                 setOpen(false);
               }}
               className={`flex w-full items-center justify-between px-2.5 py-1.5 text-left text-[12.5px] transition-colors ${
-                !value ? 'bg-zinc-50 font-medium text-zinc-900' : 'text-zinc-700 hover:bg-zinc-50'
+                !value ? 'bg-core-surface2 font-medium text-core-text' : 'text-core-text2 hover:bg-core-surface2'
               }`}
             >
               <span>{placeholder}</span>
@@ -100,7 +100,7 @@ export default function FilterChip({
               )}
             </button>
 
-            {options.length > 0 && <div className="my-1 h-px bg-zinc-100" />}
+            {options.length > 0 && <div className="my-1 h-px bg-core-surface2" />}
 
             {options.map((opt) => {
               const isSelected = value === opt.value;
@@ -114,8 +114,8 @@ export default function FilterChip({
                   }}
                   className={`flex w-full items-center justify-between px-2.5 py-1.5 text-left text-[12.5px] transition-colors ${
                     isSelected
-                      ? 'bg-zinc-50 font-medium text-zinc-900'
-                      : 'text-zinc-700 hover:bg-zinc-50'
+                      ? 'bg-core-surface2 font-medium text-core-text'
+                      : 'text-core-text2 hover:bg-core-surface2'
                   }`}
                 >
                   <span className="truncate">{opt.label}</span>

@@ -68,10 +68,10 @@ type Tier = 'EXEC' | 'MANAGER' | 'LEAD' | 'IC';
 const TIER_BADGE: Record<Tier, { label: string; className: string }> = {
   // Saturated palette with consistent value steps — gold > indigo > emerald
   // > zinc reads as a clear hierarchy at a glance, even on the small chip.
-  EXEC: { label: 'Exec', className: 'bg-amber-100 text-amber-900 ring-amber-300' },
-  MANAGER: { label: 'Manager', className: 'bg-indigo-100 text-indigo-800 ring-indigo-300' },
-  LEAD: { label: 'Lead', className: 'bg-emerald-100 text-emerald-800 ring-emerald-300' },
-  IC: { label: 'IC', className: 'bg-zinc-100 text-zinc-700 ring-zinc-300' },
+  EXEC: { label: 'Exec', className: 'bg-core-amberSoft text-core-amberFg ring-amber-300' },
+  MANAGER: { label: 'Manager', className: 'bg-core-blueSoft text-core-blueFg ring-indigo-300' },
+  LEAD: { label: 'Lead', className: 'bg-core-green text-core-greenFg ring-core-greenFg' },
+  IC: { label: 'IC', className: 'bg-core-surface2 text-core-text2 ring-core-border' },
 };
 
 function inferTier(node: OrgNode): Tier {
@@ -101,7 +101,7 @@ function inferTier(node: OrgNode): Tier {
 // even if you add new ones later.
 const DEPT_PALETTE = [
   'bg-blue-500',
-  'bg-emerald-500',
+  'bg-core-green',
   'bg-violet-500',
   'bg-amber-500',
   'bg-rose-500',
@@ -116,7 +116,7 @@ const DEPT_PALETTE = [
 
 function deptColor(name: string | null | undefined): string {
   const s = (name || '').trim();
-  if (!s) return 'bg-zinc-300';
+  if (!s) return 'bg-core-border';
   let h = 0;
   for (let i = 0; i < s.length; i++) {
     h = (h * 31 + s.charCodeAt(i)) | 0;
@@ -170,7 +170,7 @@ const OrgCard = memo(function OrgCard({ data }: NodeProps<OrgNodeData>) {
       // re-enabling pointer-events on the card, mouse clicks pass through to
       // the pane and never fire React handlers. JS .click() works because it
       // dispatches synthetically (bypasses hit-testing).
-      className={`pointer-events-auto group relative flex w-[260px] items-center gap-3 rounded-lg bg-white pl-3 pr-3 py-2.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] ring-1 ring-[rgba(228,228,231,0.85)] transition-all hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:ring-zinc-300 ${
+      className={`pointer-events-auto group relative flex w-[260px] items-center gap-3 rounded-lg bg-core-surface pl-3 pr-3 py-2.5 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] ring-1 ring-[rgba(228,228,231,0.85)] transition-all hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)] hover:ring-core-border ${
         isMatch ? 'ring-2 ring-blue-400 shadow-[0_4px_16px_-2px_rgba(37,99,235,0.25)]' : ''
       } ${isDimmed ? 'opacity-30' : ''}`}
       onClick={(e) => {
@@ -195,12 +195,12 @@ const OrgCard = memo(function OrgCard({ data }: NodeProps<OrgNodeData>) {
       <div className={`absolute left-0 top-0 h-full w-1 rounded-l-lg ${deptColor(node.departmentName)}`} />
 
       {/* Avatar */}
-      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-md bg-zinc-100">
+      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-md bg-core-surface2">
         {node.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={node.photoUrl} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[11px] font-semibold text-zinc-600">
+          <div className="flex h-full w-full items-center justify-center text-[11px] font-semibold text-core-text2">
             {initials(node)}
           </div>
         )}
@@ -209,14 +209,14 @@ const OrgCard = memo(function OrgCard({ data }: NodeProps<OrgNodeData>) {
       {/* Body */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <p className="truncate text-[13px] font-semibold leading-tight text-zinc-900">{fullName(node)}</p>
+          <p className="truncate text-[13px] font-semibold leading-tight text-core-text">{fullName(node)}</p>
           <span
             className={`shrink-0 rounded-full px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide ring-1 ring-inset ${tierStyle.className}`}
           >
             {tierStyle.label}
           </span>
         </div>
-        <p className="truncate text-[11px] leading-tight text-zinc-500" title={node.designation ?? undefined}>
+        <p className="truncate text-[11px] leading-tight text-core-text3" title={node.designation ?? undefined}>
           {node.empCode} · {node.designation ?? '—'}
         </p>
       </div>
@@ -231,8 +231,8 @@ const OrgCard = memo(function OrgCard({ data }: NodeProps<OrgNodeData>) {
           title={isExpanded ? 'Collapse team' : `Show ${directsCount} report${directsCount === 1 ? '' : 's'}`}
           className={`flex h-8 min-w-[40px] shrink-0 items-center justify-center gap-1 rounded-md px-2 text-[12px] font-semibold tabular-nums transition-colors ${
             isExpanded
-              ? 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
-              : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+              ? 'bg-core-surface2 text-core-text2 hover:bg-core-border'
+              : 'bg-core-blueSoft text-core-blueFg hover:bg-core-blueSoft'
           }`}
           onClick={(e) => {
             e.stopPropagation();
@@ -532,30 +532,30 @@ function OrgChartInner({ roots, ancestry, focusEmployeeId, searchable, totalActi
             value={query}
             onChange={(e) => onSearch(e.target.value)}
             placeholder="Search by name, empCode, designation, department…"
-            className="h-9 w-full max-w-md rounded-md bg-white px-3 text-[13px] ring-1 ring-[rgba(228,228,231,0.85)] placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            className="h-9 w-full max-w-md rounded-md bg-core-surface px-3 text-[13px] ring-1 ring-[rgba(228,228,231,0.85)] placeholder:text-core-text3 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
           />
         )}
         <button
           type="button"
           onClick={expandAll}
-          className="h-8 rounded-md bg-white px-3 text-[12px] font-medium text-zinc-700 ring-1 ring-[rgba(228,228,231,0.85)] transition-colors hover:bg-zinc-50 hover:ring-zinc-300"
+          className="h-8 rounded-md bg-core-surface px-3 text-[12px] font-medium text-core-text2 ring-1 ring-[rgba(228,228,231,0.85)] transition-colors hover:bg-core-surface2 hover:ring-core-border"
         >
           Expand all
         </button>
         <button
           type="button"
           onClick={collapseAll}
-          className="h-8 rounded-md bg-white px-3 text-[12px] font-medium text-zinc-700 ring-1 ring-[rgba(228,228,231,0.85)] transition-colors hover:bg-zinc-50 hover:ring-zinc-300"
+          className="h-8 rounded-md bg-core-surface px-3 text-[12px] font-medium text-core-text2 ring-1 ring-[rgba(228,228,231,0.85)] transition-colors hover:bg-core-surface2 hover:ring-core-border"
         >
           Collapse all
         </button>
-        <div className="ml-auto text-[12px] text-zinc-500 tabular-nums">
-          <span className="font-semibold text-zinc-900">{totalActive}</span> active
+        <div className="ml-auto text-[12px] text-core-text3 tabular-nums">
+          <span className="font-semibold text-core-text">{totalActive}</span> active
         </div>
       </div>
 
       {/* Canvas */}
-      <div ref={canvasRef} className="relative h-[calc(100vh-220px)] min-h-[560px] w-full overflow-hidden rounded-lg ring-1 ring-[rgba(228,228,231,0.85)] bg-zinc-50">
+      <div ref={canvasRef} className="relative h-[calc(100vh-220px)] min-h-[560px] w-full overflow-hidden rounded-lg ring-1 ring-[rgba(228,228,231,0.85)] bg-core-surface2">
         <ReactFlow
           nodes={nodes}
           edges={edges}

@@ -751,17 +751,17 @@ function LoginPageInner() {
           onClick={() => !forgotSubmitting && setForgotOpen(false)}
         >
           <div
-            className="w-full max-w-md bg-white rounded-xl shadow-[0_24px_64px_rgba(11,31,58,0.18)] overflow-hidden"
+            className="w-full max-w-md bg-core-surface rounded-xl shadow-[0_24px_64px_rgba(11,31,58,0.18)] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-5 py-4 border-b border-zinc-200 flex items-center justify-between">
+            <div className="px-5 py-4 border-b border-core-border flex items-center justify-between">
               <h3 className="text-[15px] font-semibold" style={{ color: INK }}>
                 {forgotSent ? 'Check your inbox' : 'Reset your password'}
               </h3>
               <button
                 onClick={() => setForgotOpen(false)}
                 disabled={forgotSubmitting}
-                className="text-zinc-400 hover:text-zinc-600 disabled:opacity-50"
+                className="text-core-text3 hover:text-core-text2 disabled:opacity-50"
                 aria-label="Close"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -801,7 +801,7 @@ function LoginPageInner() {
                       autoFocus
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
-                      className="w-full rounded-md ring-1 ring-zinc-200 px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                      className="w-full rounded-md ring-1 ring-core-border px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                       placeholder="you@99technologies.com"
                     />
                   </div>
@@ -816,7 +816,7 @@ function LoginPageInner() {
                 </form>
               )}
             </div>
-            <div className="px-5 py-3 bg-zinc-50 border-t border-zinc-200 text-right">
+            <div className="px-5 py-3 bg-core-surface2 border-t border-core-border text-right">
               <button
                 onClick={() => setForgotOpen(false)}
                 disabled={forgotSubmitting}

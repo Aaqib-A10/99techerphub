@@ -50,20 +50,20 @@ export default function NotesEditor({ assetId, currentNotes }: NotesEditorProps)
       <div>
         {notes ? (
           <div>
-            <p className="text-gray-900 text-sm mb-3">{notes}</p>
+            <p className="text-core-text text-sm mb-3">{notes}</p>
             <button
               onClick={() => setIsEditing(true)}
-              className="text-sm text-brand-primary hover:text-brand-secondary font-medium"
+              className="text-sm text-core-text2 hover:text-core-greenFg font-medium"
             >
               Edit Notes
             </button>
           </div>
         ) : (
           <div>
-            <p className="text-gray-500 text-sm mb-3">No notes added yet</p>
+            <p className="text-core-text3 text-sm mb-3">No notes added yet</p>
             <button
               onClick={() => setIsEditing(true)}
-              className="text-sm text-brand-primary hover:text-brand-secondary font-medium"
+              className="text-sm text-core-text2 hover:text-core-greenFg font-medium"
             >
               Add Notes
             </button>
@@ -76,7 +76,7 @@ export default function NotesEditor({ assetId, currentNotes }: NotesEditorProps)
   return (
     <div>
       {error && (
-        <div className="mb-3 p-2 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+        <div className="mb-3 p-2 bg-core-roseSoft border border-red-400 text-core-roseFg rounded text-sm">
           {error}
         </div>
       )}

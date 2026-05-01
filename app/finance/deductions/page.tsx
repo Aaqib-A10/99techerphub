@@ -73,8 +73,8 @@ export default function DeductionsPage() {
         }
       />
 
-      {error && <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
-      {success && <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">{success}</div>}
+      {error && <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
+      {success && <div className="mb-6 p-4 bg-core-greenSoft text-core-greenFg rounded-lg">{success}</div>}
 
       {showForm && (
         <div className="card mb-6">
@@ -148,16 +148,16 @@ export default function DeductionsPage() {
             </thead>
             <tbody>
               {deductions.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-12 text-gray-500">No deductions recorded yet</td></tr>
+                <tr><td colSpan={6} className="text-center py-12 text-core-text3">No deductions recorded yet</td></tr>
               ) : (
                 deductions.map((d: any) => (
                   <tr key={d.id}>
                     <td className="font-semibold">{d.employee?.firstName} {d.employee?.lastName}</td>
                     <td><span className="badge badge-blue">{typeLabels[d.deductionType] || d.deductionType}</span></td>
                     <td>{d.period}</td>
-                    <td className="font-semibold text-red-600">{d.currency} {Number(d.amount).toLocaleString()}</td>
-                    <td className="text-sm text-gray-600">{d.description || '-'}</td>
-                    <td className="text-sm text-gray-500">{new Date(d.createdAt).toLocaleDateString()}</td>
+                    <td className="font-semibold text-core-roseFg">{d.currency} {Number(d.amount).toLocaleString()}</td>
+                    <td className="text-sm text-core-text2">{d.description || '-'}</td>
+                    <td className="text-sm text-core-text3">{new Date(d.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))
               )}

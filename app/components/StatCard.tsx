@@ -19,7 +19,7 @@ export default function StatCard({
           <p className="stat-value">{value}</p>
           {description && <p className="stat-change">{description}</p>}
         </div>
-        <div className="ml-2 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-zinc-100 text-zinc-500">
+        <div className="ml-2 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-core-surface2 text-core-text3">
           <span className="text-[15px] leading-none opacity-70">{icon}</span>
         </div>
       </div>

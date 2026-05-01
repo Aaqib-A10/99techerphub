@@ -38,13 +38,13 @@ export default function DashboardRefresh() {
 
   return (
     <div className="flex items-center gap-4">
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-core-text2">
         Last updated: {minutesAgo === 0 ? 'just now' : `${minutesAgo} minute${minutesAgo !== 1 ? 's' : ''} ago`}
       </div>
       <button
         onClick={handleRefresh}
         disabled={isRefreshing}
-        className="text-brand-primary hover:text-brand-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="text-core-text2 hover:text-core-greenFg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         title="Refresh dashboard data"
       >
         <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

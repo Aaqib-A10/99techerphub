@@ -67,7 +67,7 @@ export default async function OrgChartPage() {
   const user = await getSessionUser();
   if (!user) {
     return (
-      <div className="text-center py-16 text-gray-600">
+      <div className="text-center py-16 text-core-text2">
         Sign in to see the organization chart.
       </div>
     );
@@ -138,7 +138,7 @@ export default async function OrgChartPage() {
     const me = rows.find((r) => r.id === user.employeeId);
     if (!me) {
       return (
-        <div className="text-center py-16 text-gray-600">
+        <div className="text-center py-16 text-core-text2">
           We can&apos;t find your employee record.
         </div>
       );

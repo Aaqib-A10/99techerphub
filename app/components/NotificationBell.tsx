@@ -38,19 +38,19 @@ const TYPE_ICONS: Record<string, string> = {
 
 // Color tint per type, used on the small icon chip
 const TYPE_TINT: Record<string, string> = {
-  ASSET_ASSIGNED: 'bg-blue-50 text-blue-600',
-  ASSET_RETURNED: 'bg-zinc-100 text-zinc-600',
-  ASSET_RETIRED: 'bg-zinc-100 text-zinc-600',
-  EXPENSE_SUBMITTED: 'bg-amber-50 text-amber-700',
-  EXPENSE_APPROVED: 'bg-emerald-50 text-emerald-600',
-  EXPENSE_REJECTED: 'bg-rose-50 text-rose-600',
-  EXPENSE_REVISION: 'bg-amber-50 text-amber-700',
-  PAYROLL_FINALIZED: 'bg-violet-50 text-violet-600',
-  PAYROLL_PAID: 'bg-emerald-50 text-emerald-600',
-  EMPLOYEE_ONBOARDED: 'bg-emerald-50 text-emerald-600',
-  EMPLOYEE_EXIT: 'bg-zinc-100 text-zinc-600',
-  SYSTEM_ALERT: 'bg-amber-50 text-amber-700',
-  GENERAL: 'bg-zinc-100 text-zinc-600',
+  ASSET_ASSIGNED: 'bg-core-blueSoft text-core-blueFg',
+  ASSET_RETURNED: 'bg-core-surface2 text-core-text2',
+  ASSET_RETIRED: 'bg-core-surface2 text-core-text2',
+  EXPENSE_SUBMITTED: 'bg-core-amberSoft text-core-amberFg',
+  EXPENSE_APPROVED: 'bg-core-greenSoft text-core-greenFg',
+  EXPENSE_REJECTED: 'bg-core-roseSoft text-core-roseFg',
+  EXPENSE_REVISION: 'bg-core-amberSoft text-core-amberFg',
+  PAYROLL_FINALIZED: 'bg-core-violetSoft text-core-violetFg',
+  PAYROLL_PAID: 'bg-core-greenSoft text-core-greenFg',
+  EMPLOYEE_ONBOARDED: 'bg-core-greenSoft text-core-greenFg',
+  EMPLOYEE_EXIT: 'bg-core-surface2 text-core-text2',
+  SYSTEM_ALERT: 'bg-core-amberSoft text-core-amberFg',
+  GENERAL: 'bg-core-surface2 text-core-text2',
 };
 
 function relativeTime(iso: string): string {
@@ -122,8 +122,8 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 ${
-          isOpen ? 'bg-zinc-100 text-zinc-900' : ''
+        className={`relative flex h-8 w-8 items-center justify-center rounded-md text-core-text3 transition-colors hover:bg-core-surface2 hover:text-core-text ${
+          isOpen ? 'bg-core-surface2 text-core-text' : ''
         }`}
         aria-label="Notifications"
       >
@@ -139,13 +139,13 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-1.5 w-[380px] overflow-hidden rounded-lg border border-zinc-200/85 bg-white shadow-[0_16px_40px_-8px_rgba(0,0,0,0.16)]">
+        <div className="absolute right-0 top-full z-50 mt-1.5 w-[380px] overflow-hidden rounded-lg border border-core-border/85 bg-core-surface shadow-[0_16px_40px_-8px_rgba(0,0,0,0.16)]">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-zinc-100 px-3.5 py-2.5">
+          <div className="flex items-center justify-between border-b border-core-border px-3.5 py-2.5">
             <div className="flex items-center gap-2">
-              <h3 className="text-[13px] font-semibold text-zinc-900">Notifications</h3>
+              <h3 className="text-[13px] font-semibold text-core-text">Notifications</h3>
               {unreadCount > 0 && (
-                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-zinc-900 px-1 text-[10px] font-semibold text-white tabular-nums">
+                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-core-text px-1 text-[10px] font-semibold text-white tabular-nums">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -153,7 +153,7 @@ export default function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
-                className="text-[11.5px] font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+                className="text-[11.5px] font-medium text-core-text3 transition-colors hover:text-core-text"
               >
                 Mark all read
               </button>
@@ -164,13 +164,13 @@ export default function NotificationBell() {
           <div className="max-h-[420px] overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-core-surface2 text-core-text3">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                   </svg>
                 </div>
-                <p className="mt-3 text-[12.5px] font-medium text-zinc-700">You&apos;re all caught up</p>
-                <p className="mt-0.5 text-[11.5px] text-zinc-500">No notifications right now.</p>
+                <p className="mt-3 text-[12.5px] font-medium text-core-text2">You&apos;re all caught up</p>
+                <p className="mt-0.5 text-[11.5px] text-core-text3">No notifications right now.</p>
               </div>
             ) : (
               <ul>
@@ -184,8 +184,8 @@ export default function NotificationBell() {
                           if (!n.isRead) markAsRead(n.id);
                           if (n.link) window.location.href = n.link;
                         }}
-                        className={`group flex w-full items-start gap-3 border-b border-zinc-100 px-3.5 py-3 text-left transition-colors hover:bg-zinc-50 ${
-                          !n.isRead ? 'bg-zinc-50/40' : ''
+                        className={`group flex w-full items-start gap-3 border-b border-core-border px-3.5 py-3 text-left transition-colors hover:bg-core-surface2 ${
+                          !n.isRead ? 'bg-core-surface2/40' : ''
                         }`}
                       >
                         <span
@@ -198,20 +198,20 @@ export default function NotificationBell() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
                             <p className={`truncate text-[12.5px] ${
-                              !n.isRead ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-800'
+                              !n.isRead ? 'font-semibold text-core-text' : 'font-medium text-core-text'
                             }`}>
                               {n.title}
                             </p>
-                            <span className="flex-shrink-0 text-[10.5px] text-zinc-400 tabular-nums">
+                            <span className="flex-shrink-0 text-[10.5px] text-core-text3 tabular-nums">
                               {relativeTime(n.createdAt)}
                             </span>
                           </div>
-                          <p className="mt-0.5 line-clamp-2 text-[11.5px] text-zinc-500">
+                          <p className="mt-0.5 line-clamp-2 text-[11.5px] text-core-text3">
                             {n.message}
                           </p>
                         </div>
                         {!n.isRead && (
-                          <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-zinc-900" />
+                          <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-core-text" />
                         )}
                       </button>
                     </li>
@@ -222,11 +222,11 @@ export default function NotificationBell() {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-zinc-100 bg-zinc-50/40">
+          <div className="border-t border-core-border bg-core-surface2/40">
             <Link
               href="/notifications"
               onClick={() => setIsOpen(false)}
-              className="flex h-9 items-center justify-center text-[12px] font-medium text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-zinc-900"
+              className="flex h-9 items-center justify-center text-[12px] font-medium text-core-text2 transition-colors hover:bg-core-surface2 hover:text-core-text"
             >
               View all notifications
             </Link>

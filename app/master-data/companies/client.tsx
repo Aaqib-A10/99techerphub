@@ -86,7 +86,7 @@ export default function CompaniesClient({
 
   return (
     <div>
-      {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+      {error && <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
 
       <div className="flex justify-end mb-4">
         <button
@@ -167,7 +167,7 @@ export default function CompaniesClient({
             <tbody>
               {companies.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-500">
+                  <td colSpan={7} className="text-center py-12 text-core-text3">
                     No companies found
                   </td>
                 </tr>
@@ -194,7 +194,7 @@ export default function CompaniesClient({
                       {company.isActive && (
                         <button
                           onClick={() => handleDeactivate(company.id)}
-                          className="text-sm text-red-600 hover:text-red-700 font-medium"
+                          className="text-sm text-core-roseFg hover:text-core-roseFg font-medium"
                         >
                           Deactivate
                         </button>

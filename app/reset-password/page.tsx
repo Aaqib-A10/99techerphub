@@ -61,7 +61,7 @@ function ResetPasswordInner() {
       style={{ background: '#F2F5FA' }}
     >
       <div
-        className="w-full max-w-md bg-white rounded-xl p-8 shadow-[0_8px_32px_rgba(11,31,58,0.08)]"
+        className="w-full max-w-md bg-core-surface rounded-xl p-8 shadow-[0_8px_32px_rgba(11,31,58,0.08)]"
       >
         <h1 className="text-[22px] font-bold mb-1" style={{ color: INK }}>
           Set a new password
@@ -72,18 +72,18 @@ function ResetPasswordInner() {
         </p>
 
         {!token && (
-          <div className="mb-4 rounded-md bg-rose-50 ring-1 ring-rose-200 text-rose-700 text-[13px] px-3 py-2">
+          <div className="mb-4 rounded-md bg-core-roseSoft ring-1 ring-rose-200 text-core-roseFg text-[13px] px-3 py-2">
             This link is missing its token. Request a new reset email.
           </div>
         )}
         {error && (
-          <div className="mb-4 rounded-md bg-rose-50 ring-1 ring-rose-200 text-rose-700 text-[13px] px-3 py-2">
+          <div className="mb-4 rounded-md bg-core-roseSoft ring-1 ring-rose-200 text-core-roseFg text-[13px] px-3 py-2">
             {error}
           </div>
         )}
 
         {done ? (
-          <div className="rounded-md bg-emerald-50 ring-1 ring-emerald-200 text-emerald-800 text-[14px] px-3 py-3">
+          <div className="rounded-md bg-core-greenSoft ring-1 ring-core-greenFg text-core-greenFg text-[14px] px-3 py-3">
             ✓ Password updated. Redirecting to sign in…
           </div>
         ) : (
@@ -101,7 +101,7 @@ function ResetPasswordInner() {
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md ring-1 ring-zinc-200 px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                className="w-full rounded-md ring-1 ring-core-border px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                 placeholder="At least 8 characters"
               />
             </div>
@@ -118,7 +118,7 @@ function ResetPasswordInner() {
                 autoComplete="new-password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="w-full rounded-md ring-1 ring-zinc-200 px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                className="w-full rounded-md ring-1 ring-core-border px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               />
             </div>
             <button

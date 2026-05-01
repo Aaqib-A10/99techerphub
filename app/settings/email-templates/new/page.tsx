@@ -196,7 +196,7 @@ export default function NewEmailTemplatePage() {
       />
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>
+        <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -229,7 +229,7 @@ export default function NewEmailTemplatePage() {
                     className="form-input font-mono text-sm"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-core-text3 mt-1">
                     Unique identifier for this template (auto-generated, must be unique)
                   </p>
                 </div>
@@ -264,7 +264,7 @@ export default function NewEmailTemplatePage() {
                     className="form-input"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-core-text3 mt-1">
                     Use {'{{field_name}}'} syntax for merge fields
                   </p>
                 </div>
@@ -282,7 +282,7 @@ export default function NewEmailTemplatePage() {
                     rows={12}
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-core-text3 mt-1">
                     Professional HTML with inline styles recommended
                   </p>
                 </div>
@@ -338,16 +338,16 @@ export default function NewEmailTemplatePage() {
                         type="checkbox"
                         checked={formData.mergeFields.includes(field)}
                         onChange={() => toggleMergeField(field)}
-                        className="w-4 h-4 rounded border-gray-300"
+                        className="w-4 h-4 rounded border-core-border"
                       />
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                      <code className="text-xs bg-core-surface2 px-2 py-1 rounded font-mono">
                         {`{{${field}}}`}
                       </code>
                     </label>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-core-text3">
                   No merge fields available for this category
                 </p>
               )}
@@ -362,18 +362,18 @@ export default function NewEmailTemplatePage() {
               </div>
               <div className="card-body text-sm">
                 <div className="mb-4">
-                  <p className="text-xs text-gray-500 font-semibold mb-1">SUBJECT</p>
-                  <p className="text-xs bg-gray-100 p-2 rounded break-words">
+                  <p className="text-xs text-core-text3 font-semibold mb-1">SUBJECT</p>
+                  <p className="text-xs bg-core-surface2 p-2 rounded break-words">
                     {preview.subject || '(empty)'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 font-semibold mb-1">BODY PREVIEW</p>
-                  <div className="text-xs bg-gray-100 p-2 rounded max-h-64 overflow-y-auto whitespace-pre-wrap break-words">
+                  <p className="text-xs text-core-text3 font-semibold mb-1">BODY PREVIEW</p>
+                  <div className="text-xs bg-core-surface2 p-2 rounded max-h-64 overflow-y-auto whitespace-pre-wrap break-words">
                     {preview.body.substring(0, 500) || '(empty)'}...
                   </div>
                 </div>
-                <p className="text-xs text-gray-400 mt-3">
+                <p className="text-xs text-core-text3 mt-3">
                   Fields shown as [field_name] where field_name will be replaced with actual values
                   when the template is used
                 </p>

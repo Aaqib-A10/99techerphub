@@ -37,19 +37,19 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 const TYPE_TINT: Record<string, string> = {
-  ASSET_ASSIGNED: 'bg-blue-50 text-blue-600',
-  ASSET_RETURNED: 'bg-zinc-100 text-zinc-600',
-  ASSET_RETIRED: 'bg-zinc-100 text-zinc-600',
-  EXPENSE_SUBMITTED: 'bg-amber-50 text-amber-700',
-  EXPENSE_APPROVED: 'bg-emerald-50 text-emerald-600',
-  EXPENSE_REJECTED: 'bg-rose-50 text-rose-600',
-  EXPENSE_REVISION: 'bg-amber-50 text-amber-700',
-  PAYROLL_FINALIZED: 'bg-violet-50 text-violet-600',
-  PAYROLL_PAID: 'bg-emerald-50 text-emerald-600',
-  EMPLOYEE_ONBOARDED: 'bg-emerald-50 text-emerald-600',
-  EMPLOYEE_EXIT: 'bg-zinc-100 text-zinc-600',
-  SYSTEM_ALERT: 'bg-amber-50 text-amber-700',
-  GENERAL: 'bg-zinc-100 text-zinc-600',
+  ASSET_ASSIGNED: 'bg-core-blueSoft text-core-blueFg',
+  ASSET_RETURNED: 'bg-core-surface2 text-core-text2',
+  ASSET_RETIRED: 'bg-core-surface2 text-core-text2',
+  EXPENSE_SUBMITTED: 'bg-core-amberSoft text-core-amberFg',
+  EXPENSE_APPROVED: 'bg-core-greenSoft text-core-greenFg',
+  EXPENSE_REJECTED: 'bg-core-roseSoft text-core-roseFg',
+  EXPENSE_REVISION: 'bg-core-amberSoft text-core-amberFg',
+  PAYROLL_FINALIZED: 'bg-core-violetSoft text-core-violetFg',
+  PAYROLL_PAID: 'bg-core-greenSoft text-core-greenFg',
+  EMPLOYEE_ONBOARDED: 'bg-core-greenSoft text-core-greenFg',
+  EMPLOYEE_EXIT: 'bg-core-surface2 text-core-text2',
+  SYSTEM_ALERT: 'bg-core-amberSoft text-core-amberFg',
+  GENERAL: 'bg-core-surface2 text-core-text2',
 };
 
 function relativeTime(iso: string): string {
@@ -156,10 +156,10 @@ export default function NotificationsPage() {
           <div className="flex items-center gap-1.5">
             <button
               onClick={fetchNotifications}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-zinc-200/95 bg-white px-2.5 text-[12.5px] font-medium text-zinc-700 transition-all hover:border-zinc-300 hover:bg-zinc-50"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-core-border/95 bg-core-surface px-2.5 text-[12.5px] font-medium text-core-text2 transition-all hover:border-core-border hover:bg-core-surface2"
               title="Refresh"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="text-core-text3">
                 <path d="M23 4v6h-6 M1 20v-6h6 M3.51 9a9 9 0 0114.85-3.36L23 10 M20.49 15a9 9 0 01-14.85 3.36L1 14" />
               </svg>
               Refresh
@@ -178,17 +178,17 @@ export default function NotificationsPage() {
 
       {/* Filter row — read/unread + type chip */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="inline-flex h-8 items-center gap-0.5 rounded-md border border-zinc-200/95 bg-white p-0.5">
+        <div className="inline-flex h-8 items-center gap-0.5 rounded-md border border-core-border/95 bg-core-surface p-0.5">
           <button
             onClick={() => setFilter('all')}
             className={`inline-flex h-7 items-center rounded px-3 text-[12px] font-medium transition-all ${
               filter === 'all'
-                ? 'bg-zinc-100 text-zinc-900'
-                : 'text-zinc-500 hover:text-zinc-900'
+                ? 'bg-core-surface2 text-core-text'
+                : 'text-core-text3 hover:text-core-text'
             }`}
           >
             All
-            <span className="ml-1.5 text-[10.5px] tabular-nums text-zinc-400">
+            <span className="ml-1.5 text-[10.5px] tabular-nums text-core-text3">
               {notifications.length}
             </span>
           </button>
@@ -196,12 +196,12 @@ export default function NotificationsPage() {
             onClick={() => setFilter('unread')}
             className={`inline-flex h-7 items-center rounded px-3 text-[12px] font-medium transition-all ${
               filter === 'unread'
-                ? 'bg-zinc-100 text-zinc-900'
-                : 'text-zinc-500 hover:text-zinc-900'
+                ? 'bg-core-surface2 text-core-text'
+                : 'text-core-text3 hover:text-core-text'
             }`}
           >
             Unread
-            <span className="ml-1.5 text-[10.5px] tabular-nums text-zinc-400">
+            <span className="ml-1.5 text-[10.5px] tabular-nums text-core-text3">
               {unreadCount}
             </span>
           </button>
@@ -211,7 +211,7 @@ export default function NotificationsPage() {
           <select
             value={selectedType || ''}
             onChange={(e) => setSelectedType(e.target.value || null)}
-            className="h-8 rounded-md border border-zinc-200/95 bg-white pl-2.5 pr-8 text-[12.5px] font-medium text-zinc-700 transition-all hover:border-zinc-300 focus:border-zinc-400 focus:outline-none"
+            className="h-8 rounded-md border border-core-border/95 bg-core-surface pl-2.5 pr-8 text-[12.5px] font-medium text-core-text2 transition-all hover:border-core-border focus:border-zinc-400 focus:outline-none"
             style={{
               backgroundImage:
                 "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2371717A' stroke-width='1.6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
@@ -233,20 +233,20 @@ export default function NotificationsPage() {
 
       {/* List */}
       {loading ? (
-        <div className="rounded-lg border border-zinc-200/85 bg-white p-12 text-center text-[12.5px] text-zinc-500">
+        <div className="rounded-lg border border-core-border/85 bg-core-surface p-12 text-center text-[12.5px] text-core-text3">
           Loading notifications…
         </div>
       ) : visible.length === 0 ? (
-        <div className="rounded-lg border border-zinc-200/85 bg-white p-12 text-center">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
+        <div className="rounded-lg border border-core-border/85 bg-core-surface p-12 text-center">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-core-surface2 text-core-text3">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
             </svg>
           </div>
-          <p className="mt-3 text-[13px] font-medium text-zinc-900">
+          <p className="mt-3 text-[13px] font-medium text-core-text">
             {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
           </p>
-          <p className="mt-0.5 text-[12px] text-zinc-500">
+          <p className="mt-0.5 text-[12px] text-core-text3">
             {selectedType
               ? `Nothing matches the "${selectedType.replace(/_/g, ' ').toLowerCase()}" filter.`
               : 'Updates from across the system will appear here.'}
@@ -256,10 +256,10 @@ export default function NotificationsPage() {
         <div className="space-y-6">
           {Object.entries(groupedByDate).map(([date, group]) => (
             <div key={date}>
-              <h2 className="mb-2 px-1 text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+              <h2 className="mb-2 px-1 text-[10.5px] font-medium uppercase tracking-[0.06em] text-core-text3">
                 {date}
               </h2>
-              <div className="overflow-hidden rounded-lg border border-zinc-200/85 bg-white">
+              <div className="overflow-hidden rounded-lg border border-core-border/85 bg-core-surface">
                 {group.map((notif, i) => {
                   const tint = TYPE_TINT[notif.type] || TYPE_TINT.GENERAL;
                   const iconPath = TYPE_ICONS[notif.type] || TYPE_ICONS.GENERAL;
@@ -270,9 +270,9 @@ export default function NotificationsPage() {
                         if (!notif.isRead) markAsRead(notif.id);
                         if (notif.link) window.location.href = notif.link;
                       }}
-                      className={`group flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-zinc-50 ${
-                        i > 0 ? 'border-t border-zinc-100' : ''
-                      } ${!notif.isRead ? 'bg-zinc-50/40' : ''}`}
+                      className={`group flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-core-surface2 ${
+                        i > 0 ? 'border-t border-core-border' : ''
+                      } ${!notif.isRead ? 'bg-core-surface2/40' : ''}`}
                     >
                       <span
                         className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md ${tint}`}
@@ -284,22 +284,22 @@ export default function NotificationsPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <p className={`text-[13px] ${
-                            !notif.isRead ? 'font-semibold text-zinc-900' : 'font-medium text-zinc-800'
+                            !notif.isRead ? 'font-semibold text-core-text' : 'font-medium text-core-text'
                           }`}>
                             {notif.title}
                           </p>
-                          <span className="flex-shrink-0 text-[10.5px] tabular-nums text-zinc-400">
+                          <span className="flex-shrink-0 text-[10.5px] tabular-nums text-core-text3">
                             {relativeTime(notif.createdAt)}
                           </span>
                         </div>
-                        <p className="mt-0.5 text-[12.5px] text-zinc-600">
+                        <p className="mt-0.5 text-[12.5px] text-core-text2">
                           {notif.message}
                         </p>
                         {notif.link && (
                           <Link
                             href={notif.link}
                             onClick={(e) => e.stopPropagation()}
-                            className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+                            className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-medium text-core-text3 transition-colors hover:text-core-text"
                           >
                             Open
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -309,7 +309,7 @@ export default function NotificationsPage() {
                         )}
                       </div>
                       {!notif.isRead && (
-                        <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-zinc-900" />
+                        <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-core-text" />
                       )}
                     </div>
                   );

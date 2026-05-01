@@ -82,11 +82,11 @@ export default function NewDigitalAccessPage() {
       />
       <div className="card max-w-2xl">
         <div className="card-body">
-          {error && <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
+          {error && <div className="mb-6 p-4 bg-core-roseSoft border border-red-400 text-core-roseFg rounded">{error}</div>}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Employee *</label>
-              {employeesLoading ? <p className="text-gray-500">Loading employees...</p> : (
+              <label className="block text-sm font-medium text-core-text2 mb-2">Employee *</label>
+              {employeesLoading ? <p className="text-core-text3">Loading employees...</p> : (
                 <EmployeePicker
                   employees={employees}
                   value={formData.employeeId}
@@ -97,25 +97,25 @@ export default function NewDigitalAccessPage() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Service *</label>
-              <select value={formData.serviceName} onChange={(e) => setFormData({ ...formData, serviceName: e.target.value })} required className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent">
+              <label className="block text-sm font-medium text-core-text2 mb-2">Service *</label>
+              <select value={formData.serviceName} onChange={(e) => setFormData({ ...formData, serviceName: e.target.value })} required className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent">
                 <option value="">Select a service...</option>
                 {SERVICES.map((service) => <option key={service} value={service}>{service}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Account ID / Email / Username</label>
-              <input type="text" value={formData.accountId} onChange={(e) => setFormData({ ...formData, accountId: e.target.value })} placeholder="e.g., john.doe@example.com" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent" />
+              <label className="block text-sm font-medium text-core-text2 mb-2">Account ID / Email / Username</label>
+              <input type="text" value={formData.accountId} onChange={(e) => setFormData({ ...formData, accountId: e.target.value })} placeholder="e.g., john.doe@example.com" className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-              <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Any additional information..." rows={4} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent" />
+              <label className="block text-sm font-medium text-core-text2 mb-2">Notes</label>
+              <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Any additional information..." rows={4} className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent" />
             </div>
-            <div className="flex gap-3 pt-4 border-t border-gray-200">
-              <button type="submit" disabled={loading} className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-dark disabled:opacity-50">
+            <div className="flex gap-3 pt-4 border-t border-core-border">
+              <button type="submit" disabled={loading} className="px-6 py-2 bg-core-text text-white rounded-lg hover:bg-core-text disabled:opacity-50">
                 {loading ? 'Granting Access...' : 'Grant Access'}
               </button>
-              <Link href="/digital-access" className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</Link>
+              <Link href="/digital-access" className="px-6 py-2 border border-core-border text-core-text2 rounded-lg hover:bg-core-surface2">Cancel</Link>
             </div>
           </form>
         </div>

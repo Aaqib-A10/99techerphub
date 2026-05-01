@@ -235,19 +235,19 @@ export default function EmployeeExitClient({
   return (
     <div>
       {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-4 p-4 bg-core-roseSoft border border-red-400 text-core-roseFg rounded">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+        <div className="mb-4 p-4 bg-core-greenSoft border border-green-400 text-core-greenFg rounded">
           {success}
         </div>
       )}
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-gray-200 mb-6">
+      <div className="flex border-b border-core-border mb-6">
         {[
           { id: 'details', label: 'Exit Details' },
           { id: 'assets', label: 'Asset Clearance' },
@@ -259,8 +259,8 @@ export default function EmployeeExitClient({
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.id
-                ? 'border-brand-primary text-brand-primary'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-core-text text-core-text2'
+                : 'border-transparent text-core-text3 hover:text-core-text2'
             }`}
           >
             {tab.label}
@@ -274,24 +274,24 @@ export default function EmployeeExitClient({
           <div className="card-body space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-core-text2 mb-2">
                   Exit Date
                 </label>
                 <input
                   type="date"
                   value={exitDate}
                   onChange={(e) => setExitDate(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-core-text2 mb-2">
                   Exit Type
                 </label>
                 <select
                   value={exitType}
                   onChange={(e) => setExitType(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent"
                 >
                   <option value="RESIGNATION">Resignation</option>
                   <option value="TERMINATION">Termination</option>
@@ -301,7 +301,7 @@ export default function EmployeeExitClient({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-core-text2 mb-2">
                 Reason for Exit
               </label>
               <textarea
@@ -309,12 +309,12 @@ export default function EmployeeExitClient({
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Enter reason for exit..."
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-core-text2 mb-2">
                 Exit Notes
               </label>
               <textarea
@@ -322,7 +322,7 @@ export default function EmployeeExitClient({
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any additional notes..."
                 rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent"
               />
             </div>
 
@@ -330,7 +330,7 @@ export default function EmployeeExitClient({
               <button
                 onClick={handleInitiateExit}
                 disabled={loading}
-                className="px-6 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-dark disabled:opacity-50"
+                className="px-6 py-2 bg-core-text text-white rounded-lg hover:bg-core-text disabled:opacity-50"
               >
                 {loading ? 'Initiating...' : 'Initiate Exit'}
               </button>
@@ -344,7 +344,7 @@ export default function EmployeeExitClient({
         <div className="card">
           <div className="card-body">
             {activeAssignments.length === 0 ? (
-              <p className="text-gray-500 text-center py-6">
+              <p className="text-core-text3 text-center py-6">
                 No active asset assignments
               </p>
             ) : (
@@ -352,17 +352,17 @@ export default function EmployeeExitClient({
                 {activeAssignments.map((assignment) => (
                   <div
                     key={assignment.id}
-                    className="border border-gray-200 rounded-lg p-4"
+                    className="border border-core-border rounded-lg p-4"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-core-text">
                           {assignment.asset.assetTag}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-core-text2">
                           {assignment.asset.category.name} • {assignment.asset.manufacturer}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-core-text3 mt-1">
                           Serial: {assignment.asset.serialNumber}
                         </p>
                       </div>
@@ -386,9 +386,9 @@ export default function EmployeeExitClient({
                     </div>
 
                     {assetReturns[assignment.id]?.returned && (
-                      <div className="space-y-3 bg-gray-50 p-3 rounded mb-3">
+                      <div className="space-y-3 bg-core-surface2 p-3 rounded mb-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-core-text2 mb-1">
                             Condition at Return
                           </label>
                           <select
@@ -404,7 +404,7 @@ export default function EmployeeExitClient({
                                 },
                               }))
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                            className="w-full px-3 py-2 border border-core-border rounded text-sm"
                           >
                             <option value="WORKING">Working</option>
                             <option value="DAMAGED">Damaged</option>
@@ -412,7 +412,7 @@ export default function EmployeeExitClient({
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-core-text2 mb-1">
                             Return Notes
                           </label>
                           <input
@@ -428,7 +428,7 @@ export default function EmployeeExitClient({
                               }))
                             }
                             placeholder="Add any notes..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                            className="w-full px-3 py-2 border border-core-border rounded text-sm"
                           />
                         </div>
                         <button
@@ -444,7 +444,7 @@ export default function EmployeeExitClient({
                 ))}
 
                 {allAssetsReturned && (
-                  <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
+                  <div className="p-3 bg-core-greenSoft border border-green-400 text-core-greenFg rounded text-sm">
                     All assets returned
                   </div>
                 )}
@@ -459,7 +459,7 @@ export default function EmployeeExitClient({
         <div className="card">
           <div className="card-body">
             {digitalAccessRecords.length === 0 ? (
-              <p className="text-gray-500 text-center py-6">
+              <p className="text-core-text3 text-center py-6">
                 No active digital access records
               </p>
             ) : (
@@ -467,14 +467,14 @@ export default function EmployeeExitClient({
                 {digitalAccessRecords.map((record) => (
                   <div
                     key={record.id}
-                    className="border border-gray-200 rounded-lg p-4 flex items-center justify-between"
+                    className="border border-core-border rounded-lg p-4 flex items-center justify-between"
                   >
                     <div>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-core-text">
                         {record.serviceName}
                       </p>
                       {record.accountId && (
-                        <p className="text-sm text-gray-600">{record.accountId}</p>
+                        <p className="text-sm text-core-text2">{record.accountId}</p>
                       )}
                     </div>
                     <label className="flex items-center gap-2">
@@ -505,7 +505,7 @@ export default function EmployeeExitClient({
                 </div>
 
                 {allAccessRevoked && (
-                  <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-sm">
+                  <div className="p-3 bg-core-greenSoft border border-green-400 text-core-greenFg rounded text-sm">
                     All digital access revoked
                   </div>
                 )}
@@ -521,7 +521,7 @@ export default function EmployeeExitClient({
           <div className="card-body space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-core-text2 mb-2">
                   Outstanding Dues
                 </label>
                 <input
@@ -529,11 +529,11 @@ export default function EmployeeExitClient({
                   value={outstandingDues}
                   onChange={(e) => setOutstandingDues(parseFloat(e.target.value) || 0)}
                   placeholder="0.00"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-core-text2 mb-2">
                   Bonus/Commission Owed
                 </label>
                 <input
@@ -541,11 +541,11 @@ export default function EmployeeExitClient({
                   value={bonusCommission}
                   onChange={(e) => setBonusCommission(parseFloat(e.target.value) || 0)}
                   placeholder="0.00"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-core-text2 mb-2">
                   Final Settlement
                 </label>
                 <input
@@ -553,13 +553,13 @@ export default function EmployeeExitClient({
                   value={finalSettlement}
                   onChange={(e) => setFinalSettlement(parseFloat(e.target.value) || 0)}
                   placeholder="0.00"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border border-core-border rounded-lg focus:ring-2 focus:ring-core-text focus:border-transparent"
                 />
               </div>
             </div>
 
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-gray-600 mb-3">Settlement Summary:</p>
+            <div className="p-4 bg-core-blueSoft border border-core-border rounded-lg">
+              <p className="text-sm text-core-text2 mb-3">Settlement Summary:</p>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Outstanding Dues:</span>
@@ -571,7 +571,7 @@ export default function EmployeeExitClient({
                 </div>
                 <div className="border-t pt-2 flex justify-between text-base font-bold">
                   <span>Total Settlement:</span>
-                  <span className="text-brand-primary">
+                  <span className="text-core-text2">
                     {outstandingDues + bonusCommission}
                   </span>
                 </div>
@@ -584,8 +584,8 @@ export default function EmployeeExitClient({
                 disabled={loading || !canCompleteExit}
                 className={`flex-1 px-6 py-3 rounded-lg font-medium transition-colors ${
                   canCompleteExit
-                    ? 'bg-brand-primary text-white hover:bg-brand-dark'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? 'bg-core-text text-white hover:bg-core-text'
+                    : 'bg-core-border text-core-text3 cursor-not-allowed'
                 }`}
               >
                 {loading ? 'Completing...' : 'Complete Exit'}
@@ -593,7 +593,7 @@ export default function EmployeeExitClient({
             </div>
 
             {!canCompleteExit && (
-              <div className="p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded text-sm">
+              <div className="p-3 bg-core-amberSoft border border-yellow-400 text-core-amberFg rounded text-sm">
                 Please complete all sections before finalizing exit.
               </div>
             )}

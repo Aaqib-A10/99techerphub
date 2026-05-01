@@ -180,7 +180,7 @@ export default function BillingSplitPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">Loading billing splits...</p>
+        <p className="text-core-text3">Loading billing splits...</p>
       </div>
     );
   }
@@ -207,7 +207,7 @@ export default function BillingSplitPage() {
       />
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>
+        <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>
       )}
 
       {/* Summary Cards */}
@@ -266,7 +266,7 @@ export default function BillingSplitPage() {
                               onChange={(e) => handleSplitChange(idx, 'percentage', e.target.value)}
                               className="form-input w-24 text-center"
                             />
-                            <span className="text-sm text-gray-500 w-4">%</span>
+                            <span className="text-sm text-core-text3 w-4">%</span>
                           </div>
                         </div>
                       );
@@ -276,12 +276,12 @@ export default function BillingSplitPage() {
                   {/* Percentage Progress */}
                   <div className="mb-6">
                     <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Total</span>
+                      <span className="text-sm font-medium text-core-text2">Total</span>
                       <span
                         className={`text-sm font-semibold ${
                           formData.splits.reduce((sum, s) => sum + (parseFloat(s.percentage) || 0), 0) === 100
-                            ? 'text-green-600'
-                            : 'text-red-600'
+                            ? 'text-core-greenFg'
+                            : 'text-core-roseFg'
                         }`}
                       >
                         {(
@@ -290,7 +290,7 @@ export default function BillingSplitPage() {
                         %
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-core-border rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all ${
                           formData.splits.reduce((sum, s) => sum + (parseFloat(s.percentage) || 0), 0) === 100
@@ -348,7 +348,7 @@ export default function BillingSplitPage() {
             <tbody>
               {employees.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12 text-gray-500">
+                  <td colSpan={4} className="text-center py-12 text-core-text3">
                     No employees found
                   </td>
                 </tr>
@@ -361,7 +361,7 @@ export default function BillingSplitPage() {
                   <tr key={emp.id}>
                     <td className="font-semibold">
                       {emp.firstName} {emp.lastName}
-                      <div className="text-xs text-gray-500">{emp.empCode}</div>
+                      <div className="text-xs text-core-text3">{emp.empCode}</div>
                     </td>
                     <td>
                       {salary > 0 ? (
@@ -369,12 +369,12 @@ export default function BillingSplitPage() {
                           {currency} {salary.toLocaleString()}
                         </>
                       ) : (
-                        <span className="text-gray-400">No salary data</span>
+                        <span className="text-core-text3">No salary data</span>
                       )}
                     </td>
                     <td>
                       {splits.length === 0 ? (
-                        <span className="text-gray-400">No split defined</span>
+                        <span className="text-core-text3">No split defined</span>
                       ) : (
                         // Horizontal pill chips: keeps row height short and
                         // makes a multi-company split (MNC · SJ · PCMART)
@@ -384,10 +384,10 @@ export default function BillingSplitPage() {
                           {splits.map((split) => (
                             <span
                               key={split.id}
-                              className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[12px] ring-1 ring-zinc-200"
+                              className="inline-flex items-center gap-1 rounded-full bg-core-surface2 px-2 py-0.5 text-[12px] ring-1 ring-core-border"
                             >
-                              <span className="font-medium text-zinc-900">{split.company.code}</span>
-                              <span className="text-zinc-500 tabular-nums">{split.percentage}%</span>
+                              <span className="font-medium text-core-text">{split.company.code}</span>
+                              <span className="text-core-text3 tabular-nums">{split.percentage}%</span>
                             </span>
                           ))}
                         </div>
@@ -395,13 +395,13 @@ export default function BillingSplitPage() {
                     </td>
                     <td>
                       {splits.length === 0 ? (
-                        <span className="text-gray-400">—</span>
+                        <span className="text-core-text3">—</span>
                       ) : (
                         <div className="flex flex-wrap gap-1.5">
                           {splits.map((split) => (
                             <span
                               key={split.id}
-                              className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[12px] ring-1 ring-emerald-200 text-emerald-800 tabular-nums"
+                              className="inline-flex items-center rounded-full bg-core-greenSoft px-2 py-0.5 text-[12px] ring-1 ring-core-greenFg text-core-greenFg tabular-nums"
                               title={split.company.code}
                             >
                               {currency} {Math.round((salary * Number(split.percentage)) / 100).toLocaleString()}

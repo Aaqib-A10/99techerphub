@@ -13,7 +13,7 @@ export default function LineChart({
 }: LineChartProps) {
   if (data.length === 0) {
     return (
-      <div style={{ width, height }} className="flex items-center justify-center text-gray-500">
+      <div style={{ width, height }} className="flex items-center justify-center text-core-text3">
         <p className="text-sm">No data available</p>
       </div>
     );

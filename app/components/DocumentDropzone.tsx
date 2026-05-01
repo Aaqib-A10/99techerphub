@@ -119,7 +119,7 @@ export default function DocumentDropzone({
 
   return (
     <div
-      className={`border rounded-lg p-3 ${hasFile ? 'border-green-200 bg-green-50/30' : docType.required ? 'border-red-200 bg-red-50/20' : 'border-gray-200'} ${className}`}
+      className={`border rounded-lg p-3 ${hasFile ? 'border-core-border bg-core-greenSoft/30' : docType.required ? 'border-core-border bg-core-roseSoft/20' : 'border-core-border'} ${className}`}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -129,31 +129,31 @@ export default function DocumentDropzone({
             </span>
           ) : (
             <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${docType.required ? 'bg-red-100 text-red-500' : 'bg-gray-100 text-gray-400'}`}
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${docType.required ? 'bg-core-roseSoft text-core-roseFg' : 'bg-core-surface2 text-core-text3'}`}
             >
               {docType.required ? '!' : '?'}
             </span>
           )}
-          <h4 className="text-sm font-semibold text-gray-800">{docType.label}</h4>
+          <h4 className="text-sm font-semibold text-core-text">{docType.label}</h4>
         </div>
-        <span className="text-[10px] text-gray-400 font-mono">
+        <span className="text-[10px] text-core-text3 font-mono">
           {docType.accept.replace(/\./g, '').toUpperCase()}
         </span>
       </div>
 
-      {localError && <p className="text-xs text-red-600 mb-2">{localError}</p>}
+      {localError && <p className="text-xs text-core-roseFg mb-2">{localError}</p>}
 
       {hasFile ? (
-        <div className="flex items-center justify-between bg-white rounded border border-gray-100 px-3 py-2">
+        <div className="flex items-center justify-between bg-core-surface rounded border border-core-border px-3 py-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-700 truncate">{stagedFile!.name}</p>
-            <p className="text-[10px] text-gray-400">{humanSize(stagedFile!.size)}</p>
+            <p className="text-xs font-medium text-core-text2 truncate">{stagedFile!.name}</p>
+            <p className="text-[10px] text-core-text3">{humanSize(stagedFile!.size)}</p>
           </div>
           <button
             type="button"
             onClick={clear}
             disabled={disabled}
-            className="ml-2 px-2 py-1 bg-red-50 text-red-600 rounded text-xs hover:bg-red-100 font-medium disabled:opacity-50"
+            className="ml-2 px-2 py-1 bg-core-roseSoft text-core-roseFg rounded text-xs hover:bg-core-roseSoft font-medium disabled:opacity-50"
           >
             Remove
           </button>
@@ -167,10 +167,10 @@ export default function DocumentDropzone({
         >
           <div
             className={`border-2 border-dashed rounded-lg ${compact ? 'p-2' : 'p-3'} text-center transition-colors
-              ${disabled ? 'border-gray-200 bg-gray-50 opacity-60' : isDragging ? 'border-brand-primary bg-brand-primary/10' : 'border-gray-300 hover:border-brand-primary hover:bg-brand-primary/5'}`}
+              ${disabled ? 'border-core-border bg-core-surface2 opacity-60' : isDragging ? 'border-core-text bg-core-text/10' : 'border-core-border hover:border-core-text hover:bg-core-text/5'}`}
           >
             <svg
-              className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} mx-auto text-gray-400 mb-1`}
+              className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} mx-auto text-core-text3 mb-1`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -182,7 +182,7 @@ export default function DocumentDropzone({
                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
               />
             </svg>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-core-text3">
               {isDragging ? 'Drop file here' : 'Drag & drop, or click to browse'}
             </p>
           </div>

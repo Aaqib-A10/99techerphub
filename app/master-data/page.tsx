@@ -67,23 +67,23 @@ export default async function MasterDataPage() {
           <Link
             key={card.href}
             href={card.href}
-            className="group flex items-center justify-between gap-6 rounded-lg border border-zinc-200/85 bg-white p-5 transition-all duration-200 hover:border-zinc-300 hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]"
+            className="group flex items-center justify-between gap-6 rounded-lg border border-core-border/85 bg-core-surface p-5 transition-all duration-200 hover:border-core-border hover:shadow-[0_4px_12px_-2px_rgba(0,0,0,0.06)]"
           >
             <div className="min-w-0 flex-1">
-              <p className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+              <p className="text-[10.5px] font-medium uppercase tracking-[0.06em] text-core-text3">
                 Lookup table
               </p>
-              <h3 className="mt-1 text-[15px] font-semibold tracking-tight text-zinc-900">
+              <h3 className="mt-1 text-[15px] font-semibold tracking-tight text-core-text">
                 {card.title}
               </h3>
-              <p className="mt-1 text-[12.5px] text-zinc-500">{card.description}</p>
+              <p className="mt-1 text-[12.5px] text-core-text3">{card.description}</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-[22px] font-semibold tabular-nums text-zinc-900 leading-none">
+                <div className="text-[22px] font-semibold tabular-nums text-core-text leading-none">
                   {card.count}
                 </div>
-                <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.06em] text-zinc-400">
+                <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.06em] text-core-text3">
                   records
                 </p>
               </div>
@@ -96,7 +96,7 @@ export default async function MasterDataPage() {
                 strokeWidth={1.6}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="text-zinc-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-zinc-600"
+                className="text-core-text3 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-core-text2"
               >
                 <path d="M9 18l6-6-6-6" />
               </svg>

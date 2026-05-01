@@ -19,7 +19,7 @@ export default async function AssetLabelPage({
   if (!asset) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 mb-4">Asset not found</p>
+        <p className="text-core-text3 mb-4">Asset not found</p>
         <Link href="/assets" className="btn btn-primary">
           Back to Assets
         </Link>

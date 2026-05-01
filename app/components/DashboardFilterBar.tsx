@@ -62,8 +62,8 @@ export default function DashboardFilterBar({
           onClick={() => { setCompanyOpen((v) => !v); setDeptOpen(false); }}
           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
             selectedCompany !== 'all'
-              ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400'
+              ? 'border-core-border bg-core-greenSoft text-core-greenFg'
+              : 'border-core-border bg-core-surface text-core-text2 hover:border-gray-400'
           }`}
         >
           {companyLabel}
@@ -72,11 +72,11 @@ export default function DashboardFilterBar({
           </svg>
         </button>
         {companyOpen && (
-          <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-lg shadow-lg z-30 min-w-48 overflow-hidden max-h-80 overflow-y-auto">
+          <div className="absolute top-full mt-1 left-0 bg-core-surface border border-core-border rounded-lg shadow-lg z-30 min-w-48 overflow-hidden max-h-80 overflow-y-auto">
             <button
               onClick={() => { router.push(buildUrl('all', selectedDepartment)); setCompanyOpen(false); }}
               className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                selectedCompany === 'all' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'
+                selectedCompany === 'all' ? 'bg-core-greenSoft text-core-greenFg font-semibold' : 'text-core-text2 hover:bg-core-surface2'
               }`}
             >
               All Companies
@@ -86,7 +86,7 @@ export default function DashboardFilterBar({
                 key={c.id}
                 onClick={() => { router.push(buildUrl(String(c.id), selectedDepartment)); setCompanyOpen(false); }}
                 className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                  selectedCompany === String(c.id) ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'
+                  selectedCompany === String(c.id) ? 'bg-core-greenSoft text-core-greenFg font-semibold' : 'text-core-text2 hover:bg-core-surface2'
                 }`}
               >
                 {c.name}
@@ -102,8 +102,8 @@ export default function DashboardFilterBar({
           onClick={() => { setDeptOpen((v) => !v); setCompanyOpen(false); }}
           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
             selectedDepartment !== 'all'
-              ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
-              : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400'
+              ? 'border-indigo-300 bg-core-blueSoft text-core-blueFg'
+              : 'border-core-border bg-core-surface text-core-text2 hover:border-gray-400'
           }`}
         >
           {departmentLabel}
@@ -112,11 +112,11 @@ export default function DashboardFilterBar({
           </svg>
         </button>
         {deptOpen && (
-          <div className="absolute top-full mt-1 left-0 bg-white border border-gray-200 rounded-lg shadow-lg z-30 min-w-48 overflow-hidden max-h-80 overflow-y-auto">
+          <div className="absolute top-full mt-1 left-0 bg-core-surface border border-core-border rounded-lg shadow-lg z-30 min-w-48 overflow-hidden max-h-80 overflow-y-auto">
             <button
               onClick={() => { router.push(buildUrl(selectedCompany, 'all')); setDeptOpen(false); }}
               className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                selectedDepartment === 'all' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'
+                selectedDepartment === 'all' ? 'bg-core-blueSoft text-core-blueFg font-semibold' : 'text-core-text2 hover:bg-core-surface2'
               }`}
             >
               All Departments
@@ -126,7 +126,7 @@ export default function DashboardFilterBar({
                 key={d.id}
                 onClick={() => { router.push(buildUrl(selectedCompany, String(d.id))); setDeptOpen(false); }}
                 className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                  selectedDepartment === String(d.id) ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'
+                  selectedDepartment === String(d.id) ? 'bg-core-blueSoft text-core-blueFg font-semibold' : 'text-core-text2 hover:bg-core-surface2'
                 }`}
               >
                 {d.name}

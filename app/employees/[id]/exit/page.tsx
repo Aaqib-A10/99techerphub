@@ -57,28 +57,28 @@ export default async function EmployeeExitPage({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="card">
             <div className="card-body">
-              <p className="text-sm text-gray-600 mb-1">Employee Name</p>
+              <p className="text-sm text-core-text2 mb-1">Employee Name</p>
               <p className="font-semibold text-lg">
                 {employee.firstName} {employee.lastName}
               </p>
-              <p className="text-xs text-gray-500 mt-2">{employee.empCode}</p>
+              <p className="text-xs text-core-text3 mt-2">{employee.empCode}</p>
             </div>
           </div>
           <div className="card">
             <div className="card-body">
-              <p className="text-sm text-gray-600 mb-1">Employee ID</p>
+              <p className="text-sm text-core-text2 mb-1">Employee ID</p>
               <p className="font-semibold text-lg">{employee.id}</p>
             </div>
           </div>
           <div className="card">
             <div className="card-body">
-              <p className="text-sm text-gray-600 mb-1">Department</p>
+              <p className="text-sm text-core-text2 mb-1">Department</p>
               <p className="font-semibold text-lg">{employee.department.name}</p>
             </div>
           </div>
           <div className="card">
             <div className="card-body">
-              <p className="text-sm text-gray-600 mb-1">Lifecycle Stage</p>
+              <p className="text-sm text-core-text2 mb-1">Lifecycle Stage</p>
               <p className="font-semibold text-lg">
                 {employee.lifecycleStage.replace(/_/g, ' ')}
               </p>
@@ -103,17 +103,17 @@ export default async function EmployeeExitPage({
               <div className="flex flex-col items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
                   idx === 0
-                    ? 'bg-brand-primary text-white'
-                    : 'bg-gray-200 text-gray-600'
+                    ? 'bg-core-text text-white'
+                    : 'bg-core-border text-core-text2'
                 }`}>
                   {idx + 1}
                 </div>
-                <p className="text-xs text-gray-600 mt-2 text-center w-16">
+                <p className="text-xs text-core-text2 mt-2 text-center w-16">
                   {step}
                 </p>
               </div>
               {idx < 3 && (
-                <div className="w-16 h-0.5 bg-gray-300 mx-2 mt-6" />
+                <div className="w-16 h-0.5 bg-core-border mx-2 mt-6" />
               )}
             </div>
           ))}

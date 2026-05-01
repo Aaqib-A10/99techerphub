@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import RelativeTime from './RelativeTime';
 import { formatTenureMonthsFirst } from '@/lib/tenure';
+import { Avi, Badge } from './design';
 
 const REQUIRED_DOC_TYPES = ['CNIC_FRONT', 'CNIC_BACK', 'PHOTO', 'RESUME'];
 
@@ -53,7 +54,7 @@ export default async function EmployeeDashboard({
 
   if (!employee) {
     return (
-      <div className="text-center py-16 text-gray-600">
+      <div className="text-center py-16 text-core-text2">
         We can't find your employee record. Contact an administrator.
       </div>
     );
@@ -182,90 +183,111 @@ export default async function EmployeeDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Hero — personalized, light theme matching the rest of the ERP */}
-      <div className="page-hero">
-        <div className="flex items-end justify-between gap-6 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <span className="eyebrow">Welcome back</span>
-            <h1>
-              {employee.firstName} {employee.lastName}
-            </h1>
-            <p>
-              <span className="mono text-emerald-600">{employee.empCode}</span>
-              {employee.designation ? ` · ${employee.designation}` : ''}
-              {employee.department?.name ? ` · ${employee.department.name}` : ''}
-            </p>
-          </div>
-          <Link
-            href={`/employees/${employee.id}`}
-            className="btn btn-primary"
-            style={{ backgroundColor: '#0B1F3A' }}
+      {/* Hero — personalized, design system aesthetic */}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div
+            className="mb-[6px] text-[10.5px] font-semibold uppercase text-core-text3"
+            style={{ letterSpacing: '0.09em' }}
           >
-            View My Profile
-          </Link>
+            Welcome back
+          </div>
+          <h1
+            className="text-[22px] font-semibold leading-tight text-core-text"
+            style={{ letterSpacing: '-0.018em' }}
+          >
+            {employee.firstName} {employee.lastName}
+          </h1>
+          <p className="mt-[2px] text-[13px] text-core-text2">
+            <span className="font-mono font-semibold text-core-text">{employee.empCode}</span>
+            {employee.designation ? ` · ${employee.designation}` : ''}
+            {employee.department?.name ? ` · ${employee.department.name}` : ''}
+          </p>
         </div>
+        <Link
+          href={`/employees/${employee.id}`}
+          className="inline-flex items-center gap-[6px] rounded-lg border border-core-text bg-core-text px-[13px] py-2 text-[12.5px] font-semibold text-core-surface transition hover:opacity-90"
+        >
+          View My Profile
+        </Link>
       </div>
 
-      {/* KPI strip — same stat-card pattern as /expenses, /employees, employee detail */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="stat-card">
-          <div className="stat-label">Tenure</div>
-          <div className="stat-value">{tenureLabel}</div>
-          <div className="text-[11px] text-zinc-500 mt-1">
+      {/* KPI strip — Apple Wallet tinted tiles */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="relative overflow-hidden rounded-2xl bg-core-greenSoft px-[18px] pt-4 pb-[14px]">
+          <div className="mb-[10px] text-[10px] font-semibold uppercase text-core-greenFg" style={{ letterSpacing: '0.1em' }}>
+            Tenure
+          </div>
+          <div className="text-[26px] font-semibold leading-none text-core-greenFg tabular-nums" style={{ letterSpacing: '-0.02em' }}>
+            {tenureLabel}
+          </div>
+          <div className="mt-[6px] text-[11.5px] text-core-greenFg/70">
             {joinDate ? `Joined ${joinDate.toLocaleDateString()}` : 'No join date'}
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-label">Active Assets</div>
-          <div className="stat-value">{employee.assetAssignments.length}</div>
-          <div className="text-[11px] text-zinc-500 mt-1">In your custody</div>
+        <div className="relative overflow-hidden rounded-2xl bg-core-blueSoft px-[18px] pt-4 pb-[14px]">
+          <div className="mb-[10px] text-[10px] font-semibold uppercase text-core-blueFg" style={{ letterSpacing: '0.1em' }}>
+            Active Assets
+          </div>
+          <div className="text-[26px] font-semibold leading-none text-core-blueFg tabular-nums" style={{ letterSpacing: '-0.02em' }}>
+            {employee.assetAssignments.length}
+          </div>
+          <div className="mt-[6px] text-[11.5px] text-core-blueFg/70">In your custody</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-label">Required Docs</div>
-          <div className="stat-value">
+        <div className="relative overflow-hidden rounded-2xl bg-core-amberSoft px-[18px] pt-4 pb-[14px]">
+          <div className="mb-[10px] text-[10px] font-semibold uppercase text-core-amberFg" style={{ letterSpacing: '0.1em' }}>
+            Required Docs
+          </div>
+          <div className="text-[26px] font-semibold leading-none text-core-amberFg tabular-nums" style={{ letterSpacing: '-0.02em' }}>
             {requiredUploaded}/{REQUIRED_DOC_TYPES.length}
           </div>
-          <div className="text-[11px] text-zinc-500 mt-1">
+          <div className="mt-[6px] text-[11.5px] text-core-amberFg/70">
             {missingDocs.length === 0 ? 'Complete' : `${missingDocs.length} missing`}
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-label">Manager</div>
-          <div className="stat-value text-[1.05rem] truncate">
+        <div className="relative overflow-hidden rounded-2xl bg-core-violetSoft px-[18px] pt-4 pb-[14px]">
+          <div className="mb-[10px] text-[10px] font-semibold uppercase text-core-violetFg" style={{ letterSpacing: '0.1em' }}>
+            Manager
+          </div>
+          <div className="truncate text-[16px] font-semibold leading-tight text-core-violetFg" style={{ letterSpacing: '-0.01em' }}>
             {employee.reportingManager
               ? `${employee.reportingManager.firstName} ${employee.reportingManager.lastName}`
               : '—'}
           </div>
-          <div className="text-[11px] text-zinc-500 mt-1">
+          <div className="mt-[6px] text-[11.5px] text-core-violetFg/70">
             {employee.reportingManager?.empCode || 'No manager set'}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* My Assets */}
-        <div className="lg:col-span-2 card">
-          <div className="card-header flex items-center justify-between">
-            <h2 className="text-base font-bold">My Assets</h2>
-            <span className="text-xs text-gray-500">{employee.assetAssignments.length} active</span>
+        <div className="rounded-2xl border border-core-border bg-core-surface lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-core-border px-5 py-4">
+            <h2 className="text-[14.5px] font-semibold text-core-text" style={{ letterSpacing: '-0.01em' }}>
+              My Assets
+            </h2>
+            <span className="text-[11.5px] text-core-text3">
+              {employee.assetAssignments.length} active
+            </span>
           </div>
-          <div className="card-body">
+          <div className="px-5 py-3">
             {employee.assetAssignments.length === 0 ? (
-              <p className="text-sm text-gray-500 py-6 text-center">
+              <p className="py-6 text-center text-[13px] text-core-text3">
                 No assets are currently assigned to you.
               </p>
             ) : (
-              <ul className="divide-y divide-gray-100">
+              <ul className="divide-y divide-core-border">
                 {employee.assetAssignments.map((a) => (
-                  <li key={a.id} className="py-3 flex items-center justify-between gap-4">
+                  <li key={a.id} className="flex items-center justify-between gap-4 py-[10px]">
                     <div className="min-w-0">
                       <Link
                         href={`/assets/${a.asset.id}`}
-                        className="font-medium text-gray-900 hover:text-brand-primary truncate block"
+                        className="block truncate font-mono text-[12px] font-semibold text-core-text hover:underline"
                       >
                         {a.asset.assetTag}
                       </Link>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="mt-[2px] truncate text-[11.5px] text-core-text3">
                         {a.asset.category.name}
                         {a.asset.manufacturer && a.asset.model && a.asset.manufacturer !== 'Unknown'
                           ? ` · ${a.asset.manufacturer} ${a.asset.model}`
@@ -273,13 +295,16 @@ export default async function EmployeeDashboard({
                       </p>
                     </div>
                     <div className="flex-shrink-0 text-right">
-                      <p className="text-xs text-gray-500">
+                      <p className="text-[11.5px] tabular-nums text-core-text2">
                         Since{' '}
                         {a.assignedDate
                           ? new Date(a.assignedDate).toLocaleDateString()
                           : '—'}
                       </p>
-                      <p className="text-[11px] text-gray-400 uppercase tracking-wide">
+                      <p
+                        className="mt-[2px] text-[10px] font-semibold uppercase text-core-text3"
+                        style={{ letterSpacing: '0.08em' }}
+                      >
                         {a.conditionAtAssignment}
                       </p>
                     </div>
@@ -291,25 +316,21 @@ export default async function EmployeeDashboard({
         </div>
 
         {/* Document checklist */}
-        <div className="card">
-          <div className="card-header">
-            <h2 className="text-base font-bold">My Documents</h2>
+        <div className="rounded-2xl border border-core-border bg-core-surface">
+          <div className="border-b border-core-border px-5 py-4">
+            <h2 className="text-[14.5px] font-semibold text-core-text" style={{ letterSpacing: '-0.01em' }}>
+              My Documents
+            </h2>
           </div>
-          <div className="card-body">
-            <div className="space-y-2">
+          <div className="px-5 py-4">
+            <div className="space-y-[10px]">
               {REQUIRED_DOC_TYPES.map((t) => {
                 const has = employee.documents.some((d) => d.documentType === t);
                 const label = t.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
                 return (
-                  <div key={t} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">{label}</span>
-                    <span
-                      className={`inline-flex items-center gap-1 text-xs font-semibold ${
-                        has ? 'text-green-600' : 'text-amber-600'
-                      }`}
-                    >
-                      {has ? '✓ Uploaded' : '! Missing'}
-                    </span>
+                  <div key={t} className="flex items-center justify-between text-[12.5px]">
+                    <span className="text-core-text2">{label}</span>
+                    {has ? <Badge tone="green">Uploaded</Badge> : <Badge tone="amber">Missing</Badge>}
                   </div>
                 );
               })}
@@ -317,7 +338,7 @@ export default async function EmployeeDashboard({
             {missingDocs.length > 0 && (
               <Link
                 href={`/employees/${employee.id}#documents`}
-                className="mt-4 block text-center text-xs font-medium text-brand-primary hover:text-brand-dark"
+                className="mt-4 block text-center text-[12px] font-semibold text-core-text2 hover:text-core-text"
               >
                 Upload missing documents →
               </Link>
@@ -328,29 +349,32 @@ export default async function EmployeeDashboard({
 
       {/* Direct reports — only shown when there are any */}
       {employee.directReports.length > 0 && (
-        <div className="card">
-          <div className="card-header flex items-center justify-between">
-            <h2 className="text-base font-bold">Your Direct Reports</h2>
-            <span className="text-xs text-gray-500">{employee.directReports.length} people</span>
+        <div className="rounded-2xl border border-core-border bg-core-surface">
+          <div className="flex items-center justify-between border-b border-core-border px-5 py-4">
+            <h2 className="text-[14.5px] font-semibold text-core-text" style={{ letterSpacing: '-0.01em' }}>
+              Your Direct Reports
+            </h2>
+            <span className="text-[11.5px] text-core-text3">{employee.directReports.length} people</span>
           </div>
-          <div className="card-body">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="px-5 py-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
               {employee.directReports.map((r) => (
                 <Link
                   key={r.id}
                   href={`/employees/${r.id}`}
-                  className="flex items-center gap-3 p-3 rounded border border-gray-100 hover:border-brand-primary hover:bg-brand-primary/5 transition-colors"
+                  className="flex items-center gap-3 rounded-xl border border-core-border p-3 transition hover:bg-core-surface2"
                 >
-                  <div className="w-9 h-9 rounded-full bg-brand-primary/10 flex items-center justify-center text-sm font-bold text-brand-primary flex-shrink-0">
-                    {r.firstName[0]}
-                    {r.lastName[0]}
-                  </div>
+                  <Avi
+                    seed={r.empCode}
+                    initials={`${r.firstName[0]}${r.lastName[0]}`}
+                    size={32}
+                  />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="truncate text-[13px] font-medium text-core-text">
                       {r.firstName} {r.lastName}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      <span className="mono">{r.empCode}</span>
+                    <p className="mt-[1px] truncate text-[11px] text-core-text3">
+                      <span className="font-mono">{r.empCode}</span>
                       {r.designation ? ` · ${r.designation}` : ''}
                     </p>
                   </div>
@@ -362,42 +386,42 @@ export default async function EmployeeDashboard({
       )}
 
       {/* Three-up: Digital Access | My Team | Birthdays + Anniversaries */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Digital Access */}
-        <div className="card">
-          <div className="card-header flex items-center justify-between">
-            <h2 className="text-base font-bold">My Digital Access</h2>
-            <span className="text-xs text-gray-500">{employee.digitalAccess.length}</span>
+        <div className="rounded-2xl border border-core-border bg-core-surface">
+          <div className="flex items-center justify-between border-b border-core-border px-5 py-4">
+            <h2 className="text-[14.5px] font-semibold text-core-text" style={{ letterSpacing: '-0.01em' }}>
+              My Digital Access
+            </h2>
+            <span className="text-[11.5px] text-core-text3">{employee.digitalAccess.length}</span>
           </div>
-          <div className="card-body">
+          <div className="px-5 py-4">
             {employee.digitalAccess.length === 0 ? (
-              <p className="text-sm text-gray-500 py-3">
+              <p className="py-2 text-[13px] text-core-text3">
                 No services granted yet. Ask IT if something is missing.
               </p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-[10px]">
                 {employee.digitalAccess.slice(0, 8).map((d) => (
-                  <li key={d.id} className="flex items-center justify-between text-sm">
+                  <li key={d.id} className="flex items-center justify-between text-[12.5px]">
                     <div className="min-w-0">
-                      <p className="font-medium text-gray-800 truncate">{d.serviceName}</p>
+                      <p className="truncate font-medium text-core-text">{d.serviceName}</p>
                       {d.accountId && (
-                        <p className="text-[11px] text-gray-500 truncate">{d.accountId}</p>
+                        <p className="mt-[1px] truncate text-[11px] text-core-text3">{d.accountId}</p>
                       )}
                     </div>
-                    <span className="text-[10px] text-green-600 font-semibold flex-shrink-0 ml-2">
-                      ACTIVE
-                    </span>
+                    <Badge tone="green">Active</Badge>
                   </li>
                 ))}
                 {employee.digitalAccess.length > 8 && (
-                  <li className="text-xs text-gray-500 pt-1">
+                  <li className="pt-1 text-[11.5px] text-core-text3">
                     + {employee.digitalAccess.length - 8} more
                   </li>
                 )}
                 <li>
                   <Link
                     href={`/employees/${employee.id}#digital`}
-                    className="text-xs font-medium text-brand-primary hover:text-brand-dark mt-2 block"
+                    className="mt-2 block text-[12px] font-semibold text-core-text2 hover:text-core-text"
                   >
                     Manage access →
                   </Link>
@@ -408,35 +432,40 @@ export default async function EmployeeDashboard({
         </div>
 
         {/* My Team */}
-        <div className="card">
-          <div className="card-header flex items-center justify-between">
-            <h2 className="text-base font-bold">My Team</h2>
-            <span className="text-xs text-gray-500">
+        <div className="rounded-2xl border border-core-border bg-core-surface">
+          <div className="flex items-center justify-between border-b border-core-border px-5 py-4">
+            <h2 className="text-[14.5px] font-semibold text-core-text" style={{ letterSpacing: '-0.01em' }}>
+              My Team
+            </h2>
+            <span className="text-[11.5px] text-core-text3">
               {teamSize} {employee.department?.name ? `in ${employee.department.name}` : ''}
             </span>
           </div>
-          <div className="card-body">
+          <div className="px-5 py-4">
             {teamColleagues.length === 0 ? (
-              <p className="text-sm text-gray-500 py-3">
+              <p className="py-2 text-[13px] text-core-text3">
                 No other active members in your department yet.
               </p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-[10px]">
                 {teamColleagues.map((c) => (
                   <li key={c.id}>
                     <Link
                       href={`/employees/${c.id}`}
-                      className="flex items-center gap-2 text-sm hover:text-brand-primary"
+                      className="flex items-center gap-[10px] text-[12.5px] hover:opacity-90"
                     >
-                      <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600 flex-shrink-0">
-                        {c.firstName[0]}
-                        {c.lastName[0]}
-                      </div>
+                      <Avi
+                        seed={c.empCode}
+                        initials={`${c.firstName[0]}${c.lastName[0]}`}
+                        size={28}
+                      />
                       <div className="min-w-0">
-                        <p className="font-medium text-gray-800 truncate">
+                        <p className="truncate font-medium text-core-text">
                           {c.firstName} {c.lastName}
                         </p>
-                        <p className="text-[11px] text-gray-500 truncate">{c.designation || '—'}</p>
+                        <p className="mt-[1px] truncate text-[11px] text-core-text3">
+                          {c.designation || '—'}
+                        </p>
                       </div>
                     </Link>
                   </li>
@@ -445,7 +474,7 @@ export default async function EmployeeDashboard({
                   <li>
                     <Link
                       href={`/employees?departmentId=${employee.departmentId}`}
-                      className="text-xs font-medium text-brand-primary hover:text-brand-dark mt-2 block"
+                      className="mt-2 block text-[12px] font-semibold text-core-text2 hover:text-core-text"
                     >
                       View all {teamSize} →
                     </Link>
@@ -457,30 +486,32 @@ export default async function EmployeeDashboard({
         </div>
 
         {/* Birthdays + Anniversaries */}
-        <div className="card">
-          <div className="card-header">
-            <h2 className="text-base font-bold">This Week</h2>
+        <div className="rounded-2xl border border-core-border bg-core-surface">
+          <div className="border-b border-core-border px-5 py-4">
+            <h2 className="text-[14.5px] font-semibold text-core-text" style={{ letterSpacing: '-0.01em' }}>
+              This Week
+            </h2>
           </div>
-          <div className="card-body">
+          <div className="px-5 py-4">
             {upcomingEvents.length === 0 ? (
-              <p className="text-sm text-gray-500 py-3">
+              <p className="py-2 text-[13px] text-core-text3">
                 No birthdays or anniversaries in the next 7 days.
               </p>
             ) : (
               <ul className="space-y-3">
                 {upcomingEvents.slice(0, 6).map((e, idx) => (
                   <li key={`${e.employeeId}-${e.type}-${idx}`} className="flex items-center gap-3">
-                    <span className="text-lg flex-shrink-0">
+                    <span className="flex-shrink-0 text-lg">
                       {e.type === 'BIRTHDAY' ? '🎂' : '🎉'}
                     </span>
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <Link
                         href={`/employees/${e.employeeId}`}
-                        className="text-sm font-medium text-gray-800 hover:text-brand-primary truncate block"
+                        className="block truncate text-[12.5px] font-medium text-core-text hover:underline"
                       >
                         {e.name}
                       </Link>
-                      <p className="text-[11px] text-gray-500">
+                      <p className="mt-[1px] text-[11px] text-core-text3">
                         {e.type === 'BIRTHDAY'
                           ? 'Birthday'
                           : `${e.yearsLabel} work anniversary`}{' '}
@@ -496,25 +527,27 @@ export default async function EmployeeDashboard({
       </div>
 
       {/* Recent activity */}
-      <div className="card">
-        <div className="card-header">
-          <h2 className="text-base font-bold">Recent Activity</h2>
+      <div className="rounded-2xl border border-core-border bg-core-surface">
+        <div className="border-b border-core-border px-5 py-4">
+          <h2 className="text-[14.5px] font-semibold text-core-text" style={{ letterSpacing: '-0.01em' }}>
+            Recent Activity
+          </h2>
         </div>
-        <div className="card-body">
+        <div className="px-5 py-4">
           {recentActivity.length === 0 ? (
-            <p className="text-sm text-gray-500 py-3">No recent activity.</p>
+            <p className="py-2 text-[13px] text-core-text3">No recent activity.</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="divide-y divide-core-border">
               {recentActivity.map((log) => (
                 <li
                   key={log.id}
-                  className="flex items-center justify-between text-sm border-b border-gray-50 pb-2 last:border-0"
+                  className="flex items-center justify-between py-[10px] text-[12.5px]"
                 >
                   <div>
-                    <span className="font-medium text-gray-700">{log.module || log.tableName}</span>{' '}
-                    <span className="text-gray-500 text-xs">{log.action.toLowerCase()}</span>
+                    <span className="font-medium text-core-text">{log.module || log.tableName}</span>{' '}
+                    <span className="text-[11.5px] text-core-text3">{log.action.toLowerCase()}</span>
                   </div>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-[11px] text-core-text3">
                     <RelativeTime iso={log.createdAt.toISOString()} />
                   </span>
                 </li>

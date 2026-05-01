@@ -106,18 +106,18 @@ export default async function AssetDetailPage({
   return (
     <div className="space-y-6">
       {/* Hero header card */}
-      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-6 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl border border-core-border bg-gradient-to-br from-white to-gray-50 p-6 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-primary">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-core-text/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-core-text2">
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
               {asset.category.name}
             </div>
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900">{asset.assetTag}</h1>
-            <p className="mt-1.5 text-sm text-gray-600">
-              <span className="font-medium text-gray-700">{asset.manufacturer}</span>
+            <h1 className="text-4xl font-bold tracking-tight text-core-text">{asset.assetTag}</h1>
+            <p className="mt-1.5 text-sm text-core-text2">
+              <span className="font-medium text-core-text2">{asset.manufacturer}</span>
               {asset.model && asset.model !== 'Unknown' && <> · {asset.model}</>}
               {asset.company?.name && <>{' · '}<span>{asset.company.name}</span></>}
             </p>
@@ -126,7 +126,7 @@ export default async function AssetDetailPage({
             <StatusBadge condition={asset.condition} />
             <Link
               href={`/assets/${asset.id}/label`}
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all hover:border-brand-primary hover:text-brand-primary hover:shadow"
+              className="inline-flex items-center gap-2 rounded-lg border border-core-border bg-core-surface px-4 py-2 text-sm font-medium text-core-text2 shadow-sm transition-all hover:border-core-text hover:text-core-text2 hover:shadow"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -145,7 +145,7 @@ export default async function AssetDetailPage({
           {asset.photoUrl && (
             <div className="card">
               <div className="card-body">
-                <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                <div className="relative w-full bg-core-surface2 rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
                   <img
                     src={asset.photoUrl}
                     alt={asset.assetTag}
@@ -178,38 +178,38 @@ export default async function AssetDetailPage({
             <div className="card-body">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-600">Serial Number</p>
+                  <p className="text-sm text-core-text2">Serial Number</p>
                   <p className="font-mono font-semibold">{asset.serialNumber}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Manufacturer</p>
+                  <p className="text-sm text-core-text2">Manufacturer</p>
                   <p className="font-semibold">{asset.manufacturer}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Model</p>
+                  <p className="text-sm text-core-text2">Model</p>
                   <p className="font-semibold">{asset.model}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Category</p>
+                  <p className="text-sm text-core-text2">Category</p>
                   <p className="font-semibold">{asset.category.name}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Company</p>
-                  <p className="font-semibold">{asset.company?.name || <span className="text-gray-400">—</span>}</p>
+                  <p className="text-sm text-core-text2">Company</p>
+                  <p className="font-semibold">{asset.company?.name || <span className="text-core-text3">—</span>}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Location</p>
-                  <p className="font-semibold">{asset.location?.name || <span className="text-gray-400">—</span>}</p>
+                  <p className="text-sm text-core-text2">Location</p>
+                  <p className="font-semibold">{asset.location?.name || <span className="text-core-text3">—</span>}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Added to Inventory</p>
+                  <p className="text-sm text-core-text2">Added to Inventory</p>
                   <p className="font-semibold">
                     {asset.createdAt.toLocaleDateString()}
                   </p>
                 </div>
                 {asset.retiredDate && (
                   <div>
-                    <p className="text-sm text-gray-600">Retired Date</p>
+                    <p className="text-sm text-core-text2">Retired Date</p>
                     <p className="font-semibold">
                       {asset.retiredDate.toLocaleDateString()}
                     </p>
@@ -222,20 +222,20 @@ export default async function AssetDetailPage({
           {/* Specifications Card */}
           <div className="card">
             <div className="card-header">
-              <p className="text-lg font-semibold text-gray-900">Specifications</p>
+              <p className="text-lg font-semibold text-core-text">Specifications</p>
             </div>
             <div className="card-body">
               {asset.specs && typeof asset.specs === 'object' && Object.keys(asset.specs as Record<string, string>).length > 0 ? (
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {Object.entries(asset.specs as Record<string, string>).map(([key, value]) => (
-                    <div key={key} className="bg-gray-50 rounded-lg px-3 py-2">
-                      <p className="text-xs text-gray-500 uppercase">{key}</p>
-                      <p className="text-sm font-medium text-gray-900">{value}</p>
+                    <div key={key} className="bg-core-surface2 rounded-lg px-3 py-2">
+                      <p className="text-xs text-core-text3 uppercase">{key}</p>
+                      <p className="text-sm font-medium text-core-text">{value}</p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-400 text-sm mb-4">No specs added yet</p>
+                <p className="text-core-text3 text-sm mb-4">No specs added yet</p>
               )}
               <AssetSpecsEditor assetId={asset.id} currentSpecs={(asset.specs as Record<string, string>) || {}} categoryCode={asset.category.code} />
             </div>
@@ -248,27 +248,27 @@ export default async function AssetDetailPage({
             </div>
             <div className="card-body">
               {asset.assignments.length === 0 ? (
-                <p className="text-gray-500 text-center py-6">No assignments yet</p>
+                <p className="text-core-text3 text-center py-6">No assignments yet</p>
               ) : (
                 <div className="space-y-4">
                   {asset.assignments.map((assignment) => (
                     <div
                       key={assignment.id}
-                      className="border-l-4 border-brand-primary pl-4 py-2"
+                      className="border-l-4 border-core-text pl-4 py-2"
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-core-text">
                             {assignment.employee.firstName}{' '}
                             {assignment.employee.lastName}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-core-text2">
                             {assignment.employee.department.name} •{' '}
                             {assignment.employee.designation}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-gray-600">Assigned</p>
+                          <p className="text-sm text-core-text2">Assigned</p>
                           <p className="font-mono text-sm">
                             {assignment.assignedDate.toLocaleDateString()}
                           </p>
@@ -276,14 +276,14 @@ export default async function AssetDetailPage({
                       </div>
                       {assignment.returnedDate && (
                         <div className="text-right mt-2">
-                          <p className="text-sm text-gray-600">Returned</p>
+                          <p className="text-sm text-core-text2">Returned</p>
                           <p className="font-mono text-sm">
                             {assignment.returnedDate.toLocaleDateString()}
                           </p>
                         </div>
                       )}
                       {assignment.notes && (
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p className="text-sm text-core-text2 mt-2">
                           Note: {assignment.notes}
                         </p>
                       )}
@@ -309,24 +309,24 @@ export default async function AssetDetailPage({
                     >
                       <div className="flex items-center gap-4">
                         <div>
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-core-text">
                             {transfer.fromCompany.name}
                           </p>
                         </div>
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-core-text3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>
                         <div>
-                          <p className="font-semibold text-gray-900">
+                          <p className="font-semibold text-core-text">
                             {transfer.toCompany.name}
                           </p>
                         </div>
                         <div className="ml-auto text-right">
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-core-text2">
                             {transfer.transferDate.toLocaleDateString()}
                           </p>
                           {transfer.reason && (
-                            <p className="text-sm text-gray-500">{transfer.reason}</p>
+                            <p className="text-sm text-core-text3">{transfer.reason}</p>
                           )}
                         </div>
                       </div>
@@ -347,7 +347,7 @@ export default async function AssetDetailPage({
             </div>
             <div className="card-body space-y-4">
               <div>
-                <p className="text-sm text-gray-600">Condition</p>
+                <p className="text-sm text-core-text2">Condition</p>
                 <div className="mt-2">
                   <StatusBadge condition={asset.condition} />
                 </div>
@@ -356,13 +356,13 @@ export default async function AssetDetailPage({
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Assignment</p>
+                <p className="text-sm text-core-text2">Assignment</p>
                 <p className="font-semibold mt-2">
                   {asset.isAssigned ? '✓ Assigned' : '○ Unassigned'}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Status</p>
+                <p className="text-sm text-core-text2">Status</p>
                 <p className="font-semibold mt-2">
                   {asset.isRetired ? '✓ Retired' : '○ Active'}
                 </p>
@@ -383,9 +383,9 @@ export default async function AssetDetailPage({
                 <>
                   <div className="mb-3">
                     <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                      warrantyStatus.badgeColor === 'green' ? 'bg-green-100 text-green-800' :
-                      warrantyStatus.badgeColor === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      warrantyStatus.badgeColor === 'green' ? 'bg-core-greenSoft text-core-greenFg' :
+                      warrantyStatus.badgeColor === 'yellow' ? 'bg-core-amberSoft text-core-amberFg' :
+                      'bg-core-roseSoft text-core-roseFg'
                     }`}>
                       {warrantyStatus.daysRemaining !== null && warrantyStatus.daysRemaining > 0
                         ? `${warrantyStatus.daysRemaining} days left`
@@ -393,13 +393,13 @@ export default async function AssetDetailPage({
                       }
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600">Expires on</p>
-                  <p className="font-semibold text-gray-900">
+                  <p className="text-sm text-core-text2">Expires on</p>
+                  <p className="font-semibold text-core-text">
                     {asset.warrantyExpiry.toLocaleDateString()}
                   </p>
                 </>
               ) : (
-                <p className="text-gray-500 text-sm">No warranty information</p>
+                <p className="text-core-text3 text-sm">No warranty information</p>
               )}
             </div>
           </div>
@@ -425,39 +425,39 @@ export default async function AssetDetailPage({
             </div>
             <div className="card-body space-y-4">
               <div>
-                <p className="text-sm text-gray-600">Purchase Date</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-sm text-core-text2">Purchase Date</p>
+                <p className="font-semibold text-core-text">
                   {asset.purchaseDate
                     ? asset.purchaseDate.toLocaleDateString()
                     : '—'}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Purchase Price</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-sm text-core-text2">Purchase Price</p>
+                <p className="font-semibold text-core-text">
                   {Number(asset.purchasePrice).toLocaleString()} {asset.currency}
                 </p>
               </div>
               {asset.batchId && (
                 <div>
-                  <p className="text-sm text-gray-600">Batch ID</p>
-                  <p className="font-mono font-semibold text-gray-900">{asset.batchId}</p>
+                  <p className="text-sm text-core-text2">Batch ID</p>
+                  <p className="font-mono font-semibold text-core-text">{asset.batchId}</p>
                 </div>
               )}
               {depreciation && (
-                <div className="pt-3 border-t border-gray-200">
-                  <p className="text-sm text-gray-600 mb-2">Depreciation (3-year)</p>
+                <div className="pt-3 border-t border-core-border">
+                  <p className="text-sm text-core-text2 mb-2">Depreciation (3-year)</p>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Current Value:</span>
+                      <span className="text-core-text2">Current Value:</span>
                       <span className="font-semibold">{depreciation.currentValue.toLocaleString()} {asset.currency}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Total Depreciation:</span>
+                      <span className="text-core-text2">Total Depreciation:</span>
                       <span className="font-semibold">{depreciation.depreciation.toLocaleString()} {asset.currency}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Depreciated:</span>
+                      <span className="text-core-text2">Depreciated:</span>
                       <span className="font-semibold">{depreciation.percentDepreciated.toFixed(1)}%</span>
                     </div>
                   </div>

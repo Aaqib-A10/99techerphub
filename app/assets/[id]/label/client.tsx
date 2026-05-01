@@ -42,14 +42,14 @@ export default function LabelClient({ asset }: { asset: LabelAsset }) {
     <div>
       <div className="flex items-center justify-between mb-6 no-print">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Print Asset Label</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Tag <span className="font-mono font-semibold text-gray-700">{asset.assetTag}</span> · use the button to print just the small label
+          <h1 className="text-3xl font-bold text-core-text">Print Asset Label</h1>
+          <p className="mt-1 text-sm text-core-text3">
+            Tag <span className="font-mono font-semibold text-core-text2">{asset.assetTag}</span> · use the button to print just the small label
           </p>
         </div>
         <button
           onClick={() => window.print()}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-secondary hover:shadow active:scale-95"
+          className="inline-flex items-center gap-2 rounded-lg bg-core-text px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-core-green hover:shadow active:scale-95"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path
@@ -64,11 +64,11 @@ export default function LabelClient({ asset }: { asset: LabelAsset }) {
 
       {/* On-screen preview — hidden during print */}
       <div className="flex justify-center no-print">
-        <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-8">
-          <p className="mb-4 text-center text-xs uppercase tracking-widest text-gray-500">
+        <div className="rounded-2xl border-2 border-dashed border-core-border bg-core-surface2 p-8">
+          <p className="mb-4 text-center text-xs uppercase tracking-widest text-core-text3">
             Preview
           </p>
-          <div className="inline-flex flex-col items-center rounded-lg border border-gray-900 bg-white p-3 shadow">
+          <div className="inline-flex flex-col items-center rounded-lg border border-gray-900 bg-core-surface p-3 shadow">
             <img
               src={`/api/assets/${asset.id}/qr`}
               alt="Asset QR Code"
@@ -76,7 +76,7 @@ export default function LabelClient({ asset }: { asset: LabelAsset }) {
               height={128}
               className="h-32 w-32"
             />
-            <p className="mt-2 text-center font-mono text-xs font-semibold tracking-tight text-gray-900">
+            <p className="mt-2 text-center font-mono text-xs font-semibold tracking-tight text-core-text">
               {asset.assetTag}
             </p>
           </div>

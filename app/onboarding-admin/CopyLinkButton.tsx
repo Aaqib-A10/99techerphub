@@ -14,7 +14,7 @@ interface Props {
 export default function CopyLinkButton({
   url,
   label = 'Copy Link',
-  className = 'text-brand-primary hover:text-brand-dark font-medium text-sm',
+  className = 'text-core-text2 hover:text-core-text font-medium text-sm',
 }: Props) {
   return (
     <button

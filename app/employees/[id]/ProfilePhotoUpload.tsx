@@ -151,7 +151,7 @@ export default function ProfilePhotoUpload({
             onClick={removePhoto}
             disabled={busy === 'remove'}
             title="Remove photo"
-            className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-white text-zinc-600 ring-1 ring-zinc-200 shadow-sm hover:text-rose-600 hover:ring-rose-300 transition disabled:opacity-50"
+            className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-core-surface text-core-text2 ring-1 ring-core-border shadow-sm hover:text-core-roseFg hover:ring-rose-300 transition disabled:opacity-50"
           >
             {busy === 'remove' ? (
               <span className="inline-flex items-center justify-center w-full h-full">
@@ -209,12 +209,12 @@ function CropModal(props: {
       className="fixed inset-0 z-[100] flex items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.6)' }}
     >
-      <div className="bg-white rounded-xl shadow-xl w-[min(420px,92vw)] overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-200 flex items-center justify-between">
-          <h3 className="text-[15px] font-semibold text-zinc-900">Adjust profile photo</h3>
+      <div className="bg-core-surface rounded-xl shadow-xl w-[min(420px,92vw)] overflow-hidden">
+        <div className="px-5 py-3 border-b border-core-border flex items-center justify-between">
+          <h3 className="text-[15px] font-semibold text-core-text">Adjust profile photo</h3>
           <button
             onClick={props.onCancel}
-            className="text-zinc-400 hover:text-zinc-600"
+            className="text-core-text3 hover:text-core-text2"
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,7 +238,7 @@ function CropModal(props: {
         </div>
 
         <div className="px-5 py-3 flex items-center gap-3">
-          <span className="text-[12px] text-zinc-500 w-10">Zoom</span>
+          <span className="text-[12px] text-core-text3 w-10">Zoom</span>
           <input
             type="range"
             min={1}
@@ -246,16 +246,16 @@ function CropModal(props: {
             step={0.05}
             value={props.zoom}
             onChange={(e) => props.onZoomChange(Number(e.target.value))}
-            className="flex-1 accent-emerald-500"
+            className="flex-1 accent-core-text"
           />
         </div>
 
-        <div className="px-5 py-3 border-t border-zinc-200 flex items-center justify-end gap-2 bg-zinc-50">
+        <div className="px-5 py-3 border-t border-core-border flex items-center justify-end gap-2 bg-core-surface2">
           <button
             type="button"
             onClick={props.onCancel}
             disabled={props.saving}
-            className="px-4 py-1.5 rounded-md text-[13px] font-medium text-zinc-700 hover:bg-white ring-1 ring-zinc-200"
+            className="px-4 py-1.5 rounded-md text-[13px] font-medium text-core-text2 hover:bg-core-surface ring-1 ring-core-border"
           >
             Cancel
           </button>
@@ -263,7 +263,7 @@ function CropModal(props: {
             type="button"
             onClick={props.onSave}
             disabled={props.saving || !props.canSave}
-            className="px-4 py-1.5 rounded-md text-[13px] font-medium bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-zinc-300 disabled:cursor-not-allowed"
+            className="px-4 py-1.5 rounded-md text-[13px] font-medium bg-core-green text-white hover:bg-core-green disabled:bg-core-border disabled:cursor-not-allowed"
           >
             {props.saving ? 'Saving…' : 'Save photo'}
           </button>

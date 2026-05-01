@@ -35,10 +35,10 @@ interface TierStyle {
 }
 
 const TIER_STYLES: Record<Tier, TierStyle> = {
-  EXEC: { label: 'Exec', className: 'bg-purple-100 text-purple-700 border-purple-200' },
-  MANAGER: { label: 'Manager', className: 'bg-blue-100 text-blue-700 border-blue-200' },
-  LEAD: { label: 'Lead', className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  IC: { label: 'IC', className: 'bg-gray-100 text-gray-600 border-gray-200' },
+  EXEC: { label: 'Exec', className: 'bg-core-violetSoft text-core-violetFg border-core-border' },
+  MANAGER: { label: 'Manager', className: 'bg-core-blueSoft text-core-blueFg border-core-border' },
+  LEAD: { label: 'Lead', className: 'bg-core-green text-core-greenFg border-core-border' },
+  IC: { label: 'IC', className: 'bg-core-surface2 text-core-text2 border-core-border' },
 };
 
 /**
@@ -142,25 +142,25 @@ export default function OrgTree({
           <button
             type="button"
             onClick={expandAll}
-            className="px-3 py-1.5 rounded border border-gray-200 hover:border-brand-primary hover:bg-brand-primary/5"
+            className="px-3 py-1.5 rounded border border-core-border hover:border-core-text hover:bg-core-text/5"
           >
             Expand all
           </button>
           <button
             type="button"
             onClick={collapseAll}
-            className="px-3 py-1.5 rounded border border-gray-200 hover:border-brand-primary hover:bg-brand-primary/5"
+            className="px-3 py-1.5 rounded border border-core-border hover:border-core-text hover:bg-core-text/5"
           >
             Collapse all
           </button>
-          <span className="ml-2 text-gray-500">{totalActive} active</span>
+          <span className="ml-2 text-core-text3">{totalActive} active</span>
         </div>
       </div>
 
       {/* Manager chain breadcrumb (only on personal view) */}
       {ancestry.length > 0 && (
-        <div className="rounded-lg p-3 bg-gradient-to-br from-slate-50 to-white border border-gray-100">
-          <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-2">
+        <div className="rounded-lg p-3 bg-gradient-to-br from-slate-50 to-white border border-core-border">
+          <p className="text-[10px] uppercase tracking-wider text-core-text3 mb-2">
             Reporting Line
           </p>
           <div className="flex items-center gap-2 flex-wrap">
@@ -168,30 +168,30 @@ export default function OrgTree({
               <span key={a.id} className="flex items-center gap-2">
                 <Link
                   href={`/employees/${a.id}`}
-                  className="inline-flex items-center gap-2 px-2 py-1 rounded bg-white border border-gray-200 text-xs hover:border-brand-primary"
+                  className="inline-flex items-center gap-2 px-2 py-1 rounded bg-core-surface border border-core-border text-xs hover:border-core-text"
                 >
-                  <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-[10px] font-bold">
+                  <span className="w-5 h-5 rounded-full bg-core-surface2 text-core-text2 flex items-center justify-center text-[10px] font-bold">
                     {a.firstName[0]}
                     {a.lastName[0]}
                   </span>
                   <span>
                     <span className="font-medium">{fullName(a)}</span>
                     {a.designation ? (
-                      <span className="text-gray-500"> · {a.designation}</span>
+                      <span className="text-core-text3"> · {a.designation}</span>
                     ) : null}
                   </span>
                 </Link>
-                {i < ancestry.length - 1 && <span className="text-gray-400">→</span>}
+                {i < ancestry.length - 1 && <span className="text-core-text3">→</span>}
               </span>
             ))}
-            <span className="text-gray-400">→</span>
-            <span className="text-xs font-semibold text-brand-primary">You</span>
+            <span className="text-core-text3">→</span>
+            <span className="text-xs font-semibold text-core-text2">You</span>
           </div>
         </div>
       )}
 
       {roots.length === 0 ? (
-        <div className="text-center text-gray-500 py-12">
+        <div className="text-center text-core-text3 py-12">
           No tree to show.
         </div>
       ) : (
@@ -222,7 +222,7 @@ function highlight(text: string, q: string) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-yellow-100 text-gray-900 rounded px-0.5">
+      <mark className="bg-core-amberSoft text-core-text rounded px-0.5">
         {text.slice(idx, idx + q.length)}
       </mark>
       {text.slice(idx + q.length)}
@@ -254,8 +254,8 @@ function NodeView({
       <div
         className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
           isFocus
-            ? 'border-brand-primary bg-brand-primary/5'
-            : 'border-gray-100 bg-white hover:border-gray-300'
+            ? 'border-core-text bg-core-text/5'
+            : 'border-core-border bg-core-surface hover:border-core-border'
         }`}
         style={{ marginLeft: depth > 0 ? 20 : 0 }}
       >
@@ -264,14 +264,14 @@ function NodeView({
           onClick={() => toggle(node.id)}
           disabled={!hasReports}
           className={`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-xs ${
-            hasReports ? 'hover:bg-gray-100 text-gray-700' : 'opacity-30 cursor-default'
+            hasReports ? 'hover:bg-core-surface2 text-core-text2' : 'opacity-30 cursor-default'
           }`}
           aria-label={isOpen ? 'Collapse' : 'Expand'}
         >
           {hasReports ? (isOpen ? '▾' : '▸') : '·'}
         </button>
 
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-primary/20 to-brand-primary/5 flex items-center justify-center text-sm font-bold text-brand-primary flex-shrink-0">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-core-text/20 to-core-text/5 flex items-center justify-center text-sm font-bold text-core-text2 flex-shrink-0">
           {node.firstName[0]}
           {node.lastName[0]}
         </div>
@@ -280,7 +280,7 @@ function NodeView({
           <div className="flex items-center gap-2">
             <Link
               href={`/employees/${node.id}`}
-              className="text-sm font-semibold text-gray-900 hover:text-brand-primary truncate"
+              className="text-sm font-semibold text-core-text hover:text-core-text2 truncate"
             >
               {highlight(fullName(node), query)}
             </Link>
@@ -296,19 +296,19 @@ function NodeView({
               );
             })()}
             {isFocus && (
-              <span className="text-[10px] uppercase tracking-wider text-brand-primary font-bold">
+              <span className="text-[10px] uppercase tracking-wider text-core-text2 font-bold">
                 You
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-500 truncate">
+          <p className="text-xs text-core-text3 truncate">
             <span className="mono">{highlight(node.empCode, query)}</span>
             {node.designation ? <> · {highlight(node.designation, query)}</> : null}
             {node.departmentName ? <> · {highlight(node.departmentName, query)}</> : null}
           </p>
         </div>
 
-        <div className="flex items-center gap-3 flex-shrink-0 text-xs text-gray-500">
+        <div className="flex items-center gap-3 flex-shrink-0 text-xs text-core-text3">
           {node.activeAssetCount > 0 && (
             <span title="Active assets">📦 {node.activeAssetCount}</span>
           )}
@@ -319,7 +319,7 @@ function NodeView({
       </div>
 
       {hasReports && isOpen && (
-        <ul className="mt-2 ml-3 pl-3 border-l border-gray-200 space-y-2">
+        <ul className="mt-2 ml-3 pl-3 border-l border-core-border space-y-2">
           {visibleReports.map((r) => (
             <NodeView
               key={r.id}

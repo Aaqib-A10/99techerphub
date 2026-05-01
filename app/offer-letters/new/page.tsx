@@ -96,7 +96,7 @@ export default function NewOfferLetterPage() {
       />
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-6 p-4 bg-core-roseSoft border border-red-400 text-core-roseFg rounded-lg">
           {error}
         </div>
       )}
@@ -116,8 +116,8 @@ export default function NewOfferLetterPage() {
                   onClick={() => handleTemplateChange(type)}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     templateType === type
-                      ? 'border-brand-primary bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-core-text bg-core-greenSoft'
+                      : 'border-core-border hover:border-core-border'
                   }`}
                 >
                   <div className="font-semibold text-sm">
@@ -391,7 +391,7 @@ export default function NewOfferLetterPage() {
                   className="form-textarea"
                   placeholder="Enter the full offer letter content"
                 />
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-core-text3 mt-2">
                   Variables: {`{candidateName}, {position}, {companyName}, {salary}, {currency}, {startDate}, {reportingTo}, {department}`}
                 </p>
               </div>

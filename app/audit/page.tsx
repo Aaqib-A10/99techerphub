@@ -80,7 +80,7 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
         actions={<AuditExportButton fromDate={fromDate} toDate={toDate} />}
       />
 
-      <Suspense fallback={<div className="text-gray-500">Loading statistics...</div>}>
+      <Suspense fallback={<div className="text-core-text3">Loading statistics...</div>}>
         <AuditStats />
       </Suspense>
 
@@ -99,7 +99,7 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
         </div>
       </div>
 
-      <Suspense fallback={<div className="text-gray-500">Loading audit logs...</div>}>
+      <Suspense fallback={<div className="text-core-text3">Loading audit logs...</div>}>
         <AuditTable
           page={page}
           module={module}

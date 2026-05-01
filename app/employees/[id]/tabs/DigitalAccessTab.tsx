@@ -49,7 +49,7 @@ export default function DigitalAccessTab({
           <tbody>
             {digitalAccess.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-gray-500">
+                <td colSpan={5} className="text-center py-8 text-core-text3">
                   No digital access records
                 </td>
               </tr>

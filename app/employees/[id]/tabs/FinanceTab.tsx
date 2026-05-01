@@ -173,25 +173,25 @@ export default function FinanceTab(props: Props) {
           </div>
           <div className="card-body">
             {employee.salaryHistory.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No salary records yet</p>
+              <p className="text-core-text3 text-center py-4">No salary records yet</p>
             ) : (
               <div className="space-y-3">
                 {employee.salaryHistory.map((s) => (
                   <div
                     key={s.id}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded"
+                    className="flex justify-between items-center p-3 bg-core-surface2 rounded"
                   >
                     <div>
                       <div className="font-semibold">
                         {s.currency} {Number(s.baseSalary).toLocaleString()}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-core-text3">
                         From {new Date(s.effectiveFrom).toLocaleDateString()}
                         {s.incrementPct && ` (+${s.incrementPct}%)`}
                       </div>
                     </div>
                     {s.reason && (
-                      <span className="text-sm text-gray-600">{s.reason}</span>
+                      <span className="text-sm text-core-text2">{s.reason}</span>
                     )}
                   </div>
                 ))}
@@ -208,33 +208,33 @@ export default function FinanceTab(props: Props) {
             <h3 className="section-heading">Commissions</h3>
             <a
               href={`/finance/commissions?employeeId=${employee.id}`}
-              className="text-xs text-blue-600 hover:underline"
+              className="text-xs text-core-blueFg hover:underline"
             >
               Manage
             </a>
           </div>
           <div className="card-body">
             {(!employee.commissions || employee.commissions.length === 0) ? (
-              <p className="text-gray-500 text-center py-4">No commissions recorded</p>
+              <p className="text-core-text3 text-center py-4">No commissions recorded</p>
             ) : (
               <div className="space-y-3">
                 {employee.commissions.map((c) => (
                   <div
                     key={c.id}
-                    className="flex justify-between items-start p-3 bg-gray-50 rounded"
+                    className="flex justify-between items-start p-3 bg-core-surface2 rounded"
                   >
                     <div>
                       <div className="font-semibold">
                         {c.currency} {Number(c.amount).toLocaleString()}
                       </div>
-                      <div className="text-xs text-gray-500">{c.description}</div>
-                      <div className="text-xs text-gray-400 mt-0.5">Period: {c.period}</div>
+                      <div className="text-xs text-core-text3">{c.description}</div>
+                      <div className="text-xs text-core-text3 mt-0.5">Period: {c.period}</div>
                     </div>
                     <span
                       className={`text-xs font-semibold px-2 py-0.5 rounded ${
                         c.isPaid
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-yellow-100 text-yellow-700'
+                          ? 'bg-core-greenSoft text-core-greenFg'
+                          : 'bg-core-amberSoft text-core-amberFg'
                       }`}
                     >
                       {c.isPaid ? 'PAID' : 'UNPAID'}
@@ -252,31 +252,31 @@ export default function FinanceTab(props: Props) {
             <h3 className="section-heading">Deductions</h3>
             <a
               href={`/finance/deductions?employeeId=${employee.id}`}
-              className="text-xs text-blue-600 hover:underline"
+              className="text-xs text-core-blueFg hover:underline"
             >
               Manage
             </a>
           </div>
           <div className="card-body">
             {(!employee.deductions || employee.deductions.length === 0) ? (
-              <p className="text-gray-500 text-center py-4">No deductions recorded</p>
+              <p className="text-core-text3 text-center py-4">No deductions recorded</p>
             ) : (
               <div className="space-y-3">
                 {employee.deductions.map((d) => (
                   <div
                     key={d.id}
-                    className="flex justify-between items-start p-3 bg-gray-50 rounded"
+                    className="flex justify-between items-start p-3 bg-core-surface2 rounded"
                   >
                     <div>
                       <div className="font-semibold">
                         {d.currency} {Number(d.amount).toLocaleString()}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-core-text3">
                         {d.description || d.deductionType}
                       </div>
-                      <div className="text-xs text-gray-400 mt-0.5">Period: {d.period}</div>
+                      <div className="text-xs text-core-text3 mt-0.5">Period: {d.period}</div>
                     </div>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-core-roseSoft text-core-roseFg">
                       {d.deductionType}
                     </span>
                   </div>
@@ -293,14 +293,14 @@ export default function FinanceTab(props: Props) {
           <h3 className="section-heading">Billing Splits</h3>
           <a
             href={`/finance/billing?employeeId=${employee.id}`}
-            className="text-xs text-blue-600 hover:underline"
+            className="text-xs text-core-blueFg hover:underline"
           >
             Manage
           </a>
         </div>
         <div className="card-body">
           {(!employee.billingSplits || employee.billingSplits.length === 0) ? (
-            <p className="text-gray-500 text-center py-4">No billing splits configured</p>
+            <p className="text-core-text3 text-center py-4">No billing splits configured</p>
           ) : (
             <div className="space-y-3">
               {employee.billingSplits.map((b) => {
@@ -308,13 +308,13 @@ export default function FinanceTab(props: Props) {
                 return (
                   <div
                     key={b.id}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded"
+                    className="flex justify-between items-center p-3 bg-core-surface2 rounded"
                   >
                     <div>
                       <div className="font-semibold">
                         {b.company?.name || `Company #${b.companyId}`}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-core-text3">
                         From {new Date(b.effectiveFrom).toLocaleDateString()}
                         {b.effectiveTo &&
                           ` — ${new Date(b.effectiveTo).toLocaleDateString()}`}
@@ -327,8 +327,8 @@ export default function FinanceTab(props: Props) {
                       <span
                         className={`text-xs font-semibold px-2 py-0.5 rounded ${
                           active
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-700'
+                            ? 'bg-core-greenSoft text-core-greenFg'
+                            : 'bg-core-surface2 text-core-text2'
                         }`}
                       >
                         {active ? 'ACTIVE' : 'ENDED'}
@@ -370,7 +370,7 @@ function BankInput({
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div className="flex justify-between">
-      <span className="text-sm text-gray-500">{label}</span>
+      <span className="text-sm text-core-text3">{label}</span>
       <span className="text-sm font-medium">{value || '-'}</span>
     </div>
   );

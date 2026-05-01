@@ -225,7 +225,7 @@ export default function EmailTemplatesPage() {
       />
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>
+        <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>
       )}
 
       {/* Category Filters */}
@@ -275,13 +275,13 @@ export default function EmailTemplatesPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-500">
+                  <td colSpan={7} className="text-center py-12 text-core-text3">
                     Loading templates...
                   </td>
                 </tr>
               ) : filteredTemplates.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-500">
+                  <td colSpan={7} className="text-center py-12 text-core-text3">
                     No templates found
                   </td>
                 </tr>
@@ -309,7 +309,7 @@ export default function EmailTemplatesPage() {
                         {template.category}
                       </span>
                     </td>
-                    <td className="text-sm text-gray-600 max-w-xs truncate">
+                    <td className="text-sm text-core-text2 max-w-xs truncate">
                       {template.subject}
                     </td>
                     <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem', color: '#6B7280' }}>

@@ -63,7 +63,7 @@ export default function AssetCategoriesClient({
 
   return (
     <div>
-      {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+      {error && <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
 
       <div className="flex justify-end mb-4">
         <button
@@ -138,7 +138,7 @@ export default function AssetCategoriesClient({
             <tbody>
               {categories.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12 text-gray-500">
+                  <td colSpan={4} className="text-center py-12 text-core-text3">
                     No categories found
                   </td>
                 </tr>
@@ -149,7 +149,7 @@ export default function AssetCategoriesClient({
                       <span className="badge badge-blue font-mono">{category.code}</span>
                     </td>
                     <td className="font-semibold">{category.name}</td>
-                    <td className="text-sm text-gray-600">{category.description || '-'}</td>
+                    <td className="text-sm text-core-text2">{category.description || '-'}</td>
                     <td className="text-center">{assetCounts[category.id] || 0}</td>
                   </tr>
                 ))

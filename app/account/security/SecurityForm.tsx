@@ -52,16 +52,16 @@ export default function SecurityForm({ email, isSsoOnly }: Props) {
   };
 
   return (
-    <div className="rounded-lg ring-1 ring-zinc-200/85 bg-white p-5">
-      <h2 className="text-[15px] font-semibold text-zinc-900 mb-1">
+    <div className="rounded-lg ring-1 ring-core-border/85 bg-core-surface p-5">
+      <h2 className="text-[15px] font-semibold text-core-text mb-1">
         {isSsoOnly ? 'Set a password' : 'Change your password'}
       </h2>
-      <p className="text-[12.5px] text-zinc-500 mb-4">
-        Signed in as <span className="mono text-zinc-700">{email}</span>
+      <p className="text-[12.5px] text-core-text3 mb-4">
+        Signed in as <span className="mono text-core-text2">{email}</span>
       </p>
 
       {done ? (
-        <div className="rounded-md bg-emerald-50 ring-1 ring-emerald-200 text-emerald-800 text-[13px] px-3 py-3">
+        <div className="rounded-md bg-core-greenSoft ring-1 ring-core-greenFg text-core-greenFg text-[13px] px-3 py-3">
           ✓ Password updated.
           {isSsoOnly && ' You can now sign in with email + password as well as Microsoft.'}
         </div>
@@ -105,7 +105,7 @@ export default function SecurityForm({ email, isSsoOnly }: Props) {
           </div>
 
           {error && (
-            <div className="rounded-md bg-rose-50 ring-1 ring-rose-200 text-rose-700 text-[13px] px-3 py-2">
+            <div className="rounded-md bg-core-roseSoft ring-1 ring-rose-200 text-core-roseFg text-[13px] px-3 py-2">
               {error}
             </div>
           )}

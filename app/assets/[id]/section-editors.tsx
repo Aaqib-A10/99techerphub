@@ -56,7 +56,7 @@ export function AssetInfoEditor({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-sm text-brand-primary hover:text-brand-secondary underline"
+        className="text-sm text-core-text2 hover:text-core-greenFg underline"
       >
         Edit
       </button>
@@ -64,7 +64,7 @@ export function AssetInfoEditor({
   }
 
   return (
-    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+    <div className="mt-4 p-4 bg-core-surface2 rounded-lg border border-core-border space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <LabeledInput
           label="Serial Number"
@@ -162,7 +162,7 @@ export function PurchaseEditor({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-sm text-brand-primary hover:text-brand-secondary underline"
+        className="text-sm text-core-text2 hover:text-core-greenFg underline"
       >
         Edit
       </button>
@@ -170,7 +170,7 @@ export function PurchaseEditor({
   }
 
   return (
-    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+    <div className="mt-4 p-4 bg-core-surface2 rounded-lg border border-core-border space-y-3">
       <div className="grid grid-cols-1 gap-3">
         <LabeledInput
           label="Purchase Date"
@@ -254,7 +254,7 @@ export function StatusEditor({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-xs text-brand-primary hover:text-brand-secondary underline"
+        className="text-xs text-core-text2 hover:text-core-greenFg underline"
       >
         Change condition
       </button>
@@ -304,7 +304,7 @@ function LabeledInput({
 }) {
   return (
     <label className="block text-sm">
-      <span className="text-xs font-semibold text-gray-600 uppercase">
+      <span className="text-xs font-semibold text-core-text2 uppercase">
         {label}
       </span>
       <input
@@ -330,7 +330,7 @@ function LabeledSelect({
 }) {
   return (
     <label className="block text-sm">
-      <span className="text-xs font-semibold text-gray-600 uppercase">
+      <span className="text-xs font-semibold text-core-text2 uppercase">
         {label}
       </span>
       <select

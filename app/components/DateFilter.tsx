@@ -109,20 +109,20 @@ export default function DateFilter() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`inline-flex h-8 items-center gap-1.5 rounded-md border bg-white pl-2.5 pr-1.5 text-[12.5px] font-medium transition-all duration-150 ${
+        className={`inline-flex h-8 items-center gap-1.5 rounded-md border bg-core-surface pl-2.5 pr-1.5 text-[12.5px] font-medium transition-all duration-150 ${
           isFiltered
-            ? 'border-zinc-300 text-zinc-900 shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]'
-            : 'border-zinc-200/95 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'
+            ? 'border-core-border text-core-text shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]'
+            : 'border-core-border/95 text-core-text2 hover:border-core-border hover:bg-core-surface2'
         }`}
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-zinc-400" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-core-text3" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" />
           <path d="M16 2v4 M8 2v4 M3 10h18" />
         </svg>
         <span className="truncate max-w-[180px]">{activeLabel}</span>
         <svg
           width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}
-          className={`text-zinc-400 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          className={`text-core-text3 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
           strokeLinecap="round" strokeLinejoin="round"
         >
           <path d="M6 9l6 6 6-6" />
@@ -130,7 +130,7 @@ export default function DateFilter() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-md border border-zinc-200/85 bg-white shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
+        <div className="absolute right-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-md border border-core-border/85 bg-core-surface shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
           <div className="py-1">
             {PRESETS.map((p) => {
               const isActive = active === p.id;
@@ -141,8 +141,8 @@ export default function DateFilter() {
                   onClick={() => applyPreset(p.id)}
                   className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-[12.5px] transition-colors ${
                     isActive
-                      ? 'bg-zinc-50 font-medium text-zinc-900'
-                      : 'text-zinc-700 hover:bg-zinc-50'
+                      ? 'bg-core-surface2 font-medium text-core-text'
+                      : 'text-core-text2 hover:bg-core-surface2'
                   }`}
                 >
                   <span>{p.label}</span>
@@ -156,8 +156,8 @@ export default function DateFilter() {
             })}
           </div>
 
-          <div className="border-t border-zinc-100 bg-zinc-50/40 px-3 py-2.5">
-            <p className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+          <div className="border-t border-core-border bg-core-surface2/40 px-3 py-2.5">
+            <p className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.06em] text-core-text3">
               Custom range
             </p>
             <div className="flex items-center gap-1.5">
@@ -165,14 +165,14 @@ export default function DateFilter() {
                 type="date"
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="h-7 w-full min-w-0 rounded border border-zinc-200 bg-white px-1.5 text-[11.5px] text-zinc-900 focus:border-zinc-400 focus:outline-none"
+                className="h-7 w-full min-w-0 rounded border border-core-border bg-core-surface px-1.5 text-[11.5px] text-core-text focus:border-zinc-400 focus:outline-none"
               />
-              <span className="text-[11px] text-zinc-400">to</span>
+              <span className="text-[11px] text-core-text3">to</span>
               <input
                 type="date"
                 value={customTo}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="h-7 w-full min-w-0 rounded border border-zinc-200 bg-white px-1.5 text-[11.5px] text-zinc-900 focus:border-zinc-400 focus:outline-none"
+                className="h-7 w-full min-w-0 rounded border border-core-border bg-core-surface px-1.5 text-[11.5px] text-core-text focus:border-zinc-400 focus:outline-none"
               />
             </div>
             <div className="mt-2 flex justify-end">

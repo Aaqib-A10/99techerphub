@@ -42,12 +42,12 @@ const MODULE_META: Record<string, { color: ActivityColor; icon: string; hrefBase
 };
 
 const ACTIVITY_COLORS: Record<ActivityColor, { bg: string; text: string }> = {
-  emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600' },
-  blue:    { bg: 'bg-blue-50',    text: 'text-blue-600' },
-  amber:   { bg: 'bg-amber-50',   text: 'text-amber-600' },
-  rose:    { bg: 'bg-rose-50',    text: 'text-rose-600' },
-  indigo:  { bg: 'bg-indigo-50',  text: 'text-indigo-600' },
-  slate:   { bg: 'bg-slate-100',  text: 'text-slate-600' },
+  emerald: { bg: 'bg-core-greenSoft', text: 'text-core-greenFg' },
+  blue:    { bg: 'bg-core-blueSoft',    text: 'text-core-blueFg' },
+  amber:   { bg: 'bg-core-amberSoft',   text: 'text-core-amberFg' },
+  rose:    { bg: 'bg-core-roseSoft',    text: 'text-core-roseFg' },
+  indigo:  { bg: 'bg-core-blueSoft',  text: 'text-core-blueFg' },
+  slate:   { bg: 'bg-core-surface2',  text: 'text-core-text2' },
 };
 
 function relativeTime(date: Date): string {
@@ -122,12 +122,12 @@ export default async function RecentActivityFeed({
   return (
     <details
       {...(defaultOpen ? { open: true } : {})}
-      className="group rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+      className="group rounded-xl border border-core-border bg-core-surface shadow-sm overflow-hidden"
     >
-      <summary className="flex items-center justify-between px-5 py-3 cursor-pointer list-none select-none hover:bg-gray-50 transition-colors">
+      <summary className="flex items-center justify-between px-5 py-3 cursor-pointer list-none select-none hover:bg-core-surface2 transition-colors">
         <div className="flex items-center gap-3">
           <svg
-            className="w-4 h-4 text-gray-400 transition-transform duration-200 group-open:rotate-90"
+            className="w-4 h-4 text-core-text3 transition-transform duration-200 group-open:rotate-90"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -135,8 +135,8 @@ export default async function RecentActivityFeed({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Recent Activity</h2>
-            <p className="text-xs text-gray-500">
+            <h2 className="text-base font-semibold text-core-text">Recent Activity</h2>
+            <p className="text-xs text-core-text3">
               {activity.length === 0
                 ? 'No activity yet'
                 : `${activity.length} latest change${activity.length === 1 ? '' : 's'} across the system`}
@@ -144,29 +144,29 @@ export default async function RecentActivityFeed({
           </div>
         </div>
       </summary>
-      <div className="border-t border-gray-100">
+      <div className="border-t border-core-border">
         {activity.length === 0 ? (
-          <div className="px-5 py-10 text-center text-sm text-gray-500">
+          <div className="px-5 py-10 text-center text-sm text-core-text3">
             No activity yet. As you create, edit or remove records, they'll appear here.
           </div>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-core-border">
             {activity.map((item) => {
               const c = ACTIVITY_COLORS[item.color] || ACTIVITY_COLORS.slate;
               const body = (
-                <div className="flex items-start gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start gap-3 px-5 py-3 hover:bg-core-surface2 transition-colors">
                   <div className={`w-9 h-9 rounded-full ${c.bg} ${c.text} flex items-center justify-center flex-shrink-0`}>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{item.title}</p>
+                    <p className="text-sm font-medium text-core-text">{item.title}</p>
                     {item.detail && (
-                      <p className="text-xs text-gray-500 truncate">{item.detail}</p>
+                      <p className="text-xs text-core-text3 truncate">{item.detail}</p>
                     )}
                   </div>
-                  <div className="text-xs text-gray-400 flex-shrink-0 whitespace-nowrap">
+                  <div className="text-xs text-core-text3 flex-shrink-0 whitespace-nowrap">
                     {relativeTime(item.time)}
                   </div>
                 </div>

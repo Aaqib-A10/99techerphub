@@ -82,7 +82,7 @@ export default function DepartmentsClient({
 
   return (
     <div>
-      {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+      {error && <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
 
       <div className="flex justify-end mb-4">
         <button
@@ -148,7 +148,7 @@ export default function DepartmentsClient({
             <tbody>
               {departments.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-gray-500">
+                  <td colSpan={5} className="text-center py-12 text-core-text3">
                     No departments found
                   </td>
                 </tr>
@@ -173,7 +173,7 @@ export default function DepartmentsClient({
                       {dept.isActive && (
                         <button
                           onClick={() => handleDeactivate(dept.id)}
-                          className="text-sm text-red-600 hover:text-red-700 font-medium"
+                          className="text-sm text-core-roseFg hover:text-core-roseFg font-medium"
                         >
                           Deactivate
                         </button>

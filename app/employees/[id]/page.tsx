@@ -277,7 +277,7 @@ export default async function EmployeeDetailPage({
         <div className="stat-card">
           <div className="stat-label">Tenure</div>
           <div className="stat-value">{tenureLabel}</div>
-          <div className="text-[11px] text-zinc-500 mt-1">
+          <div className="text-[11px] text-core-text3 mt-1">
             since {joinDate.toLocaleDateString()}
           </div>
         </div>
@@ -292,7 +292,7 @@ export default async function EmployeeDetailPage({
               <div className="stat-value text-[1.05rem] truncate">
                 {employee.reportingManager.firstName} {employee.reportingManager.lastName}
               </div>
-              <div className="text-[11px] text-zinc-500 mt-1">
+              <div className="text-[11px] text-core-text3 mt-1">
                 {employee.reportingManager.empCode}
               </div>
             </Link>
@@ -303,7 +303,7 @@ export default async function EmployeeDetailPage({
               <div className="stat-value text-[1.05rem] truncate">
                 {employee.reportingManager.firstName} {employee.reportingManager.lastName}
               </div>
-              <div className="text-[11px] text-zinc-500 mt-1">
+              <div className="text-[11px] text-core-text3 mt-1">
                 {employee.reportingManager.empCode}
               </div>
             </div>
@@ -312,7 +312,7 @@ export default async function EmployeeDetailPage({
           <div className="stat-card">
             <div className="stat-label">Reports To</div>
             <div className="stat-value text-[1.05rem]">—</div>
-            <div className="text-[11px] text-zinc-500 mt-1">No manager set</div>
+            <div className="text-[11px] text-core-text3 mt-1">No manager set</div>
           </div>
         )}
         {directReports.length > 0 ? (
@@ -323,26 +323,26 @@ export default async function EmployeeDetailPage({
           >
             <div className="stat-label">Direct Reports</div>
             <div className="stat-value">{directReports.length}</div>
-            <div className="text-[11px] text-zinc-500 mt-1">Active employees</div>
+            <div className="text-[11px] text-core-text3 mt-1">Active employees</div>
           </a>
         ) : (
           <div className="stat-card">
             <div className="stat-label">Direct Reports</div>
             <div className="stat-value">0</div>
-            <div className="text-[11px] text-zinc-500 mt-1">No reports</div>
+            <div className="text-[11px] text-core-text3 mt-1">No reports</div>
           </div>
         )}
         <div className="stat-card">
           <div className="stat-label">Active Assets</div>
           <div className="stat-value">{activeAssets}</div>
-          <div className="text-[11px] text-zinc-500 mt-1">
+          <div className="text-[11px] text-core-text3 mt-1">
             {returnedAssets} returned
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Digital Access</div>
           <div className="stat-value">{activeDigitalAccess}</div>
-          <div className="text-[11px] text-zinc-500 mt-1">Active services</div>
+          <div className="text-[11px] text-core-text3 mt-1">Active services</div>
         </div>
       </div>
 

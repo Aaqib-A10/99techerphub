@@ -338,8 +338,8 @@ export default function EmployeeListClient({
       {/* Compact toolbar — search + chip filters + export */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         {/* Search */}
-        <div className="group relative flex h-8 min-w-[220px] flex-1 items-center rounded-md border border-zinc-200/95 bg-white pl-2.5 pr-2 transition-all duration-150 hover:border-zinc-300 focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)] sm:max-w-[280px]">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="flex-shrink-0 text-zinc-400">
+        <div className="group relative flex h-8 min-w-[220px] flex-1 items-center rounded-md border border-core-border/95 bg-core-surface pl-2.5 pr-2 transition-all duration-150 hover:border-core-border focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)] sm:max-w-[280px]">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="flex-shrink-0 text-core-text3">
             <path d="M21 21l-4.35-4.35 M11 19a8 8 0 100-16 8 8 0 000 16z" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <input
@@ -350,7 +350,7 @@ export default function EmployeeListClient({
               setFilters({ ...filters, search: e.target.value });
               setCurrentPage(1);
             }}
-            className="ml-2 flex-1 bg-transparent text-[12.5px] text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+            className="ml-2 flex-1 bg-transparent text-[12.5px] text-core-text placeholder:text-core-text3 focus:outline-none"
           />
         </div>
 
@@ -438,7 +438,7 @@ export default function EmployeeListClient({
               });
               setCurrentPage(1);
             }}
-            className="ml-1 inline-flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+            className="ml-1 inline-flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-core-text3 transition-colors hover:bg-core-surface2 hover:text-core-text"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6L6 18 M6 6l12 12" />

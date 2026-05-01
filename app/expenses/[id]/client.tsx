@@ -60,13 +60,13 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
     <div className="space-y-4">
       {/* Success Message */}
       {success && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="p-4 bg-core-greenSoft border border-core-border rounded-lg">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-core-greenFg flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <div className="font-medium text-green-800 text-sm">{success}</div>
+              <div className="font-medium text-core-greenFg text-sm">{success}</div>
             </div>
           </div>
         </div>
@@ -74,13 +74,13 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
 
       {/* Error Message */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-4 bg-core-roseSoft border border-core-border rounded-lg">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-core-roseFg flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <div className="font-medium text-red-800 text-sm">{error}</div>
+              <div className="font-medium text-core-roseFg text-sm">{error}</div>
             </div>
           </div>
         </div>
@@ -131,12 +131,12 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
         <div className="card">
           <div className="card-body">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-core-text3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <div className="font-medium text-gray-700 text-sm">Status Finalized</div>
-                <div className="text-gray-600 text-sm mt-1">
+                <div className="font-medium text-core-text2 text-sm">Status Finalized</div>
+                <div className="text-core-text2 text-sm mt-1">
                   This expense has been {expense.status.toLowerCase().replace(/_/g, ' ')} and cannot be modified.
                 </div>
               </div>
@@ -158,7 +158,7 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
             </div>
           </div>
           <div className="pt-3 border-t">
-            <div className="text-sm text-gray-500">Status</div>
+            <div className="text-sm text-core-text3">Status</div>
             <div className="mt-2">
               <span className={`badge ${
                 expense.status === 'APPROVED'
@@ -176,18 +176,18 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
             </div>
           </div>
           <div className="pt-3 border-t">
-            <div className="text-sm text-gray-500">Submitted By</div>
+            <div className="text-sm text-core-text3">Submitted By</div>
             <div className="font-medium text-sm mt-1">
               {expense.submittedBy.firstName} {expense.submittedBy.lastName}
             </div>
-            <div className="text-xs text-gray-500">{expense.submittedBy.email}</div>
+            <div className="text-xs text-core-text3">{expense.submittedBy.email}</div>
           </div>
           <div className="pt-3 border-t">
-            <div className="text-sm text-gray-500">Category</div>
+            <div className="text-sm text-core-text3">Category</div>
             <div className="font-medium text-sm mt-1">{expense.category.name}</div>
           </div>
           <div className="pt-3 border-t">
-            <div className="text-sm text-gray-500">Date Submitted</div>
+            <div className="text-sm text-core-text3">Date Submitted</div>
             <div className="font-medium text-sm mt-1">
               {new Date(expense.createdAt).toLocaleDateString()}
             </div>
@@ -210,7 +210,7 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
       >
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-core-text2">
               Approve this expense of <span className="font-bold">{expense.currency} {Number(expense.amount).toLocaleString()}</span>?
             </p>
           </div>
@@ -241,14 +241,14 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
         submitDisabled={loading || !comments.trim()}
       >
         <div className="space-y-4">
-          <div className="p-3 bg-red-50 border border-red-200 rounded">
-            <div className="text-sm text-red-700">
+          <div className="p-3 bg-core-roseSoft border border-core-border rounded">
+            <div className="text-sm text-core-roseFg">
               This action will reject the expense and notify the submitter.
             </div>
           </div>
           <div>
             <label className="form-label">
-              Rejection Reason <span className="text-red-600">*</span>
+              Rejection Reason <span className="text-core-roseFg">*</span>
             </label>
             <textarea
               value={comments}
@@ -258,7 +258,7 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
               className="form-textarea"
               required
             />
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-core-text3 mt-1">
               This message will be visible to the submitter.
             </div>
           </div>
@@ -279,14 +279,14 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
         submitDisabled={loading}
       >
         <div className="space-y-4">
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-            <div className="text-sm text-blue-700">
+          <div className="p-3 bg-core-blueSoft border border-core-border rounded">
+            <div className="text-sm text-core-blueFg">
               The expense will be sent back to the submitter for revisions.
             </div>
           </div>
           <div>
             <label className="form-label">
-              Revision Notes <span className="text-gray-500">(Optional)</span>
+              Revision Notes <span className="text-core-text3">(Optional)</span>
             </label>
             <textarea
               value={comments}
@@ -295,7 +295,7 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
               rows={4}
               className="form-textarea"
             />
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-core-text3 mt-1">
               These notes will help the submitter understand what to fix.
             </div>
           </div>

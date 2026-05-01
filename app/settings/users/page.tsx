@@ -348,11 +348,11 @@ export default function UserAccountsPage() {
       />
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+        <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">
           {error}
           <button
             onClick={() => setError('')}
-            className="ml-4 text-red-800 font-bold"
+            className="ml-4 text-core-roseFg font-bold"
           >
             ×
           </button>
@@ -409,13 +409,13 @@ export default function UserAccountsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-500">
+                  <td colSpan={7} className="text-center py-12 text-core-text3">
                     Loading accounts...
                   </td>
                 </tr>
               ) : paginatedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-gray-500">
+                  <td colSpan={7} className="text-center py-12 text-core-text3">
                     No user accounts found
                   </td>
                 </tr>
@@ -457,7 +457,7 @@ export default function UserAccountsPage() {
                           </div>
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">Not linked</span>
+                        <span className="text-sm text-core-text3">Not linked</span>
                       )}
                     </td>
                     <td className="text-sm" style={{ color: '#44474D' }}>

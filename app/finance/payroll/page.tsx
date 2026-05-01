@@ -102,7 +102,7 @@ export default function PayrollPage() {
       />
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>
+        <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>
       )}
 
       {showCreateForm && (
@@ -168,7 +168,7 @@ export default function PayrollPage() {
             <tbody>
               {payrollRuns.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-gray-500">
+                  <td colSpan={8} className="text-center py-12 text-core-text3">
                     No payroll runs yet. Create your first payroll run.
                   </td>
                 </tr>
@@ -179,8 +179,8 @@ export default function PayrollPage() {
                     <td>{pr.company?.name || 'All'}</td>
                     <td>{pr.items?.length || 0}</td>
                     <td>PKR {Number(pr.totalGross).toLocaleString()}</td>
-                    <td className="text-red-600">PKR {Number(pr.totalDeductions).toLocaleString()}</td>
-                    <td className="font-bold text-green-700">PKR {Number(pr.totalNet).toLocaleString()}</td>
+                    <td className="text-core-roseFg">PKR {Number(pr.totalDeductions).toLocaleString()}</td>
+                    <td className="font-bold text-core-greenFg">PKR {Number(pr.totalNet).toLocaleString()}</td>
                     <td>
                       <span className={`badge ${statusColors[pr.status]}`}>{pr.status}</span>
                     </td>

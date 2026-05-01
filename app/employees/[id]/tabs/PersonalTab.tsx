@@ -131,7 +131,7 @@ export default function PersonalTab(props: Props) {
                     className="form-input"
                     placeholder="name@99technologies.com"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Used for Google/Microsoft SSO</p>
+                  <p className="text-xs text-core-text3 mt-1">Used for Google/Microsoft SSO</p>
                 </div>
                 <Input label="Phone" type="tel" value={f.phone} onChange={(v) => setF({ phone: v })} />
                 <Input
@@ -400,7 +400,7 @@ function Select({
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div className="flex justify-between">
-      <span className="text-sm text-gray-500">{label}</span>
+      <span className="text-sm text-core-text3">{label}</span>
       <span className="text-sm font-medium">{value || '-'}</span>
     </div>
   );

@@ -183,7 +183,7 @@ export default function ScanClient({ initialTag }: { initialTag: string }) {
         <div className="card-body">
           <div
             id="qr-reader"
-            className="w-full max-w-md mx-auto bg-gray-900 rounded-lg overflow-hidden"
+            className="w-full max-w-md mx-auto bg-core-text rounded-lg overflow-hidden"
             style={{ minHeight: scanning ? 280 : 80 }}
           />
 
@@ -200,12 +200,12 @@ export default function ScanClient({ initialTag }: { initialTag: string }) {
           </div>
 
           {status && (
-            <p className="text-center text-sm text-brand-primary mt-3">
+            <p className="text-center text-sm text-core-text2 mt-3">
               {status}
             </p>
           )}
           {error && (
-            <p className="text-center text-sm text-red-600 mt-3">{error}</p>
+            <p className="text-center text-sm text-core-roseFg mt-3">{error}</p>
           )}
         </div>
       </div>
@@ -228,7 +228,7 @@ export default function ScanClient({ initialTag }: { initialTag: string }) {
               Look Up
             </button>
           </form>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs text-core-text3 mt-2">
             Useful if the label is damaged or the camera is unavailable.
           </p>
         </div>

@@ -19,7 +19,7 @@ export default function PieChart({
 
   if (total === 0) {
     return (
-      <div style={{ width, height }} className="flex items-center justify-center text-gray-500">
+      <div style={{ width, height }} className="flex items-center justify-center text-core-text3">
         <p className="text-sm">No data available</p>
       </div>
     );
@@ -79,7 +79,7 @@ export default function PieChart({
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: p.color }}
             ></div>
-            <span className="text-gray-700">
+            <span className="text-core-text2">
               {p.label} ({p.value})
             </span>
           </div>

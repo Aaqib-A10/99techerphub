@@ -85,8 +85,8 @@ export default function SalaryManagementPage() {
         }
       />
 
-      {error && <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
-      {success && <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">{success}</div>}
+      {error && <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
+      {success && <div className="mb-6 p-4 bg-core-greenSoft text-core-greenFg rounded-lg">{success}</div>}
 
       {showForm && (
         <div className="card mb-6">
@@ -225,7 +225,7 @@ export default function SalaryManagementPage() {
               <tbody>
                 {filteredHistory.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-gray-500">
+                    <td colSpan={7} className="text-center py-8 text-core-text3">
                       No salary records found
                     </td>
                   </tr>
@@ -235,20 +235,20 @@ export default function SalaryManagementPage() {
                       <td className="font-semibold">
                         {record.employee ? `${record.employee.firstName} ${record.employee.lastName}` : 'Unknown'}
                       </td>
-                      <td className="font-semibold text-green-700">
+                      <td className="font-semibold text-core-greenFg">
                         {record.baseSalary?.toLocaleString()}
                       </td>
                       <td>{record.currency}</td>
                       <td>{new Date(record.effectiveFrom).toLocaleDateString()}</td>
                       <td>
                         {record.incrementPct ? (
-                          <span className="text-blue-600 font-medium">+{record.incrementPct}%</span>
+                          <span className="text-core-blueFg font-medium">+{record.incrementPct}%</span>
                         ) : (
-                          <span className="text-gray-400">-</span>
+                          <span className="text-core-text3">-</span>
                         )}
                       </td>
-                      <td className="text-sm text-gray-600">{record.reason || '-'}</td>
-                      <td className="text-sm text-gray-500">
+                      <td className="text-sm text-core-text2">{record.reason || '-'}</td>
+                      <td className="text-sm text-core-text3">
                         {new Date(record.updatedAt || record.createdAt).toLocaleDateString()}
                       </td>
                     </tr>
@@ -274,17 +274,17 @@ export default function SalaryManagementPage() {
             ].map((item) => (
               <div
                 key={item.step}
-                className="rounded-lg border border-zinc-200/85 bg-zinc-50/40 p-4"
+                className="rounded-lg border border-core-border/85 bg-core-surface2/40 p-4"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10.5px] font-semibold text-white tabular-nums">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-core-text text-[10.5px] font-semibold text-white tabular-nums">
                     {item.step}
                   </span>
-                  <h3 className="text-[13px] font-semibold text-zinc-900">
+                  <h3 className="text-[13px] font-semibold text-core-text">
                     {item.title}
                   </h3>
                 </div>
-                <p className="mt-2 text-[12.5px] text-zinc-500">{item.desc}</p>
+                <p className="mt-2 text-[12.5px] text-core-text3">{item.desc}</p>
               </div>
             ))}
           </div>

@@ -165,7 +165,7 @@ export default function EmployeeImportPage() {
         description="Import multiple employees from CSV file"
       />
 
-      {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+      {error && <div className="mb-4 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
 
       {/* Progress Indicator */}
       <div className="mb-8 flex justify-between items-center">
@@ -174,10 +174,10 @@ export default function EmployeeImportPage() {
             <div
               className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                 idx < ['upload', 'mapping', 'preview', 'results'].indexOf(step)
-                  ? 'bg-green-100 text-green-700'
+                  ? 'bg-core-greenSoft text-core-greenFg'
                   : idx === ['upload', 'mapping', 'preview', 'results'].indexOf(step)
-                  ? 'bg-brand-primary text-white'
-                  : 'bg-gray-200 text-gray-600'
+                  ? 'bg-core-text text-white'
+                  : 'bg-core-border text-core-text2'
               }`}
             >
               {idx < ['upload', 'mapping', 'preview', 'results'].indexOf(step) ? '✓' : idx + 1}
@@ -185,13 +185,13 @@ export default function EmployeeImportPage() {
             <span
               className={
                 idx <= ['upload', 'mapping', 'preview', 'results'].indexOf(step)
-                  ? 'text-gray-900 font-medium'
-                  : 'text-gray-500'
+                  ? 'text-core-text font-medium'
+                  : 'text-core-text3'
               }
             >
               {label}
             </span>
-            {idx < 3 && <div className="w-12 h-0.5 bg-gray-300" />}
+            {idx < 3 && <div className="w-12 h-0.5 bg-core-border" />}
           </div>
         ))}
       </div>
@@ -200,12 +200,12 @@ export default function EmployeeImportPage() {
       {step === 'upload' && (
         <div className="card">
           <div className="card-body">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="border-2 border-dashed border-core-border rounded-lg p-8 text-center">
+              <svg className="mx-auto h-12 w-12 text-core-text3 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <p className="text-lg font-semibold text-gray-900 mb-2">Upload CSV File</p>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-lg font-semibold text-core-text mb-2">Upload CSV File</p>
+              <p className="text-sm text-core-text2 mb-4">
                 Drag and drop or click to select a CSV file containing employee data
               </p>
               <input
@@ -222,7 +222,7 @@ export default function EmployeeImportPage() {
                 Select File
               </label>
               {file && (
-                <p className="mt-4 text-sm text-gray-600">
+                <p className="mt-4 text-sm text-core-text2">
                   Selected: <span className="font-semibold">{file.name}</span>
                 </p>
               )}
@@ -236,7 +236,7 @@ export default function EmployeeImportPage() {
         <div className="card">
           <div className="card-header">
             <h2 className="section-heading">Map Columns</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-core-text2 mt-1">
               Specify which columns contain employee data. Auto-detected columns are highlighted.
             </p>
           </div>
@@ -270,7 +270,7 @@ export default function EmployeeImportPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500">No columns detected</p>
+                <p className="text-core-text3">No columns detected</p>
               )}
             </div>
           </div>
@@ -290,7 +290,7 @@ export default function EmployeeImportPage() {
         <div className="card">
           <div className="card-header">
             <h2 className="section-heading">Preview Data</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-core-text2 mt-1">
               Showing first 10 rows. Check for any errors before importing.
             </p>
           </div>
@@ -298,7 +298,7 @@ export default function EmployeeImportPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-300">
+                  <tr className="border-b border-core-border">
                     <th className="text-left py-2 px-3 font-semibold">Code</th>
                     <th className="text-left py-2 px-3 font-semibold">First Name</th>
                     <th className="text-left py-2 px-3 font-semibold">Last Name</th>
@@ -308,7 +308,7 @@ export default function EmployeeImportPage() {
                 </thead>
                 <tbody>
                   {parsedRows.slice(0, 10).map((row, idx) => (
-                    <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
+                    <tr key={idx} className="border-b border-core-border hover:bg-core-surface2">
                       <td className="py-2 px-3 font-mono text-xs">{row[Object.keys(columnMapping).find((k) => columnMapping[k] === 'empcode') || ''] || '-'}</td>
                       <td className="py-2 px-3">{row[Object.keys(columnMapping).find((k) => columnMapping[k] === 'firstname') || ''] || '-'}</td>
                       <td className="py-2 px-3">{row[Object.keys(columnMapping).find((k) => columnMapping[k] === 'lastname') || ''] || '-'}</td>
@@ -320,7 +320,7 @@ export default function EmployeeImportPage() {
               </table>
             </div>
             {parsedRows.length > 10 && (
-              <p className="text-sm text-gray-600 mt-4">
+              <p className="text-sm text-core-text2 mt-4">
                 Showing 10 of {parsedRows.length} rows
               </p>
             )}
@@ -344,24 +344,24 @@ export default function EmployeeImportPage() {
           </div>
           <div className="card-body">
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
-                <p className="text-sm text-gray-600">Successful Imports</p>
-                <p className="text-3xl font-bold text-green-700">{result.success}</p>
+              <div className="bg-core-greenSoft border-l-4 border-green-500 p-4 rounded">
+                <p className="text-sm text-core-text2">Successful Imports</p>
+                <p className="text-3xl font-bold text-core-greenFg">{result.success}</p>
               </div>
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-                <p className="text-sm text-gray-600">Failed Imports</p>
-                <p className="text-3xl font-bold text-red-700">{result.failed}</p>
+              <div className="bg-core-roseSoft border-l-4 border-red-500 p-4 rounded">
+                <p className="text-sm text-core-text2">Failed Imports</p>
+                <p className="text-3xl font-bold text-core-roseFg">{result.failed}</p>
               </div>
             </div>
 
             {result.errors.length > 0 && (
               <div>
-                <h3 className="font-semibold text-gray-900 mb-3">Errors</h3>
-                <div className="bg-red-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                <h3 className="font-semibold text-core-text mb-3">Errors</h3>
+                <div className="bg-core-roseSoft rounded-lg p-4 max-h-96 overflow-y-auto">
                   {result.errors.map((err, idx) => (
                     <div key={idx} className="mb-2 text-sm">
-                      <span className="font-semibold text-red-700">Row {err.row}:</span>
-                      <span className="text-red-600 ml-2">{err.message}</span>
+                      <span className="font-semibold text-core-roseFg">Row {err.row}:</span>
+                      <span className="text-core-roseFg ml-2">{err.message}</span>
                     </div>
                   ))}
                 </div>

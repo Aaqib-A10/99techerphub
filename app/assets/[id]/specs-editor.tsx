@@ -85,7 +85,7 @@ export default function AssetSpecsEditor({
     return (
       <button
         onClick={() => setIsEditing(true)}
-        className="mt-3 text-sm text-brand-primary hover:text-brand-secondary underline"
+        className="mt-3 text-sm text-core-text2 hover:text-core-greenFg underline"
       >
         {Object.keys(currentSpecs).length > 0 ? 'Edit Specs' : '+ Add Specs'}
       </button>
@@ -93,11 +93,11 @@ export default function AssetSpecsEditor({
   }
 
   return (
-    <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+    <div className="mt-3 p-4 bg-core-surface2 rounded-lg border border-core-border">
       {/* Existing specs - editable */}
       {Object.entries(specs).map(([key, value]) => (
         <div key={key} className="flex items-center gap-2 mb-2">
-          <span className="text-sm font-medium text-gray-700 w-28 shrink-0">{key}</span>
+          <span className="text-sm font-medium text-core-text2 w-28 shrink-0">{key}</span>
           <input
             type="text"
             value={value}
@@ -107,7 +107,7 @@ export default function AssetSpecsEditor({
           />
           <button
             onClick={() => removeSpec(key)}
-            className="text-red-500 hover:text-red-700 text-sm px-2"
+            className="text-core-roseFg hover:text-core-roseFg text-sm px-2"
           >
             ✕
           </button>
@@ -121,7 +121,7 @@ export default function AssetSpecsEditor({
             <button
               key={suggestion}
               onClick={() => addSpec(suggestion)}
-              className="text-xs bg-white border border-gray-300 rounded-full px-3 py-1 hover:bg-brand-primary hover:text-white hover:border-brand-primary transition-colors"
+              className="text-xs bg-core-surface border border-core-border rounded-full px-3 py-1 hover:bg-core-text hover:text-white hover:border-core-text transition-colors"
             >
               + {suggestion}
             </button>
@@ -148,7 +148,7 @@ export default function AssetSpecsEditor({
         />
         <button
           onClick={() => addSpec()}
-          className="text-brand-primary text-sm font-medium hover:underline"
+          className="text-core-text2 text-sm font-medium hover:underline"
         >
           Add
         </button>

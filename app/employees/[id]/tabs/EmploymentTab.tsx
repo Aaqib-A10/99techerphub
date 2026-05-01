@@ -164,7 +164,7 @@ export default function EmploymentTab(props: Props) {
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-core-text3">
                     Use this to move an employee between departments. The change is logged in the audit trail.
                   </p>
                 </div>
@@ -277,7 +277,7 @@ export default function EmploymentTab(props: Props) {
                       { value: 'EXITED', label: 'Exited' },
                     ]}
                   />
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-core-text3">
                     To officially exit an employee with a clearance checklist, use "Initiate Exit Process" instead.
                   </p>
                 </div>
@@ -338,12 +338,12 @@ export default function EmploymentTab(props: Props) {
                   />
                 )}
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-500">Reporting Manager</span>
+                  <span className="text-sm text-core-text3">Reporting Manager</span>
                   {employee.reportingManager ? (
                     canBrowseEmployees ? (
                       <Link
                         href={`/employees/${employee.reportingManager.id}`}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                        className="text-sm font-medium text-core-blueFg hover:text-core-blueFg hover:underline"
                       >
                         {employee.reportingManager.firstName}{' '}
                         {employee.reportingManager.lastName}
@@ -373,7 +373,7 @@ export default function EmploymentTab(props: Props) {
             </div>
             <div className="card-body">
               {directReports.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-3">
+                <p className="text-sm text-core-text3 text-center py-3">
                   No one currently reports to {employee.firstName}.
                 </p>
               ) : (
@@ -388,24 +388,24 @@ export default function EmploymentTab(props: Props) {
                         key={r.id}
                         {...rowProps}
                         className={`flex items-center gap-3 p-2 rounded transition-colors ${
-                          canBrowseEmployees ? 'hover:bg-gray-50' : ''
+                          canBrowseEmployees ? 'hover:bg-core-surface2' : ''
                         }`}
                       >
-                        <div className="w-8 h-8 bg-brand-light rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-bold text-brand-primary">
+                        <div className="w-8 h-8 bg-core-greenSoft rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-core-text2">
                             {r.firstName[0]}
                             {r.lastName[0]}
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium text-gray-900 truncate">
+                          <div className="text-sm font-medium text-core-text truncate">
                             {r.firstName} {r.lastName}
                           </div>
-                          <div className="text-xs text-gray-500 truncate">
+                          <div className="text-xs text-core-text3 truncate">
                             {r.designation} · {r.department?.name}
                           </div>
                         </div>
-                        <span className="text-xs text-gray-400 font-mono">{r.empCode}</span>
+                        <span className="text-xs text-core-text3 font-mono">{r.empCode}</span>
                       </RowTag>
                     );
                   })}
@@ -434,9 +434,9 @@ export default function EmploymentTab(props: Props) {
           {/* Exit Record + Clearance Checklist (exited only) */}
           {employee.exitRecord && (
             <>
-              <div className="card border-red-200">
-                <div className="card-header bg-red-50">
-                  <h3 className="font-bold text-red-700">Exit Record</h3>
+              <div className="card border-core-border">
+                <div className="card-header bg-core-roseSoft">
+                  <h3 className="font-bold text-core-roseFg">Exit Record</h3>
                 </div>
                 <div className="card-body space-y-3">
                   <Row label="Exit Type" value={employee.exitRecord.exitType} />
@@ -500,7 +500,7 @@ export default function EmploymentTab(props: Props) {
                   )}
 
                   {employee.exitRecord.isComplete && (
-                    <div className="p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm text-center">
+                    <div className="p-3 bg-core-greenSoft border border-core-border rounded text-core-greenFg text-sm text-center">
                       Exit process completed
                     </div>
                   )}
@@ -570,7 +570,7 @@ function Select({
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div className="flex justify-between">
-      <span className="text-sm text-gray-500">{label}</span>
+      <span className="text-sm text-core-text3">{label}</span>
       <span className="text-sm font-medium">{value || '-'}</span>
     </div>
   );
@@ -586,7 +586,7 @@ function ClearanceItem({
   onToggle: () => void;
 }) {
   return (
-    <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded hover:bg-gray-100">
+    <label className="flex items-center gap-3 cursor-pointer p-3 bg-core-surface2 rounded hover:bg-core-surface2">
       <input
         type="checkbox"
         checked={checked}

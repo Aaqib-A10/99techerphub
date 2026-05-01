@@ -216,7 +216,7 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
           <tbody>
             {paginatedRecords.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-12 text-gray-500">
+                <td colSpan={9} className="text-center py-12 text-core-text3">
                   No access records found.
                 </td>
               </tr>

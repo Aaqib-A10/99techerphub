@@ -48,8 +48,8 @@ export default function EmailLogPage() {
         }
       />
       {/* Info Alert */}
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-900">
+      <div className="mb-6 p-4 bg-core-blueSoft border border-core-border rounded-lg">
+        <p className="text-sm text-core-blueFg">
           <strong>Note:</strong> This is a stub implementation. Emails are logged to the console and <code>/tmp/99tech-email-log.jsonl</code>.
           Configure SMTP settings to send actual emails.
         </p>
@@ -58,14 +58,14 @@ export default function EmailLogPage() {
       {/* Email List */}
       {loading ? (
         <div className="text-center py-12 card">
-          <p className="text-gray-500">Loading email log...</p>
+          <p className="text-core-text3">Loading email log...</p>
         </div>
       ) : emails.length === 0 ? (
         <div className="card">
           <div className="card-body text-center py-12">
             <div className="text-4xl mb-4">📧</div>
-            <p className="text-gray-600 font-semibold">No emails logged yet</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-core-text2 font-semibold">No emails logged yet</p>
+            <p className="text-sm text-core-text3 mt-2">
               Emails sent through the system will appear here
             </p>
           </div>
@@ -90,7 +90,7 @@ export default function EmailLogPage() {
                         </p>
                       </div>
                       <svg
-                        className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${
+                        className={`w-5 h-5 text-core-text3 transition-transform flex-shrink-0 ${
                           expandedId === email.id ? 'rotate-180' : ''
                         }`}
                         fill="none"

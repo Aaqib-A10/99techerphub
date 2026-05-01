@@ -279,15 +279,15 @@ export default function NewEmployeePage() {
       />
 
       {showDraftPrompt && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-300 rounded-lg flex items-center justify-between">
+        <div className="mb-6 p-4 bg-core-amberSoft border border-core-border rounded-lg flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-amber-800">You have an unsaved draft. Would you like to resume?</p>
+            <p className="text-sm font-medium text-core-amberFg">You have an unsaved draft. Would you like to resume?</p>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={restoreDraft} className="px-3 py-1.5 bg-brand-primary text-white rounded text-sm font-medium">
+            <button type="button" onClick={restoreDraft} className="px-3 py-1.5 bg-core-text text-white rounded text-sm font-medium">
               Resume Draft
             </button>
-            <button type="button" onClick={discardDraft} className="px-3 py-1.5 bg-white border border-gray-300 text-gray-600 rounded text-sm font-medium">
+            <button type="button" onClick={discardDraft} className="px-3 py-1.5 bg-core-surface border border-core-border text-core-text2 rounded text-sm font-medium">
               Discard Draft
             </button>
           </div>
@@ -295,7 +295,7 @@ export default function NewEmployeePage() {
       )}
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">{error}</div>
+        <div className="mb-6 p-4 bg-core-roseSoft border border-red-400 text-core-roseFg rounded-lg">{error}</div>
       )}
 
       <div className="flex gap-6">
@@ -309,8 +309,8 @@ export default function NewEmployeePage() {
                 onClick={() => scrollTo(s.id)}
                 className={`block w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   activeId === s.id
-                    ? 'bg-brand-primary text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-core-text text-white'
+                    : 'text-core-text2 hover:bg-core-surface2'
                 }`}
               >
                 {s.label}
@@ -346,7 +346,7 @@ export default function NewEmployeePage() {
                   <div>
                     <label className="form-label">Organization Email</label>
                     <input name="workEmail" type="email" value={formData.workEmail} onChange={handleChange} className="form-input" placeholder="name@99technologies.com" />
-                    <p className="text-xs text-gray-500 mt-1">Used for Google/Microsoft SSO</p>
+                    <p className="text-xs text-core-text3 mt-1">Used for Google/Microsoft SSO</p>
                   </div>
                   <div>
                     <label className="form-label">Phone *</label>
@@ -424,7 +424,7 @@ export default function NewEmployeePage() {
                   </div>
                 </div>
 
-                <h3 className="text-md font-bold mt-6 mb-3 text-gray-700">Education</h3>
+                <h3 className="text-md font-bold mt-6 mb-3 text-core-text2">Education</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="form-label">Highest Degree</label>
@@ -448,8 +448,8 @@ export default function NewEmployeePage() {
                   </div>
                 </div>
 
-                <h3 className="text-md font-bold mt-6 mb-3 text-gray-700">Required Documents</h3>
-                <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-700">
+                <h3 className="text-md font-bold mt-6 mb-3 text-core-text2">Required Documents</h3>
+                <div className="p-4 bg-core-blueSoft rounded-lg text-sm text-core-blueFg">
                   <p className="font-medium mb-2">Upload documents after creating the employee. Required:</p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>CNIC Front & Back (PDF, PNG, JPG)</li>
@@ -606,7 +606,7 @@ export default function NewEmployeePage() {
             <div id="section-emergency" className="card mb-6 scroll-mt-24">
               <div className="card-header"><h2 className="section-heading">Emergency Contact & References</h2></div>
               <div className="card-body">
-                <h3 className="text-md font-bold mb-3 text-gray-700">Emergency Contact</h3>
+                <h3 className="text-md font-bold mb-3 text-core-text2">Emergency Contact</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div>
                     <label className="form-label">Contact Name</label>
@@ -622,7 +622,7 @@ export default function NewEmployeePage() {
                   </div>
                 </div>
 
-                <h3 className="text-md font-bold mb-3 text-gray-700">Reference 1</h3>
+                <h3 className="text-md font-bold mb-3 text-core-text2">Reference 1</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div>
                     <label className="form-label">Name</label>
@@ -638,7 +638,7 @@ export default function NewEmployeePage() {
                   </div>
                 </div>
 
-                <h3 className="text-md font-bold mb-3 text-gray-700">Reference 2</h3>
+                <h3 className="text-md font-bold mb-3 text-core-text2">Reference 2</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="form-label">Name</label>
@@ -660,12 +660,12 @@ export default function NewEmployeePage() {
             <div id="section-documents" className="card mb-6 scroll-mt-24">
               <div className="card-header">
                 <h2 className="text-lg font-bold">Documents</h2>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-core-text3 mt-1">
                   Drag &amp; drop files now or add them after creation. Required docs are highlighted red until staged.
                 </p>
               </div>
               <div className="card-body">
-                <h3 className="text-md font-bold mb-3 text-gray-700">Required</h3>
+                <h3 className="text-md font-bold mb-3 text-core-text2">Required</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   {DOCUMENT_TYPES.filter((d) => d.required).map((dt) => (
                     <DocumentDropzone
@@ -677,7 +677,7 @@ export default function NewEmployeePage() {
                     />
                   ))}
                 </div>
-                <h3 className="text-md font-bold mb-3 text-gray-700">Optional</h3>
+                <h3 className="text-md font-bold mb-3 text-core-text2">Optional</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {DOCUMENT_TYPES.filter((d) => !d.required).map((dt) => (
                     <DocumentDropzone
@@ -693,7 +693,7 @@ export default function NewEmployeePage() {
             </div>
 
             {uploadStatus && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-sm">
+              <div className="mb-4 p-3 bg-core-blueSoft border border-core-border text-core-blueFg rounded-lg text-sm">
                 {uploadStatus}
               </div>
             )}

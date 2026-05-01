@@ -352,26 +352,26 @@ export default function OnboardingForm({
   };
 
   return (
-    <div className="min-h-screen bg-brand-light py-8 px-4">
+    <div className="min-h-screen bg-core-greenSoft py-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Logo / Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-brand-primary">99 Technologies</h1>
-          <p className="text-gray-600 mt-2">Candidate Onboarding Form</p>
+          <h1 className="text-3xl font-bold text-core-text2">99 Technologies</h1>
+          <p className="text-core-text2 mt-2">Candidate Onboarding Form</p>
         </div>
 
         {/* Revision banner */}
         {isRevision && (
-          <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-            <p className="text-sm font-semibold text-orange-900 mb-1">
+          <div className="mb-6 p-4 bg-core-amberSoft border border-core-border rounded-lg">
+            <p className="text-sm font-semibold text-core-amberFg mb-1">
               The HR team has asked for a few updates
             </p>
             {prior.reviewNotes ? (
-              <p className="text-sm text-orange-800 whitespace-pre-wrap">
+              <p className="text-sm text-core-amberFg whitespace-pre-wrap">
                 {prior.reviewNotes}
               </p>
             ) : null}
-            <p className="text-xs text-orange-700 mt-2">
+            <p className="text-xs text-core-amberFg mt-2">
               Your previous answers are filled in below — just edit what's flagged
               and resubmit.
             </p>
@@ -386,15 +386,15 @@ export default function OnboardingForm({
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${
                     index === activeSection
-                      ? 'bg-brand-primary text-white'
+                      ? 'bg-core-text text-white'
                       : index < activeSection
                         ? 'bg-green-500 text-white'
-                        : 'bg-gray-300 text-gray-600'
+                        : 'bg-core-border text-core-text2'
                   }`}
                 >
                   {index < activeSection ? '✓' : index + 1}
                 </div>
-                <span className="text-xs mt-2 text-center w-16 text-gray-700">
+                <span className="text-xs mt-2 text-center w-16 text-core-text2">
                   {section.split(' ')[0]}
                 </span>
               </div>
@@ -403,9 +403,9 @@ export default function OnboardingForm({
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-core-surface rounded-lg shadow-lg p-8">
           {error && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <div className="mb-6 p-4 bg-core-roseSoft border border-red-400 text-core-roseFg rounded-lg">
               {error}
             </div>
           )}
@@ -414,7 +414,7 @@ export default function OnboardingForm({
             {/* Section 1: Personal Details */}
             {activeSection === 0 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Personal Details</h2>
+                <h2 className="text-xl font-bold text-core-text mb-6">Personal Details</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="form-label">Full Name *</label>
@@ -543,7 +543,7 @@ export default function OnboardingForm({
             {/* Section 2: Contact & Emergency */}
             {activeSection === 1 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Contact & Emergency</h2>
+                <h2 className="text-xl font-bold text-core-text mb-6">Contact & Emergency</h2>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -604,7 +604,7 @@ export default function OnboardingForm({
                   </div>
 
                   <div className="border-t pt-6 mt-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    <h3 className="text-lg font-semibold text-core-text mb-4">
                       Emergency Contact
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -644,7 +644,7 @@ export default function OnboardingForm({
             {/* Section 3: Banking Details */}
             {activeSection === 2 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Banking Details</h2>
+                <h2 className="text-xl font-bold text-core-text mb-6">Banking Details</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="form-label">IBAN *</label>
@@ -657,7 +657,7 @@ export default function OnboardingForm({
                       maxLength={24}
                       className="form-input font-mono tracking-wide"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-core-text3 mt-1">
                       Must be exactly 24 characters. {formData.iban.length}/24 entered.
                     </p>
                   </div>
@@ -698,20 +698,20 @@ export default function OnboardingForm({
             {/* Section 4: Education History */}
             {activeSection === 3 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Education History</h2>
+                <h2 className="text-xl font-bold text-core-text mb-6">Education History</h2>
                 <div className="space-y-4">
                   {formData.educationHistory.map((edu, index) => (
                     <div
                       key={index}
-                      className="p-4 border border-gray-300 rounded-lg bg-gray-50"
+                      className="p-4 border border-core-border rounded-lg bg-core-surface2"
                     >
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-semibold text-gray-900">Education {index + 1}</h4>
+                        <h4 className="font-semibold text-core-text">Education {index + 1}</h4>
                         {formData.educationHistory.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeEducation(index)}
-                            className="text-red-600 hover:text-red-800 text-sm"
+                            className="text-core-roseFg hover:text-core-roseFg text-sm"
                           >
                             Remove
                           </button>
@@ -775,20 +775,20 @@ export default function OnboardingForm({
             {/* Section 5: Work History */}
             {activeSection === 4 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Work History</h2>
+                <h2 className="text-xl font-bold text-core-text mb-6">Work History</h2>
                 <div className="space-y-4">
                   {formData.workHistory.map((work, index) => (
                     <div
                       key={index}
-                      className="p-4 border border-gray-300 rounded-lg bg-gray-50"
+                      className="p-4 border border-core-border rounded-lg bg-core-surface2"
                     >
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-semibold text-gray-900">Position {index + 1}</h4>
+                        <h4 className="font-semibold text-core-text">Position {index + 1}</h4>
                         {formData.workHistory.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeWork(index)}
-                            className="text-red-600 hover:text-red-800 text-sm"
+                            className="text-core-roseFg hover:text-core-roseFg text-sm"
                           >
                             Remove
                           </button>
@@ -858,20 +858,20 @@ export default function OnboardingForm({
             {/* Section 6: References */}
             {activeSection === 5 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-6">References</h2>
+                <h2 className="text-xl font-bold text-core-text mb-6">References</h2>
                 <div className="space-y-4">
                   {formData.references.map((ref, index) => (
                     <div
                       key={index}
-                      className="p-4 border border-gray-300 rounded-lg bg-gray-50"
+                      className="p-4 border border-core-border rounded-lg bg-core-surface2"
                     >
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-semibold text-gray-900">Reference {index + 1}</h4>
+                        <h4 className="font-semibold text-core-text">Reference {index + 1}</h4>
                         {formData.references.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeReference(index)}
-                            className="text-red-600 hover:text-red-800 text-sm"
+                            className="text-core-roseFg hover:text-core-roseFg text-sm"
                           >
                             Remove
                           </button>
@@ -931,11 +931,11 @@ export default function OnboardingForm({
             {/* Section 7: Review & Submit */}
             {activeSection === 6 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Review & Submit</h2>
+                <h2 className="text-xl font-bold text-core-text mb-6">Review & Submit</h2>
                 <div className="space-y-6">
                   {/* Personal Details Summary */}
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h3 className="font-semibold text-gray-900 mb-3">Personal Details</h3>
+                  <div className="p-4 bg-core-surface2 rounded-lg border border-core-border">
+                    <h3 className="font-semibold text-core-text mb-3">Personal Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                       <p>
                         <span className="font-medium">Full Name:</span> {formData.fullName}
@@ -953,8 +953,8 @@ export default function OnboardingForm({
                   </div>
 
                   {/* Contact Summary */}
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h3 className="font-semibold text-gray-900 mb-3">Contact Information</h3>
+                  <div className="p-4 bg-core-surface2 rounded-lg border border-core-border">
+                    <h3 className="font-semibold text-core-text mb-3">Contact Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                       <p>
                         <span className="font-medium">Email:</span> {formData.personalEmail}
@@ -969,8 +969,8 @@ export default function OnboardingForm({
                   </div>
 
                   {/* Banking Summary */}
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h3 className="font-semibold text-gray-900 mb-3">Banking Information</h3>
+                  <div className="p-4 bg-core-surface2 rounded-lg border border-core-border">
+                    <h3 className="font-semibold text-core-text mb-3">Banking Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                       <p className="md:col-span-2">
                         <span className="font-medium">IBAN:</span>{' '}
@@ -1002,7 +1002,7 @@ export default function OnboardingForm({
                         onChange={handleChange}
                         className="mt-1"
                       />
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-core-text2">
                         I certify that all information provided in this form is true and accurate.
                       </span>
                     </label>

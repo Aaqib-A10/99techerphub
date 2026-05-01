@@ -12,7 +12,7 @@ export default async function ResponsibilitiesPage() {
   if (!user) redirect('/login');
   if (!ALLOWED_ROLES.has(user.role)) {
     return (
-      <div className="text-center py-16 text-gray-600">
+      <div className="text-center py-16 text-core-text2">
         You don&apos;t have permission to view roles &amp; responsibilities.
       </div>
     );

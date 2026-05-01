@@ -151,7 +151,7 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
           <tbody>
             {paginatedExpenses.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-12 text-gray-500">
+                <td colSpan={9} className="text-center py-12 text-core-text3">
                   No expenses submitted yet.
                 </td>
               </tr>

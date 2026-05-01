@@ -68,9 +68,9 @@ export default function Pagination({
   }
 
   return (
-    <div className="flex flex-col gap-3 border-t border-gray-200 bg-gray-50/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 border-t border-core-border bg-core-surface2/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       {/* Left: row counter + page-size switcher */}
-      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+      <div className="flex flex-wrap items-center gap-3 text-sm text-core-text2">
         <span>
           {total === 0
             ? 'No assets'
@@ -80,11 +80,11 @@ export default function Pagination({
         </span>
 
         <label className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">Per page</span>
+          <span className="text-xs text-core-text3">Per page</span>
           <select
             value={String(pageSize)}
             onChange={(e) => setPageSize(e.target.value)}
-            className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm shadow-sm focus:border-brand-primary focus:outline-none"
+            className="rounded-md border border-core-border bg-core-surface px-2 py-1 text-sm shadow-sm focus:border-core-text focus:outline-none"
           >
             <option value="25">25</option>
             <option value="50">50</option>
@@ -103,14 +103,14 @@ export default function Pagination({
             type="button"
             onClick={() => goto(page - 1)}
             disabled={page <= 1}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm transition hover:border-brand-primary hover:text-brand-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:text-gray-700"
+            className="rounded-md border border-core-border bg-core-surface px-3 py-1 text-sm font-medium text-core-text2 shadow-sm transition hover:border-core-text hover:text-core-text2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-core-border disabled:hover:text-core-text2"
           >
             ← Prev
           </button>
 
           {pages.map((p, idx) =>
             p === 'ellipsis' ? (
-              <span key={`e-${idx}`} className="px-2 text-gray-400">
+              <span key={`e-${idx}`} className="px-2 text-core-text3">
                 …
               </span>
             ) : (
@@ -120,8 +120,8 @@ export default function Pagination({
                 onClick={() => goto(p)}
                 className={`min-w-[2.25rem] rounded-md px-3 py-1 text-sm font-medium shadow-sm transition ${
                   p === page
-                    ? 'bg-brand-primary text-white'
-                    : 'border border-gray-200 bg-white text-gray-700 hover:border-brand-primary hover:text-brand-primary'
+                    ? 'bg-core-text text-white'
+                    : 'border border-core-border bg-core-surface text-core-text2 hover:border-core-text hover:text-core-text2'
                 }`}
               >
                 {p}
@@ -133,7 +133,7 @@ export default function Pagination({
             type="button"
             onClick={() => goto(page + 1)}
             disabled={page >= totalPages}
-            className="rounded-md border border-gray-200 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm transition hover:border-brand-primary hover:text-brand-primary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:text-gray-700"
+            className="rounded-md border border-core-border bg-core-surface px-3 py-1 text-sm font-medium text-core-text2 shadow-sm transition hover:border-core-text hover:text-core-text2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-core-border disabled:hover:text-core-text2"
           >
             Next →
           </button>

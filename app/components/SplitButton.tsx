@@ -53,7 +53,7 @@ export default function SplitButton({ primary, actions, className = '' }: Props)
   return (
     <div ref={ref} className={`relative inline-flex ${className}`}>
       <PrimaryChunk />
-      <span className="w-px bg-white/20" />
+      <span className="w-px bg-core-surface/20" />
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -76,22 +76,22 @@ export default function SplitButton({ primary, actions, className = '' }: Props)
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-40 mt-1 w-60 overflow-hidden rounded-md border border-zinc-200/85 bg-white shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
+        <div className="absolute right-0 top-full z-40 mt-1 w-60 overflow-hidden rounded-md border border-core-border/85 bg-core-surface shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
           <div className="py-1">
             {actions.map((a, i) => {
               const inner = (
-                <span className="flex items-start gap-2.5 px-3 py-2 text-left transition-colors hover:bg-zinc-50">
+                <span className="flex items-start gap-2.5 px-3 py-2 text-left transition-colors hover:bg-core-surface2">
                   {a.icon && (
-                    <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center text-zinc-500">
+                    <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center text-core-text3">
                       {a.icon}
                     </span>
                   )}
                   <span className="flex-1 min-w-0">
-                    <span className="block text-[12.5px] font-medium text-zinc-900">
+                    <span className="block text-[12.5px] font-medium text-core-text">
                       {a.label}
                     </span>
                     {a.description && (
-                      <span className="mt-0.5 block text-[11.5px] text-zinc-500">
+                      <span className="mt-0.5 block text-[11.5px] text-core-text3">
                         {a.description}
                       </span>
                     )}

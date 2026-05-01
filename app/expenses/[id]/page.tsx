@@ -94,29 +94,29 @@ export default async function ExpenseDetailPage({
             <div className="card-body space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-gray-500 text-sm">Category</span>
+                  <span className="text-core-text3 text-sm">Category</span>
                   <div className="font-medium mt-1">{expense.category.name}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Company</span>
+                  <span className="text-core-text3 text-sm">Company</span>
                   <div className="font-medium mt-1">{expense.company.name}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Department</span>
+                  <span className="text-core-text3 text-sm">Department</span>
                   <div className="font-medium mt-1">{expense.department?.name || '-'}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Currency</span>
+                  <span className="text-core-text3 text-sm">Currency</span>
                   <div className="font-medium mt-1">{expense.currency}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Submitted By</span>
+                  <span className="text-core-text3 text-sm">Submitted By</span>
                   <div className="font-medium mt-1">
                     {expense.submittedBy.firstName} {expense.submittedBy.lastName}
                   </div>
                 </div>
                 <div>
-                  <span className="text-gray-500 text-sm">Expense Date</span>
+                  <span className="text-core-text3 text-sm">Expense Date</span>
                   <div className="font-medium mt-1">
                     {new Date(expense.expenseDate).toLocaleDateString()}
                   </div>
@@ -125,41 +125,41 @@ export default async function ExpenseDetailPage({
 
               {expense.vendor && (
                 <div className="pt-4 border-t">
-                  <span className="text-gray-500 text-sm">Vendor</span>
+                  <span className="text-core-text3 text-sm">Vendor</span>
                   <div className="font-medium mt-1">{expense.vendor}</div>
                 </div>
               )}
 
               {expense.invoiceNumber && (
                 <div className="pt-2 border-t">
-                  <span className="text-gray-500 text-sm">Invoice Number</span>
+                  <span className="text-core-text3 text-sm">Invoice Number</span>
                   <div className="font-medium mt-1">{expense.invoiceNumber}</div>
                 </div>
               )}
 
               {expense.paymentMethod && (
                 <div className="pt-2 border-t">
-                  <span className="text-gray-500 text-sm">Payment Method</span>
+                  <span className="text-core-text3 text-sm">Payment Method</span>
                   <div className="font-medium mt-1">{expense.paymentMethod}</div>
                 </div>
               )}
 
               <div className="pt-4 border-t">
-                <span className="text-gray-500 text-sm">Description</span>
-                <p className="mt-2 text-gray-700">{expense.description}</p>
+                <span className="text-core-text3 text-sm">Description</span>
+                <p className="mt-2 text-core-text2">{expense.description}</p>
               </div>
 
               {expense.rejectionReason && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
-                  <span className="text-red-600 text-sm font-semibold">Rejection Reason</span>
-                  <p className="mt-2 text-red-700">{expense.rejectionReason}</p>
+                <div className="mt-4 p-4 bg-core-roseSoft border border-core-border rounded">
+                  <span className="text-core-roseFg text-sm font-semibold">Rejection Reason</span>
+                  <p className="mt-2 text-core-roseFg">{expense.rejectionReason}</p>
                 </div>
               )}
 
               {expense.revisionNotes && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
-                  <span className="text-blue-600 text-sm font-semibold">Revision Notes</span>
-                  <p className="mt-2 text-blue-700">{expense.revisionNotes}</p>
+                <div className="mt-4 p-4 bg-core-blueSoft border border-core-border rounded">
+                  <span className="text-core-blueFg text-sm font-semibold">Revision Notes</span>
+                  <p className="mt-2 text-core-blueFg">{expense.revisionNotes}</p>
                 </div>
               )}
             </div>
@@ -177,7 +177,7 @@ export default async function ExpenseDetailPage({
                     href={expense.receiptUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-brand-primary hover:underline"
+                    className="inline-flex items-center gap-2 text-core-text2 hover:underline"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -190,7 +190,7 @@ export default async function ExpenseDetailPage({
                     View PDF Receipt
                   </a>
                 ) : (
-                  <div className="bg-gray-100 rounded overflow-hidden">
+                  <div className="bg-core-surface2 rounded overflow-hidden">
                     <img
                       src={expense.receiptUrl}
                       alt="Expense Receipt"
@@ -210,7 +210,7 @@ export default async function ExpenseDetailPage({
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div className="text-center">
-                  <div className={`inline-block p-3 rounded-full ${statusColors[expense.status].includes('gray') ? 'bg-gray-200' : statusColors[expense.status].includes('yellow') ? 'bg-yellow-200' : statusColors[expense.status].includes('green') ? 'bg-green-200' : statusColors[expense.status].includes('red') ? 'bg-red-200' : 'bg-blue-200'}`}>
+                  <div className={`inline-block p-3 rounded-full ${statusColors[expense.status].includes('gray') ? 'bg-core-border' : statusColors[expense.status].includes('yellow') ? 'bg-yellow-200' : statusColors[expense.status].includes('green') ? 'bg-green-200' : statusColors[expense.status].includes('red') ? 'bg-red-200' : 'bg-blue-200'}`}>
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
@@ -233,13 +233,13 @@ export default async function ExpenseDetailPage({
             </div>
             <div className="card-body">
               {expense.approvals.length === 0 ? (
-                <p className="text-gray-500 text-center py-6">No approval actions yet</p>
+                <p className="text-core-text3 text-center py-6">No approval actions yet</p>
               ) : (
                 <div className="space-y-4">
                   {expense.approvals.map((a: any) => (
                     <div
                       key={a.id}
-                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="p-4 border border-core-border rounded-lg hover:bg-core-surface2 transition-colors"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <span className={`badge ${
@@ -251,15 +251,15 @@ export default async function ExpenseDetailPage({
                         }`}>
                           {a.action.replace(/_/g, ' ')}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-core-text3">
                           {new Date(a.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-core-text2">
                         By <span className="font-medium">{a.approvedBy.email}</span>
                       </div>
                       {a.comments && (
-                        <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
+                        <div className="mt-2 p-2 bg-core-surface2 rounded text-sm">
                           {a.comments}
                         </div>
                       )}
@@ -279,22 +279,22 @@ export default async function ExpenseDetailPage({
               <div className="card-body">
                 <div className="space-y-3">
                   {auditLogs.map((log: any) => (
-                    <div key={log.id} className="p-3 bg-gray-50 rounded text-sm">
+                    <div key={log.id} className="p-3 bg-core-surface2 rounded text-sm">
                       <div className="flex justify-between">
                         <span className="font-medium">
                           {log.action}
                         </span>
-                        <span className="text-gray-500">
+                        <span className="text-core-text3">
                           {new Date(log.createdAt).toLocaleString()}
                         </span>
                       </div>
                       {log.changedBy && (
-                        <div className="text-gray-600 text-xs mt-1">
+                        <div className="text-core-text2 text-xs mt-1">
                           By {log.changedBy.email}
                         </div>
                       )}
                       {log.newValues && (
-                        <div className="text-gray-600 text-xs mt-1 font-mono">
+                        <div className="text-core-text2 text-xs mt-1 font-mono">
                           {JSON.stringify(log.newValues).substring(0, 100)}...
                         </div>
                       )}

@@ -117,8 +117,8 @@ export default function AssetFilters({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {/* Search */}
-      <div className="group relative flex h-8 min-w-[260px] flex-1 items-center rounded-md border border-zinc-200/95 bg-white pl-2.5 pr-2 transition-all duration-150 hover:border-zinc-300 focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)] sm:max-w-[340px]">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="flex-shrink-0 text-zinc-400" strokeLinecap="round" strokeLinejoin="round">
+      <div className="group relative flex h-8 min-w-[260px] flex-1 items-center rounded-md border border-core-border/95 bg-core-surface pl-2.5 pr-2 transition-all duration-150 hover:border-core-border focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)] sm:max-w-[340px]">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="flex-shrink-0 text-core-text3" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 21l-4.35-4.35 M11 19a8 8 0 100-16 8 8 0 000 16z" />
         </svg>
         <input
@@ -126,7 +126,7 @@ export default function AssetFilters({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search tag, model, serial, holder…"
-          className="ml-2 flex-1 bg-transparent text-[12.5px] text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+          className="ml-2 flex-1 bg-transparent text-[12.5px] text-core-text placeholder:text-core-text3 focus:outline-none"
         />
       </div>
 
@@ -200,25 +200,25 @@ export default function AssetFilters({
         <button
           type="button"
           onClick={() => setAdvancedOpen((v) => !v)}
-          className={`inline-flex h-8 items-center gap-1.5 rounded-md border bg-white pl-2.5 pr-2 text-[12.5px] font-medium transition-all duration-150 ${
+          className={`inline-flex h-8 items-center gap-1.5 rounded-md border bg-core-surface pl-2.5 pr-2 text-[12.5px] font-medium transition-all duration-150 ${
             specFilterCount > 0
-              ? 'border-zinc-300 text-zinc-900 shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]'
-              : 'border-zinc-200/95 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'
+              ? 'border-core-border text-core-text shadow-[0_1px_2px_0_rgba(0,0,0,0.04)]'
+              : 'border-core-border/95 text-core-text2 hover:border-core-border hover:bg-core-surface2'
           }`}
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-zinc-400" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-core-text3" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
           </svg>
           Specs
           {specFilterCount > 0 && (
-            <span className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-zinc-900 px-1 text-[10px] font-semibold text-white tabular-nums">
+            <span className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-core-text px-1 text-[10px] font-semibold text-white tabular-nums">
               {specFilterCount}
             </span>
           )}
         </button>
 
         {advancedOpen && (
-          <div className="absolute right-0 top-full z-30 mt-1 w-72 rounded-md border border-zinc-200/85 bg-white p-3 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
+          <div className="absolute right-0 top-full z-30 mt-1 w-72 rounded-md border border-core-border/85 bg-core-surface p-3 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)]">
             <div className="grid grid-cols-2 gap-2.5">
               <SpecInput label="RAM" value={ram} onChange={setRam} placeholder="e.g. 16" />
               <SpecInput label="Storage" value={storage} onChange={setStorage} placeholder="e.g. 512" />
@@ -234,7 +234,7 @@ export default function AssetFilters({
                     setCpu('');
                     setGpu('');
                   }}
-                  className="text-[11.5px] font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+                  className="text-[11.5px] font-medium text-core-text3 transition-colors hover:text-core-text"
                 >
                   Clear specs
                 </button>
@@ -247,7 +247,7 @@ export default function AssetFilters({
       {hasAnyFilter && (
         <button
           onClick={clearAll}
-          className="ml-1 inline-flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+          className="ml-1 inline-flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-core-text3 transition-colors hover:bg-core-surface2 hover:text-core-text"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 6L6 18 M6 6l12 12" />
@@ -272,7 +272,7 @@ function SpecInput({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10.5px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+      <span className="mb-1 block text-[10.5px] font-medium uppercase tracking-[0.06em] text-core-text3">
         {label}
       </span>
       <input
@@ -280,7 +280,7 @@ function SpecInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-7 w-full rounded border border-zinc-200 bg-white px-2 text-[12px] text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
+        className="h-7 w-full rounded border border-core-border bg-core-surface px-2 text-[12px] text-core-text placeholder:text-core-text3 focus:border-zinc-400 focus:outline-none"
       />
     </label>
   );

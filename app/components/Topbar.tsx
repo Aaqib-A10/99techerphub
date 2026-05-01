@@ -102,7 +102,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
           {/* Mobile hamburger (slide-out drawer) */}
           <button
             onClick={onMenuToggle}
-            className="lg:hidden -ml-1 flex h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+            className="lg:hidden -ml-1 flex h-8 w-8 items-center justify-center rounded-md text-core-text3 transition-colors hover:bg-core-surface2 hover:text-core-text"
             aria-label="Toggle menu"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
@@ -114,7 +114,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
           {hydrated && (
             <button
               onClick={toggleSidebar}
-              className="hidden lg:flex -ml-1 h-8 w-8 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+              className="hidden lg:flex -ml-1 h-8 w-8 items-center justify-center rounded-md text-core-text3 transition-colors hover:bg-core-surface2 hover:text-core-text"
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
@@ -131,26 +131,26 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
           )}
 
           <div className="flex items-center gap-1.5 text-[12.5px] min-w-0 ml-1">
-            <span className="text-zinc-500">99Core</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-zinc-300">
+            <span className="text-core-text3">99Core</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-core-text3">
               <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="font-medium text-zinc-900 truncate">{sectionLabel}</span>
+            <span className="font-medium text-core-text truncate">{sectionLabel}</span>
           </div>
         </div>
 
         {/* Right: search + actions */}
         <div className="flex items-center gap-1.5">
-          <div className="hidden md:flex h-8 w-64 items-center rounded-md border border-zinc-200/95 bg-white pl-2.5 pr-1.5 transition-all duration-200 hover:border-zinc-300 focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)]">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-zinc-400 flex-shrink-0">
+          <div className="hidden md:flex h-8 w-64 items-center rounded-md border border-core-border/95 bg-core-surface pl-2.5 pr-1.5 transition-all duration-200 hover:border-core-border focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)]">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-core-text3 flex-shrink-0">
               <path d="M21 21l-4.35-4.35 M11 19a8 8 0 100-16 8 8 0 000 16z" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <input
               type="text"
               placeholder="Search…"
-              className="ml-2 flex-1 bg-transparent text-[12.5px] text-zinc-900 placeholder:text-zinc-400 focus:outline-none"
+              className="ml-2 flex-1 bg-transparent text-[12.5px] text-core-text placeholder:text-core-text3 focus:outline-none"
             />
-            <kbd className="inline-flex items-center rounded border border-zinc-200 px-1 py-0.5 font-sans text-[9.5px] text-zinc-400">
+            <kbd className="inline-flex items-center rounded border border-core-border px-1 py-0.5 font-sans text-[9.5px] text-core-text3">
               ⌘K
             </kbd>
           </div>
@@ -161,7 +161,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
           <div className="relative">
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex h-8 items-center gap-2 rounded-md pl-1 pr-2 transition-colors hover:bg-zinc-100"
+              className="flex h-8 items-center gap-2 rounded-md pl-1 pr-2 transition-colors hover:bg-core-surface2"
             >
               <div
                 className="flex h-6 w-6 items-center justify-center rounded-full text-white text-[10.5px] font-semibold"
@@ -169,12 +169,12 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
               >
                 {initials}
               </div>
-              <span className="hidden sm:block text-[12.5px] font-medium text-zinc-900">
+              <span className="hidden sm:block text-[12.5px] font-medium text-core-text">
                 {user?.email?.split('@')[0] || 'User'}
               </span>
               <svg
                 width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}
-                className={`hidden sm:block text-zinc-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`}
+                className={`hidden sm:block text-core-text3 transition-transform ${showDropdown ? 'rotate-180' : ''}`}
               >
                 <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -183,29 +183,29 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
             {showDropdown && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />
-                <div className="absolute right-0 mt-2 w-56 rounded-lg bg-white shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)] border border-zinc-200/85 z-50 overflow-hidden">
-                  <div className="px-3.5 py-3 border-b border-zinc-100">
-                    <p className="text-[12.5px] font-medium text-zinc-900 truncate">{user?.email}</p>
-                    <p className="text-[11px] text-zinc-500 mt-0.5 uppercase tracking-wider">{user?.role}</p>
+                <div className="absolute right-0 mt-2 w-56 rounded-lg bg-core-surface shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)] border border-core-border/85 z-50 overflow-hidden">
+                  <div className="px-3.5 py-3 border-b border-core-border">
+                    <p className="text-[12.5px] font-medium text-core-text truncate">{user?.email}</p>
+                    <p className="text-[11px] text-core-text3 mt-0.5 uppercase tracking-wider">{user?.role}</p>
                   </div>
                   <div className="py-1">
                     <Link
                       href="/account/security"
-                      className="block px-3.5 py-1.5 text-[12.5px] text-zinc-700 hover:bg-zinc-50"
+                      className="block px-3.5 py-1.5 text-[12.5px] text-core-text2 hover:bg-core-surface2"
                       onClick={() => setShowDropdown(false)}
                     >
                       Account & Security
                     </Link>
                     <Link
                       href="/settings"
-                      className="block px-3.5 py-1.5 text-[12.5px] text-zinc-700 hover:bg-zinc-50"
+                      className="block px-3.5 py-1.5 text-[12.5px] text-core-text2 hover:bg-core-surface2"
                       onClick={() => setShowDropdown(false)}
                     >
                       Settings
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-3.5 py-1.5 text-[12.5px] text-zinc-700 hover:bg-zinc-50"
+                      className="block w-full text-left px-3.5 py-1.5 text-[12.5px] text-core-text2 hover:bg-core-surface2"
                     >
                       Sign out
                     </button>

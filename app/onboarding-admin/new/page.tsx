@@ -132,16 +132,16 @@ export default function NewOnboardingPage() {
           </div>
           <div className="card-body">
             <div className="text-center mb-6">
-              <div className="text-5xl text-green-500 mb-4">✓</div>
-              <p className="text-gray-600 mb-4">
+              <div className="text-5xl text-core-greenFg mb-4">✓</div>
+              <p className="text-core-text2 mb-4">
                 Onboarding invitation has been created successfully!
               </p>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg mb-6">
-              <p className="text-sm text-gray-600 mb-2">Onboarding Link:</p>
+            <div className="bg-core-surface2 p-4 rounded-lg mb-6">
+              <p className="text-sm text-core-text2 mb-2">Onboarding Link:</p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 bg-white p-3 rounded border border-gray-300 text-sm break-all">
+                <code className="flex-1 bg-core-surface p-3 rounded border border-core-border text-sm break-all">
                   {onboardingUrl}
                 </code>
                 <button
@@ -151,7 +151,7 @@ export default function NewOnboardingPage() {
                   Copy
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-core-text3 mt-2">
                 This link will expire in {formData.expiryDays} days
               </p>
             </div>
@@ -193,7 +193,7 @@ export default function NewOnboardingPage() {
       />
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-6 p-4 bg-core-roseSoft border border-red-400 text-core-roseFg rounded-lg">
           {error}
         </div>
       )}
@@ -278,7 +278,7 @@ export default function NewOnboardingPage() {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-core-text3 mt-1">
                   Can be confirmed or changed at approval time
                 </p>
               </div>
@@ -296,7 +296,7 @@ export default function NewOnboardingPage() {
                   <option value="7">7 days</option>
                   <option value="14">14 days</option>
                 </select>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-core-text3 mt-1">
                   The candidate will have this many days to complete the onboarding form
                 </p>
               </div>

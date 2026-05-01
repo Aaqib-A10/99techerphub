@@ -248,7 +248,7 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
   if (!submission) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-core-text3">Loading...</p>
       </div>
     );
   }
@@ -286,18 +286,18 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
       />
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-6 p-4 bg-core-roseSoft border border-red-400 text-core-roseFg rounded-lg">
           {error}
         </div>
       )}
 
       {submission.reviewStatus !== 'PENDING' && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
+        <div className="mb-6 p-4 bg-core-blueSoft border border-core-border rounded-lg">
+          <p className="text-sm text-core-blueFg">
             <span className="font-semibold">Reviewed:</span> {new Date(submission.submittedAt).toLocaleDateString()}
           </p>
           {submission.reviewNotes && (
-            <p className="text-sm text-blue-800 mt-2">
+            <p className="text-sm text-core-blueFg mt-2">
               <span className="font-semibold">Notes:</span> {submission.reviewNotes}
             </p>
           )}
@@ -312,28 +312,28 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
         <div className="card-body">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-sm text-gray-600">Full Name</p>
-              <p className="font-semibold text-gray-900">{submission.personalDetails?.fullName}</p>
+              <p className="text-sm text-core-text2">Full Name</p>
+              <p className="font-semibold text-core-text">{submission.personalDetails?.fullName}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">CNIC</p>
-              <p className="font-semibold text-gray-900">{submission.personalDetails?.cnic}</p>
+              <p className="text-sm text-core-text2">CNIC</p>
+              <p className="font-semibold text-core-text">{submission.personalDetails?.cnic}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Date of Birth</p>
-              <p className="font-semibold text-gray-900">{submission.personalDetails?.dateOfBirth}</p>
+              <p className="text-sm text-core-text2">Date of Birth</p>
+              <p className="font-semibold text-core-text">{submission.personalDetails?.dateOfBirth}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Gender</p>
-              <p className="font-semibold text-gray-900">{submission.personalDetails?.gender}</p>
+              <p className="text-sm text-core-text2">Gender</p>
+              <p className="font-semibold text-core-text">{submission.personalDetails?.gender}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Blood Group</p>
-              <p className="font-semibold text-gray-900">{submission.personalDetails?.bloodGroup}</p>
+              <p className="text-sm text-core-text2">Blood Group</p>
+              <p className="font-semibold text-core-text">{submission.personalDetails?.bloodGroup}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Nationality</p>
-              <p className="font-semibold text-gray-900">{submission.personalDetails?.nationality}</p>
+              <p className="text-sm text-core-text2">Nationality</p>
+              <p className="font-semibold text-core-text">{submission.personalDetails?.nationality}</p>
             </div>
           </div>
         </div>
@@ -347,28 +347,28 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
         <div className="card-body">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <p className="text-sm text-gray-600">Email</p>
-              <p className="font-semibold text-gray-900">{submission.candidateEmail}</p>
+              <p className="text-sm text-core-text2">Email</p>
+              <p className="font-semibold text-core-text">{submission.candidateEmail}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Phone</p>
-              <p className="font-semibold text-gray-900">{(submission.personalDetails as any)?.phone || '-'}</p>
+              <p className="text-sm text-core-text2">Phone</p>
+              <p className="font-semibold text-core-text">{(submission.personalDetails as any)?.phone || '-'}</p>
             </div>
           </div>
 
-          <h3 className="font-semibold text-gray-900 mb-3">Emergency Contact</h3>
+          <h3 className="font-semibold text-core-text mb-3">Emergency Contact</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <p className="text-sm text-gray-600">Name</p>
-              <p className="font-semibold text-gray-900">{submission.emergencyContact?.name}</p>
+              <p className="text-sm text-core-text2">Name</p>
+              <p className="font-semibold text-core-text">{submission.emergencyContact?.name}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Phone</p>
-              <p className="font-semibold text-gray-900">{submission.emergencyContact?.phone}</p>
+              <p className="text-sm text-core-text2">Phone</p>
+              <p className="font-semibold text-core-text">{submission.emergencyContact?.phone}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Relationship</p>
-              <p className="font-semibold text-gray-900">
+              <p className="text-sm text-core-text2">Relationship</p>
+              <p className="font-semibold text-core-text">
                 {submission.emergencyContact?.relationship}
               </p>
             </div>
@@ -385,22 +385,22 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
           <div className="card-body">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <p className="text-sm text-gray-600">Bank Name</p>
-                <p className="font-semibold text-gray-900">{submission.bankDetails.bankName}</p>
+                <p className="text-sm text-core-text2">Bank Name</p>
+                <p className="font-semibold text-core-text">{submission.bankDetails.bankName}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Account Number</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-sm text-core-text2">Account Number</p>
+                <p className="font-semibold text-core-text">
                   {submission.bankDetails.accountNumber}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Branch</p>
-                <p className="font-semibold text-gray-900">{submission.bankDetails.branch}</p>
+                <p className="text-sm text-core-text2">Branch</p>
+                <p className="font-semibold text-core-text">{submission.bankDetails.branch}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Account Title</p>
-                <p className="font-semibold text-gray-900">
+                <p className="text-sm text-core-text2">Account Title</p>
+                <p className="font-semibold text-core-text">
                   {submission.bankDetails.accountTitle || '-'}
                 </p>
               </div>
@@ -417,17 +417,17 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
           </div>
           <div className="card-body space-y-4">
             {submission.educationHistory.map((edu, index) => (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-2">
+              <div key={index} className="p-4 bg-core-surface2 rounded-lg border border-core-border">
+                <h4 className="font-semibold text-core-text mb-2">
                   {edu.degree} from {edu.institution}
                 </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-600">Year</p>
+                    <p className="text-core-text2">Year</p>
                     <p className="font-semibold">{edu.year}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">GPA</p>
+                    <p className="text-core-text2">GPA</p>
                     <p className="font-semibold">{edu.gpa || '-'}</p>
                   </div>
                 </div>
@@ -445,19 +445,19 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
           </div>
           <div className="card-body space-y-4">
             {submission.workHistory.map((work, index) => (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-2">
+              <div key={index} className="p-4 bg-core-surface2 rounded-lg border border-core-border">
+                <h4 className="font-semibold text-core-text mb-2">
                   {work.position} at {work.company}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-600">Period</p>
+                    <p className="text-core-text2">Period</p>
                     <p className="font-semibold">
                       {work.from} - {work.to}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Reason for Leaving</p>
+                    <p className="text-core-text2">Reason for Leaving</p>
                     <p className="font-semibold">{work.reasonForLeaving || '-'}</p>
                   </div>
                 </div>
@@ -475,19 +475,19 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
           </div>
           <div className="card-body space-y-4">
             {submission.references.map((ref, index) => (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-2">{ref.name}</h4>
+              <div key={index} className="p-4 bg-core-surface2 rounded-lg border border-core-border">
+                <h4 className="font-semibold text-core-text mb-2">{ref.name}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-600">Relationship</p>
+                    <p className="text-core-text2">Relationship</p>
                     <p className="font-semibold">{ref.relationship}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Phone</p>
+                    <p className="text-core-text2">Phone</p>
                     <p className="font-semibold">{ref.phone}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Email</p>
+                    <p className="text-core-text2">Email</p>
                     <p className="font-semibold">{ref.email}</p>
                   </div>
                 </div>
@@ -505,11 +505,11 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
           </div>
           <div className="card-body space-y-4">
             {/* Employment Assignment — confirm/override before approval */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="font-semibold text-gray-900 mb-3">
+            <div className="p-4 bg-core-surface2 rounded-lg border border-core-border">
+              <h3 className="font-semibold text-core-text mb-3">
                 Employment Assignment
               </h3>
-              <p className="text-xs text-gray-600 mb-3">
+              <p className="text-xs text-core-text2 mb-3">
                 Confirm or change company, department, and designation before approving.
                 These will be saved on the employee record.
               </p>
@@ -615,7 +615,7 @@ export default function ReviewOnboardingPage({ params }: { params: { id: string 
             <h2 className="section-heading">Next Steps</h2>
           </div>
           <div className="card-body">
-            <p className="text-gray-600 mb-4">
+            <p className="text-core-text2 mb-4">
               Create an employee record from this onboarding submission.
             </p>
             <Link

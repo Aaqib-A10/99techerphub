@@ -64,8 +64,8 @@ export default function CommissionsPage() {
         }
       />
 
-      {error && <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
-      {success && <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">{success}</div>}
+      {error && <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
+      {success && <div className="mb-6 p-4 bg-core-greenSoft text-core-greenFg rounded-lg">{success}</div>}
 
       {showForm && (
         <div className="card mb-6">
@@ -128,16 +128,16 @@ export default function CommissionsPage() {
             </thead>
             <tbody>
               {commissions.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-12 text-gray-500">No commissions recorded yet</td></tr>
+                <tr><td colSpan={6} className="text-center py-12 text-core-text3">No commissions recorded yet</td></tr>
               ) : (
                 commissions.map((c: any) => (
                   <tr key={c.id}>
                     <td className="font-semibold">{c.employee?.firstName} {c.employee?.lastName}</td>
                     <td>{c.period}</td>
-                    <td className="font-semibold text-green-700">{c.currency} {Number(c.amount).toLocaleString()}</td>
-                    <td className="text-sm text-gray-600">{c.description}</td>
+                    <td className="font-semibold text-core-greenFg">{c.currency} {Number(c.amount).toLocaleString()}</td>
+                    <td className="text-sm text-core-text2">{c.description}</td>
                     <td><span className={`badge ${c.isPaid ? 'badge-green' : 'badge-yellow'}`}>{c.isPaid ? 'Paid' : 'Pending'}</span></td>
-                    <td className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</td>
+                    <td className="text-sm text-core-text3">{new Date(c.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))
               )}

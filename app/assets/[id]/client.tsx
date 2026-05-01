@@ -153,7 +153,7 @@ export default function AssetDetailClient({
         submitDisabled={loading}
       >
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-3 bg-core-roseSoft border border-red-400 text-core-roseFg rounded">
             {error}
           </div>
         )}
@@ -197,7 +197,7 @@ export default function AssetDetailClient({
         submitDisabled={loading}
       >
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-3 bg-core-roseSoft border border-red-400 text-core-roseFg rounded">
             {error}
           </div>
         )}
@@ -249,12 +249,12 @@ export default function AssetDetailClient({
         submitDisabled={loading}
       >
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-3 bg-core-roseSoft border border-red-400 text-core-roseFg rounded">
             {error}
           </div>
         )}
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-core-text2">
             This action will mark the asset as retired and remove it from active inventory.
           </p>
           <div>

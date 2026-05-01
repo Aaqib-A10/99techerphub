@@ -69,7 +69,7 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
         </div>
         <div className="card-body space-y-3">
           {error && (
-            <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+            <div className="p-3 bg-core-roseSoft border border-red-400 text-core-roseFg rounded text-sm">
               {error}
             </div>
           )}
@@ -130,9 +130,9 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
           )}
 
           {offerLetter.status === 'ACCEPTED' && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded text-center">
-              <div className="text-green-700 font-semibold">Offer Accepted</div>
-              <div className="text-sm text-green-600 mt-1">
+            <div className="p-3 bg-core-greenSoft border border-core-border rounded text-center">
+              <div className="text-core-greenFg font-semibold">Offer Accepted</div>
+              <div className="text-sm text-core-greenFg mt-1">
                 {offerLetter.acceptedDate &&
                   `on ${new Date(offerLetter.acceptedDate).toLocaleDateString()}`}
               </div>
@@ -140,8 +140,8 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
           )}
 
           {offerLetter.status === 'DECLINED' && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded text-center">
-              <div className="text-red-700 font-semibold">Offer Declined</div>
+            <div className="p-3 bg-core-roseSoft border border-core-border rounded text-center">
+              <div className="text-core-roseFg font-semibold">Offer Declined</div>
             </div>
           )}
         </div>
@@ -153,17 +153,17 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
         </div>
         <div className="card-body text-sm space-y-2">
           <div>
-            <span className="text-gray-500">Current Status</span>
+            <span className="text-core-text3">Current Status</span>
             <div className="font-medium">{offerLetter.status}</div>
           </div>
           <div>
-            <span className="text-gray-500">Template Type</span>
+            <span className="text-core-text3">Template Type</span>
             <div className="font-medium">
               {offerLetter.templateType.charAt(0) + offerLetter.templateType.slice(1).toLowerCase()}
             </div>
           </div>
           <div>
-            <span className="text-gray-500">Created</span>
+            <span className="text-core-text3">Created</span>
             <div className="font-medium">
               {new Date(offerLetter.createdAt).toLocaleDateString()}
             </div>
@@ -174,25 +174,25 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
       {/* Send Email Modal */}
       {showSendModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-core-surface rounded-lg shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <h2 className="text-xl font-bold mb-4">Send Offer Letter</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-core-text2 mb-1">
                     Recipient Email
                   </label>
                   <input
                     type="email"
                     value={offerLetter.candidateEmail || ''}
                     disabled
-                    className="form-input bg-gray-50"
+                    className="form-input bg-core-surface2"
                   />
                 </div>
 
-                <div className="bg-gray-50 rounded p-4">
+                <div className="bg-core-surface2 rounded p-4">
                   <h3 className="font-semibold text-sm mb-2">Email Preview</h3>
-                  <div className="text-sm text-gray-700 space-y-2">
+                  <div className="text-sm text-core-text2 space-y-2">
                     <div>
                       <span className="font-medium">To:</span> {offerLetter.candidateEmail}
                     </div>
@@ -200,7 +200,7 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
                       <span className="font-medium">Subject:</span> Offer Letter - {offerLetter.position}
                     </div>
                     <div className="pt-2 border-t">
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-core-text2">
                         The offer letter PDF will be attached to the email.
                       </p>
                     </div>
@@ -208,7 +208,7 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
                 </div>
 
                 {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
+                  <div className="p-3 bg-core-roseSoft border border-core-border text-core-roseFg text-sm rounded">
                     {error}
                   </div>
                 )}
@@ -217,14 +217,14 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
                   <button
                     onClick={() => setShowSendModal(false)}
                     disabled={loading}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    className="flex-1 px-4 py-2 border border-core-border rounded text-core-text2 hover:bg-core-surface2 disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSendEmail}
                     disabled={loading}
-                    className="flex-1 px-4 py-2 bg-brand-primary text-white rounded hover:opacity-90 disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-core-text text-white rounded hover:opacity-90 disabled:opacity-50"
                     style={{ backgroundColor: '#00C853' }}
                   >
                     {loading ? 'Sending...' : 'Send'}

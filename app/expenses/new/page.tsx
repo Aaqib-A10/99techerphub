@@ -369,7 +369,7 @@ export default function NewExpensePage() {
       />
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-6 p-4 bg-core-roseSoft border border-red-400 text-core-roseFg rounded-lg">
           {error}
         </div>
       )}
@@ -465,26 +465,26 @@ export default function NewExpensePage() {
           </div>
           <div className="card-body">
             {uploadError && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+              <div className="mb-4 p-3 bg-core-roseSoft border border-red-400 text-core-roseFg rounded text-sm">
                 {uploadError}
               </div>
             )}
 
             {receiptUrl ? (
               <div className="space-y-4">
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-2 text-green-700 mb-3">
+                <div className="p-4 bg-core-greenSoft border border-core-border rounded-lg">
+                  <div className="flex items-center gap-2 text-core-greenFg mb-3">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span className="font-medium">Receipt uploaded successfully</span>
                   </div>
-                  <p className="text-sm text-green-700 mb-3">{selectedFile?.name || 'Receipt file'}</p>
+                  <p className="text-sm text-core-greenFg mb-3">{selectedFile?.name || 'Receipt file'}</p>
                   <div className="flex flex-wrap gap-3">
                     <button
                       type="button"
                       onClick={handleRemoveReceipt}
-                      className="text-sm text-green-600 hover:text-green-800 font-medium"
+                      className="text-sm text-core-greenFg hover:text-core-greenFg font-medium"
                     >
                       Remove and upload different file
                     </button>
@@ -492,7 +492,7 @@ export default function NewExpensePage() {
                       type="button"
                       onClick={handleRescanReceipt}
                       disabled={ocrLoading}
-                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      className="text-sm text-core-blueFg hover:text-core-blueFg font-medium"
                     >
                       {ocrLoading ? 'Scanning...' : 'Re-scan with AI'}
                     </button>
@@ -501,7 +501,7 @@ export default function NewExpensePage() {
 
                 {/* OCR result panel */}
                 {ocrLoading && !ocrResult && (
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-center gap-3">
+                  <div className="p-4 bg-core-blueSoft border border-core-border rounded-lg text-sm text-core-blueFg flex items-center gap-3">
                     <svg
                       className="w-4 h-4 animate-spin"
                       fill="none"
@@ -515,23 +515,23 @@ export default function NewExpensePage() {
                 )}
 
                 {ocrError && (
-                  <div className="p-3 bg-amber-50 border border-amber-300 rounded text-sm text-amber-800">
+                  <div className="p-3 bg-core-amberSoft border border-core-border rounded text-sm text-core-amberFg">
                     <div className="font-medium">AI scan failed</div>
                     <div className="text-xs mt-1">{ocrError}</div>
-                    <div className="text-xs mt-1 text-amber-700">
+                    <div className="text-xs mt-1 text-core-amberFg">
                       You can still fill in the fields manually below.
                     </div>
                   </div>
                 )}
 
                 {ocrResult && (
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="p-4 bg-core-blueSoft border border-core-border rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <div className="text-sm font-semibold text-blue-900">
+                        <div className="text-sm font-semibold text-core-blueFg">
                           AI-extracted receipt details
                         </div>
-                        <div className="text-xs text-blue-700">
+                        <div className="text-xs text-core-blueFg">
                           Confidence: <span className="font-medium">{ocrResult.confidence}</span>{' '}
                           &middot; Review before applying
                         </div>
@@ -546,40 +546,40 @@ export default function NewExpensePage() {
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                       <div>
-                        <div className="text-blue-600 uppercase tracking-wide">Vendor</div>
-                        <div className="text-blue-900 font-medium">
+                        <div className="text-core-blueFg uppercase tracking-wide">Vendor</div>
+                        <div className="text-core-blueFg font-medium">
                           {ocrResult.vendor || '—'}
                         </div>
                       </div>
                       <div>
-                        <div className="text-blue-600 uppercase tracking-wide">Amount</div>
-                        <div className="text-blue-900 font-medium">
+                        <div className="text-core-blueFg uppercase tracking-wide">Amount</div>
+                        <div className="text-core-blueFg font-medium">
                           {ocrResult.amount != null
                             ? `${ocrResult.currency || ''} ${Number(ocrResult.amount).toLocaleString()}`.trim()
                             : '—'}
                         </div>
                       </div>
                       <div>
-                        <div className="text-blue-600 uppercase tracking-wide">Date</div>
-                        <div className="text-blue-900 font-medium">
+                        <div className="text-core-blueFg uppercase tracking-wide">Date</div>
+                        <div className="text-core-blueFg font-medium">
                           {ocrResult.expenseDate || '—'}
                         </div>
                       </div>
                       <div>
-                        <div className="text-blue-600 uppercase tracking-wide">Invoice #</div>
-                        <div className="text-blue-900 font-medium">
+                        <div className="text-core-blueFg uppercase tracking-wide">Invoice #</div>
+                        <div className="text-core-blueFg font-medium">
                           {ocrResult.invoiceNumber || '—'}
                         </div>
                       </div>
                       <div>
-                        <div className="text-blue-600 uppercase tracking-wide">Category</div>
-                        <div className="text-blue-900 font-medium">
+                        <div className="text-core-blueFg uppercase tracking-wide">Category</div>
+                        <div className="text-core-blueFg font-medium">
                           {ocrResult.categorySuggestion || '—'}
                         </div>
                       </div>
                       <div className="col-span-2 md:col-span-3">
-                        <div className="text-blue-600 uppercase tracking-wide">Description</div>
-                        <div className="text-blue-900 font-medium">
+                        <div className="text-core-blueFg uppercase tracking-wide">Description</div>
+                        <div className="text-core-blueFg font-medium">
                           {ocrResult.description || '—'}
                         </div>
                       </div>
@@ -590,15 +590,15 @@ export default function NewExpensePage() {
             ) : selectedFile && preview ? (
               <div className="space-y-4">
                 {preview === 'pdf' ? (
-                  <div className="p-8 bg-gray-100 rounded-lg border border-gray-300 text-center">
-                    <svg className="mx-auto h-12 w-12 text-red-500 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="p-8 bg-core-surface2 rounded-lg border border-core-border text-center">
+                    <svg className="mx-auto h-12 w-12 text-core-roseFg mb-2" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
                     </svg>
-                    <p className="text-sm font-medium text-gray-700">{selectedFile.name}</p>
-                    <p className="text-xs text-gray-500 mt-1">PDF Document</p>
+                    <p className="text-sm font-medium text-core-text2">{selectedFile.name}</p>
+                    <p className="text-xs text-core-text3 mt-1">PDF Document</p>
                   </div>
                 ) : (
-                  <div className="bg-gray-100 rounded-lg border border-gray-300 overflow-hidden p-4">
+                  <div className="bg-core-surface2 rounded-lg border border-core-border overflow-hidden p-4">
                     <img
                       src={preview}
                       alt="Receipt preview"
@@ -631,14 +631,14 @@ export default function NewExpensePage() {
                 </div>
               </div>
             ) : (
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="border-2 border-dashed border-core-border rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+                <svg className="mx-auto h-12 w-12 text-core-text3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <p className="mt-4 text-sm text-gray-600">
+                <p className="mt-4 text-sm text-core-text2">
                   Take a photo or choose a receipt from your device
                 </p>
-                <p className="mt-1 text-xs text-gray-400">
+                <p className="mt-1 text-xs text-core-text3">
                   Supports JPG, PNG, PDF up to 5MB
                 </p>
                 {/* Hidden input for gallery / file picker */}
@@ -690,13 +690,13 @@ export default function NewExpensePage() {
       {/* Camera modal */}
       {cameraOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden">
+          <div className="bg-core-surface rounded-lg shadow-xl max-w-2xl w-full overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b">
-              <h3 className="font-bold text-gray-900">Capture Receipt</h3>
+              <h3 className="font-bold text-core-text">Capture Receipt</h3>
               <button
                 type="button"
                 onClick={closeCamera}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-core-text3 hover:text-core-text2"
                 aria-label="Close camera"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -706,7 +706,7 @@ export default function NewExpensePage() {
             </div>
             <div className="p-4">
               {cameraError ? (
-                <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded">
+                <div className="p-4 bg-core-roseSoft border border-core-border text-core-roseFg rounded">
                   {cameraError}
                 </div>
               ) : (

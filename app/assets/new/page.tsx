@@ -139,7 +139,7 @@ export default function NewAssetPage() {
       <div className="card max-w-2xl">
         <div className="card-body">
           {error && (
-            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <div className="mb-4 p-4 bg-core-roseSoft border border-red-400 text-core-roseFg rounded-lg">
               {error}
             </div>
           )}
@@ -166,7 +166,7 @@ export default function NewAssetPage() {
 
             {/* Step 2: Show remaining fields only after category is selected */}
             {formData.categoryId && (
-              <div className="space-y-4 pt-2 border-t border-gray-200">
+              <div className="space-y-4 pt-2 border-t border-core-border">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                   {/* Manufacturer - options change per category */}
                   <div className="form-group">
@@ -221,7 +221,7 @@ export default function NewAssetPage() {
                       required={serialRequired}
                     />
                     {!serialRequired && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-core-text3 mt-1">
                         S/N not required for accessories — will be set to N/A if left blank
                       </p>
                     )}
@@ -245,7 +245,7 @@ export default function NewAssetPage() {
                 </div>
 
                 {/* Purchase Price & Currency */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-core-border">
                   <div className="form-group">
                     <label className="form-label">Purchase Price</label>
                     <input
@@ -285,7 +285,7 @@ export default function NewAssetPage() {
                     onChange={handleChange}
                     className="form-input"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-core-text3 mt-1">
                     Optional. Leave blank if no warranty.
                   </p>
                 </div>
@@ -301,7 +301,7 @@ export default function NewAssetPage() {
                     placeholder="e.g., BATCH-2024-001"
                     className="form-input"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-core-text3 mt-1">
                     Optional. Group assets purchased together.
                   </p>
                 </div>
@@ -317,7 +317,7 @@ export default function NewAssetPage() {
                     placeholder="https://example.com/photo.jpg"
                     className="form-input"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-core-text3 mt-1">
                     Optional. URL to asset photo.
                   </p>
                 </div>

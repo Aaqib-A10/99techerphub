@@ -5,14 +5,14 @@ import Link from 'next/link';
 type KpiColor = 'emerald' | 'blue' | 'amber' | 'rose' | 'yellow' | 'indigo' | 'violet' | 'slate';
 
 const KPI_STYLES: Record<KpiColor, { border: string; value: string; chip: string }> = {
-  emerald: { border: 'border-emerald-200', value: 'text-emerald-700', chip: 'bg-emerald-50 text-emerald-700' },
-  blue:    { border: 'border-blue-200',    value: 'text-blue-700',    chip: 'bg-blue-50 text-blue-700' },
-  amber:   { border: 'border-amber-200',   value: 'text-amber-700',   chip: 'bg-amber-50 text-amber-700' },
-  rose:    { border: 'border-rose-200',    value: 'text-rose-700',    chip: 'bg-rose-50 text-rose-700' },
-  yellow:  { border: 'border-yellow-200',  value: 'text-yellow-700',  chip: 'bg-yellow-50 text-yellow-700' },
-  indigo:  { border: 'border-indigo-200',  value: 'text-indigo-700',  chip: 'bg-indigo-50 text-indigo-700' },
-  violet:  { border: 'border-violet-200',  value: 'text-violet-700',  chip: 'bg-violet-50 text-violet-700' },
-  slate:   { border: 'border-slate-200',   value: 'text-slate-700',   chip: 'bg-slate-100 text-slate-700' },
+  emerald: { border: 'border-core-border', value: 'text-core-greenFg', chip: 'bg-core-greenSoft text-core-greenFg' },
+  blue:    { border: 'border-core-border',    value: 'text-core-blueFg',    chip: 'bg-core-blueSoft text-core-blueFg' },
+  amber:   { border: 'border-core-border',   value: 'text-core-amberFg',   chip: 'bg-core-amberSoft text-core-amberFg' },
+  rose:    { border: 'border-core-border',    value: 'text-core-roseFg',    chip: 'bg-core-roseSoft text-core-roseFg' },
+  yellow:  { border: 'border-core-border',  value: 'text-core-amberFg',  chip: 'bg-core-amberSoft text-core-amberFg' },
+  indigo:  { border: 'border-indigo-200',  value: 'text-core-blueFg',  chip: 'bg-core-blueSoft text-core-blueFg' },
+  violet:  { border: 'border-core-border',  value: 'text-core-violetFg',  chip: 'bg-core-violetSoft text-core-violetFg' },
+  slate:   { border: 'border-core-border',   value: 'text-core-text2',   chip: 'bg-core-surface2 text-core-text2' },
 };
 
 function KpiTile({
@@ -30,12 +30,12 @@ function KpiTile({
 }) {
   const s = KPI_STYLES[color];
   const inner = (
-    <div className={`rounded-xl border ${s.border} bg-white p-5 shadow-sm transition-all hover:shadow-md h-full`}>
+    <div className={`rounded-xl border ${s.border} bg-core-surface p-5 shadow-sm transition-all hover:shadow-md h-full`}>
       <div className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${s.chip}`}>
         {label}
       </div>
       <div className={`mt-3 text-3xl font-bold tabular-nums ${s.value}`}>{value}</div>
-      {sub && <div className="mt-1 text-xs text-gray-500">{sub}</div>}
+      {sub && <div className="mt-1 text-xs text-core-text3">{sub}</div>}
     </div>
   );
   return href ? <Link href={href} className="block h-full">{inner}</Link> : inner;
@@ -61,7 +61,7 @@ function SectionHeader({
       </div>
       <div>
         <h2 className="section-heading">{title}</h2>
-        {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+        {subtitle && <p className="text-xs text-core-text3">{subtitle}</p>}
       </div>
     </div>
   );
@@ -298,7 +298,7 @@ export default async function DashboardContent({
           title="Main"
           subtitle="Top-level summary across the organization"
           icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-          accent="bg-slate-100 text-slate-700"
+          accent="bg-core-surface2 text-core-text2"
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <KpiTile label="Active Employees" value={mainTotalEmployees} sub="Currently employed" color="emerald" href="/employees" />
@@ -314,7 +314,7 @@ export default async function DashboardContent({
           title="Employees"
           subtitle="Headcount, hiring, and lifecycle"
           icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-          accent="bg-emerald-100 text-emerald-700"
+          accent="bg-core-green text-core-greenFg"
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <KpiTile label="Active" value={empActive} sub="Currently employed" color="emerald" href="/employees" />
@@ -336,7 +336,7 @@ export default async function DashboardContent({
           title="Assets"
           subtitle="Hardware inventory and assignment"
           icon="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-          accent="bg-blue-100 text-blue-700"
+          accent="bg-core-blueSoft text-core-blueFg"
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <KpiTile label="Total Hardware" value={assetTotal} sub="Active inventory" color="blue" href="/assets" />
@@ -352,7 +352,7 @@ export default async function DashboardContent({
           title="Finance"
           subtitle="Payroll obligations and spend"
           icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          accent="bg-violet-100 text-violet-700"
+          accent="bg-core-violetSoft text-core-violetFg"
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <KpiTile label="Monthly Payroll" value={fmtMoney(payrollEstimate)} sub={`${activeIds.length} active employees`} color="violet" href="/finance/payroll" />
@@ -368,7 +368,7 @@ export default async function DashboardContent({
           title="Expenses"
           subtitle="Submissions and approvals"
           icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-          accent="bg-amber-100 text-amber-700"
+          accent="bg-core-amberSoft text-core-amberFg"
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <KpiTile label="Pending" value={expPending} sub="Awaiting approval" color="yellow" href="/expenses?status=PENDING" />

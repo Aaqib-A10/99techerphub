@@ -84,7 +84,7 @@ export default function MonthlyReportsPage() {
         }
       />
 
-      {error && <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+      {error && <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
 
       {showForm && (
         <div className="card mb-6">
@@ -120,13 +120,13 @@ export default function MonthlyReportsPage() {
       <div className="card mb-6">
         <div className="card-body">
           <div className="flex items-center gap-3 text-sm">
-            <span className="font-semibold text-gray-700">Report Status Flow:</span>
+            <span className="font-semibold text-core-text2">Report Status Flow:</span>
             <span className="badge badge-gray">Draft</span>
-            <span className="text-gray-400">→</span>
+            <span className="text-core-text3">→</span>
             <span className="badge badge-yellow">Under Review</span>
-            <span className="text-gray-400">→</span>
+            <span className="text-core-text3">→</span>
             <span className="badge badge-blue">Sent</span>
-            <span className="text-gray-400">→</span>
+            <span className="text-core-text3">→</span>
             <span className="badge badge-green">Acknowledged</span>
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function MonthlyReportsPage() {
       <div className="space-y-4">
         {reports.length === 0 ? (
           <div className="card">
-            <div className="card-body text-center py-12 text-gray-500">
+            <div className="card-body text-center py-12 text-core-text3">
               No reports generated yet. Click "Generate Report" to create your first monthly report.
             </div>
           </div>
@@ -151,7 +151,7 @@ export default function MonthlyReportsPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="section-heading">{report.title}</h3>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-core-text3 mt-1">
                         Period: {report.period} &middot; Generated: {new Date(report.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -171,7 +171,7 @@ export default function MonthlyReportsPage() {
                   {/* Toggle Summary */}
                   <button
                     onClick={() => setExpandedReport(isExpanded ? null : report.id)}
-                    className="mt-3 text-sm text-brand-primary hover:underline"
+                    className="mt-3 text-sm text-core-text2 hover:underline"
                   >
                     {isExpanded ? 'Hide Summary' : 'View Summary'}
                   </button>
@@ -199,10 +199,10 @@ export default function MonthlyReportsPage() {
                   )}
 
                   {report.sentAt && (
-                    <p className="mt-2 text-xs text-gray-400">Sent: {new Date(report.sentAt).toLocaleString()}</p>
+                    <p className="mt-2 text-xs text-core-text3">Sent: {new Date(report.sentAt).toLocaleString()}</p>
                   )}
                   {report.acknowledgedAt && (
-                    <p className="text-xs text-gray-400">Acknowledged: {new Date(report.acknowledgedAt).toLocaleString()}</p>
+                    <p className="text-xs text-core-text3">Acknowledged: {new Date(report.acknowledgedAt).toLocaleString()}</p>
                   )}
                 </div>
               </div>

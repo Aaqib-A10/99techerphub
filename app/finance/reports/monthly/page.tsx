@@ -162,7 +162,7 @@ export default function MonthlyReportsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">Loading reports...</p>
+        <p className="text-core-text3">Loading reports...</p>
       </div>
     );
   }
@@ -194,7 +194,7 @@ export default function MonthlyReportsPage() {
       />
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
+        <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">
           {error}
         </div>
       )}
@@ -263,14 +263,14 @@ export default function MonthlyReportsPage() {
       <div className="card mb-6">
         <div className="card-body">
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-semibold text-gray-700">Report Status Flow:</span>
+            <span className="font-semibold text-core-text2">Report Status Flow:</span>
             {statusStages.map((stage, idx) => (
               <div key={stage.status} className="flex items-center gap-2">
                 <span className={`badge ${statusColors[stage.status]}`}>
                   {stage.label}
                 </span>
                 {idx < statusStages.length - 1 && (
-                  <span className="text-gray-400">→</span>
+                  <span className="text-core-text3">→</span>
                 )}
               </div>
             ))}
@@ -282,7 +282,7 @@ export default function MonthlyReportsPage() {
       <div className="space-y-4">
         {reports.length === 0 ? (
           <div className="card">
-            <div className="card-body text-center py-12 text-gray-500">
+            <div className="card-body text-center py-12 text-core-text3">
               No reports generated yet. Click "Generate Report" to create your
               first monthly report.
             </div>
@@ -299,7 +299,7 @@ export default function MonthlyReportsPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="font-bold text-lg">{report.title}</h3>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-core-text3 mt-1">
                         Generated: {new Date(report.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -326,7 +326,7 @@ export default function MonthlyReportsPage() {
                   </div>
 
                   {/* Status Pipeline Indicator */}
-                  <div className="mb-4 p-3 bg-gray-50 rounded">
+                  <div className="mb-4 p-3 bg-core-surface2 rounded">
                     <div className="flex items-center justify-between">
                       {statusStages.map((stage, idx) => (
                         <div
@@ -336,13 +336,13 @@ export default function MonthlyReportsPage() {
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                               idx <= currentStatusIndex
-                                ? 'bg-brand-primary text-white'
-                                : 'bg-gray-300 text-gray-600'
+                                ? 'bg-core-text text-white'
+                                : 'bg-core-border text-core-text2'
                             }`}
                           >
                             {idx + 1}
                           </div>
-                          <div className="text-xs text-gray-600 mt-2 text-center">
+                          <div className="text-xs text-core-text2 mt-2 text-center">
                             {stage.label}
                           </div>
                         </div>
@@ -355,7 +355,7 @@ export default function MonthlyReportsPage() {
                     onClick={() =>
                       setExpandedReport(isExpanded ? null : report.id)
                     }
-                    className="text-sm text-brand-primary hover:underline font-medium"
+                    className="text-sm text-core-text2 hover:underline font-medium"
                   >
                     {isExpanded ? '▼ Hide Summary' : '▶ View Summary'}
                   </button>
@@ -363,59 +363,59 @@ export default function MonthlyReportsPage() {
                   {/* Summary Details */}
                   {isExpanded && (
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div className="p-3 bg-gray-50 rounded">
-                        <div className="text-xs text-gray-500">Headcount</div>
+                      <div className="p-3 bg-core-surface2 rounded">
+                        <div className="text-xs text-core-text3">Headcount</div>
                         <div className="text-xl font-bold">
                           {summary.headcount || 0}
                         </div>
                       </div>
-                      <div className="p-3 bg-blue-50 rounded">
-                        <div className="text-xs text-gray-500">New Hires</div>
-                        <div className="text-xl font-bold text-blue-600">
+                      <div className="p-3 bg-core-blueSoft rounded">
+                        <div className="text-xs text-core-text3">New Hires</div>
+                        <div className="text-xl font-bold text-core-blueFg">
                           {summary.newHires || 0}
                         </div>
                       </div>
-                      <div className="p-3 bg-red-50 rounded">
-                        <div className="text-xs text-gray-500">Exits</div>
-                        <div className="text-xl font-bold text-red-600">
+                      <div className="p-3 bg-core-roseSoft rounded">
+                        <div className="text-xs text-core-text3">Exits</div>
+                        <div className="text-xl font-bold text-core-roseFg">
                           {summary.exits || 0}
                         </div>
                       </div>
-                      <div className="p-3 bg-green-50 rounded">
-                        <div className="text-xs text-gray-500">Total Assets</div>
-                        <div className="text-xl font-bold text-green-600">
+                      <div className="p-3 bg-core-greenSoft rounded">
+                        <div className="text-xs text-core-text3">Total Assets</div>
+                        <div className="text-xl font-bold text-core-greenFg">
                           {summary.totalAssets || 0}
                         </div>
                       </div>
-                      <div className="p-3 bg-purple-50 rounded">
-                        <div className="text-xs text-gray-500">New Assets</div>
-                        <div className="text-xl font-bold text-purple-600">
+                      <div className="p-3 bg-core-violetSoft rounded">
+                        <div className="text-xs text-core-text3">New Assets</div>
+                        <div className="text-xl font-bold text-core-violetFg">
                           {summary.newAssets || 0}
                         </div>
                       </div>
-                      <div className="p-3 bg-yellow-50 rounded">
-                        <div className="text-xs text-gray-500">
+                      <div className="p-3 bg-core-amberSoft rounded">
+                        <div className="text-xs text-core-text3">
                           Expenses ({summary.totalExpenseCount || 0})
                         </div>
-                        <div className="text-lg font-bold text-yellow-700">
+                        <div className="text-lg font-bold text-core-amberFg">
                           PKR{' '}
                           {Math.round(
                             summary.totalExpenseAmount || 0
                           ).toLocaleString()}
                         </div>
                       </div>
-                      <div className="p-3 bg-green-100 rounded">
-                        <div className="text-xs text-gray-500">Payroll Gross</div>
-                        <div className="text-lg font-bold text-green-700">
+                      <div className="p-3 bg-core-greenSoft rounded">
+                        <div className="text-xs text-core-text3">Payroll Gross</div>
+                        <div className="text-lg font-bold text-core-greenFg">
                           PKR{' '}
                           {Math.round(
                             summary.payrollGross || 0
                           ).toLocaleString()}
                         </div>
                       </div>
-                      <div className="p-3 bg-blue-100 rounded">
-                        <div className="text-xs text-gray-500">Payroll Net</div>
-                        <div className="text-lg font-bold text-blue-700">
+                      <div className="p-3 bg-core-blueSoft rounded">
+                        <div className="text-xs text-core-text3">Payroll Net</div>
+                        <div className="text-lg font-bold text-core-blueFg">
                           PKR{' '}
                           {Math.round(
                             summary.payrollNet || 0
@@ -426,7 +426,7 @@ export default function MonthlyReportsPage() {
                   )}
 
                   {/* Timestamps */}
-                  <div className="mt-4 pt-4 border-t border-gray-200 space-y-1 text-xs text-gray-400">
+                  <div className="mt-4 pt-4 border-t border-core-border space-y-1 text-xs text-core-text3">
                     {report.sentAt && (
                       <p>
                         📤 Sent: {new Date(report.sentAt).toLocaleString()}
@@ -439,7 +439,7 @@ export default function MonthlyReportsPage() {
                       </p>
                     )}
                     {report.notes && (
-                      <p className="text-gray-600 mt-2">
+                      <p className="text-core-text2 mt-2">
                         <strong>Notes:</strong> {report.notes}
                       </p>
                     )}

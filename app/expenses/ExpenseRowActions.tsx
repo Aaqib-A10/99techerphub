@@ -54,7 +54,7 @@ export default function ExpenseRowActions({
       <button
         onClick={handleDelete}
         disabled={isDeleting}
-        className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 hover:border-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="inline-flex items-center gap-1 rounded-md border border-core-border bg-core-roseSoft px-2.5 py-1 text-xs font-semibold text-core-roseFg hover:bg-core-roseSoft hover:border-core-border disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         title={`Delete ${expenseNumber}`}
       >
         {isDeleting ? (

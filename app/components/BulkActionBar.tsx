@@ -88,11 +88,11 @@ const ICONS: Record<string, React.ReactNode> = {
 
 const VARIANT_CLASSES: Record<NonNullable<BulkAction['variant']>, string> = {
   default:
-    'bg-white text-zinc-700 ring-zinc-200/85 hover:bg-zinc-50 hover:ring-zinc-300',
+    'bg-core-surface text-core-text2 ring-core-border/85 hover:bg-core-surface2 hover:ring-core-border',
   success:
-    'bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100',
-  warning: 'bg-amber-50 text-amber-700 ring-amber-200 hover:bg-amber-100',
-  danger: 'bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100',
+    'bg-core-greenSoft text-core-greenFg ring-core-greenFg hover:bg-core-green',
+  warning: 'bg-core-amberSoft text-core-amberFg ring-amber-200 hover:bg-core-amberSoft',
+  danger: 'bg-core-roseSoft text-core-roseFg ring-rose-200 hover:bg-core-roseSoft',
 };
 
 /* ---------- spinner ---------- */
@@ -147,14 +147,14 @@ export default function BulkActionBar({
     <div
       role="toolbar"
       aria-label="Bulk actions"
-      className="fixed bottom-6 left-1/2 z-50 flex max-w-[92vw] -translate-x-1/2 flex-wrap items-center gap-3 rounded-xl bg-white px-4 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.08)] ring-1 ring-zinc-200/85"
+      className="fixed bottom-6 left-1/2 z-50 flex max-w-[92vw] -translate-x-1/2 flex-wrap items-center gap-3 rounded-xl bg-core-surface px-4 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.08)] ring-1 ring-core-border/85"
     >
       {/* selection count */}
       <div className="flex items-center gap-2">
-        <span className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-full bg-emerald-500 px-2 text-[12px] font-semibold text-white tabular-nums">
+        <span className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-full bg-core-green px-2 text-[12px] font-semibold text-white tabular-nums">
           {selectedCount}
         </span>
-        <span className="text-[13px] text-zinc-700">selected</span>
+        <span className="text-[13px] text-core-text2">selected</span>
       </div>
 
       {/* select all / clear */}
@@ -163,7 +163,7 @@ export default function BulkActionBar({
           <button
             type="button"
             onClick={onSelectAll}
-            className="font-medium text-emerald-600 hover:text-emerald-700"
+            className="font-medium text-core-greenFg hover:text-core-greenFg"
           >
             Select all {totalCount}
           </button>
@@ -171,13 +171,13 @@ export default function BulkActionBar({
         <button
           type="button"
           onClick={onDeselectAll}
-          className="text-zinc-500 hover:text-zinc-700"
+          className="text-core-text3 hover:text-core-text2"
         >
           Clear
         </button>
       </div>
 
-      <div className="h-6 w-px bg-zinc-200" />
+      <div className="h-6 w-px bg-core-border" />
 
       {/* actions */}
       <div className="flex flex-wrap items-center gap-1.5">
