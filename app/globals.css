@@ -59,42 +59,19 @@ body {
 }
 
 /* ============================================================
-   Sidebar — light surface, slim, monochromatic.
-   Width is driven by --sidebar-w (set by Sidebar.tsx). When the user
-   collapses, .sidebar gets a `sidebar-rail` modifier and width drops
-   to ~60px showing icons only.
+   Sidebar — Phase 3 design system shell. Visuals (background, borders,
+   typography) live on the React component via Tailwind tokens. This
+   stylesheet owns only layout: position, width, scroll, mobile slide.
    ============================================================ */
 :root {
-  --sidebar-w: 224px;
+  --sidebar-w: 232px;
 }
 
 .sidebar {
   @apply fixed left-0 top-0 h-screen z-50;
-  width: var(--sidebar-w, 224px);
-  background-color: #FAFAFA;
-  border-right: 1px solid rgba(228, 228, 231, 0.85);
-  overflow-y: auto;
+  width: var(--sidebar-w, 232px);
   overflow-x: hidden;
   transition: width 0.18s ease, transform 0.2s ease;
-  color: #18181B;
-}
-
-/* Rail mode — icons only, label hidden */
-.sidebar-rail .sidebar-link {
-  justify-content: center;
-  padding-left: 6px;
-  padding-right: 6px;
-}
-.sidebar-rail .sidebar-link span {
-  display: none;
-}
-.sidebar-rail .sidebar-brand {
-  padding: 14px 0 12px;
-  display: flex;
-  justify-content: center;
-}
-.sidebar-rail .sidebar-nav {
-  padding: 10px 6px;
 }
 
 @media (max-width: 1023px) {
@@ -106,113 +83,11 @@ body {
   }
 }
 
-.sidebar-brand {
-  padding: 18px 16px 14px;
-  border-bottom: 1px solid rgba(228, 228, 231, 0.85);
-}
-
-.sidebar-brand h1 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: #09090B;
-  line-height: 1.2;
-}
-
-.sidebar-tagline {
-  margin: 4px 0 0;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #A1A1AA;
-}
-
-.sidebar-nav {
-  padding: 10px 8px;
-}
-
-.sidebar-link {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #52525B;
-  border-radius: 6px;
-  transition: all 0.15s ease;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-}
-
-.sidebar-link svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  stroke-width: 1.6;
-  opacity: 0.85;
-}
-
-.sidebar-link:hover:not(.active):not(.coming-soon) {
-  background-color: rgba(228, 228, 231, 0.55);
-  color: #09090B;
-}
-
-.sidebar-link.active {
-  background-color: #FFFFFF;
-  color: #09090B;
-  font-weight: 600;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-}
-
-.sidebar-link.active::before {
-  content: '';
-  position: absolute;
-  left: -2px;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  border-radius: 0 2px 2px 0;
-  background-color: #0B1F3A;
-}
-
-.sidebar-link.coming-soon {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.sidebar-sublink {
-  display: flex;
-  align-items: center;
-  padding: 6px 10px;
-  font-size: 12.5px;
-  color: #71717A;
-  border-radius: 6px;
-  transition: all 0.15s ease;
-}
-
-.sidebar-sublink:hover:not(.active) {
-  background-color: rgba(228, 228, 231, 0.55);
-  color: #09090B;
-}
-
-.sidebar-sublink.active {
-  color: #09090B;
-  font-weight: 600;
-}
-
 /* ============================================================
    Main layout
    ============================================================ */
 .main-wrapper {
-  margin-left: var(--sidebar-w, 224px);
-  background-color: #FAFAFA;
+  margin-left: var(--sidebar-w, 232px);
   min-height: 100vh;
   transition: margin-left 0.18s ease;
 }
