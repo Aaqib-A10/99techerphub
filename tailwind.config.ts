@@ -17,7 +17,8 @@ const config: Config = {
           'light': '#E8F5E9',
           'lighter': '#F1F8E9',
         },
-        // Architectural Ledger tokens
+        // Architectural Ledger tokens (legacy — pages migrated off these
+        // can stop importing them; kept here so unmigrated pages still build).
         'ledger': {
           'navy': '#0B1F3A',          // primary-container
           'navy-hover': '#152B4C',
@@ -32,6 +33,40 @@ const config: Config = {
           'outline-variant': '#C4C6CE',
           'amber': '#F59E0B',         // warning
           'rose': '#E11D48',          // error/overdue
+        },
+        // 99Core design system (Phase 1 — design handoff). Light theme
+        // tokens; dark theme will overlay these later via CSS vars.
+        // Use Tailwind utilities like `bg-core-surface`, `text-core-text2`,
+        // `bg-core-greenSoft`, etc.
+        'core': {
+          // Surfaces + text
+          'bg':       '#F4F5F2',
+          'surface':  '#FFFFFF',
+          'surface2': '#F7F8F4',
+          'border':   '#E5E8DD',
+          'border2':  '#DDE0D6',
+          'text':     '#1F2320',
+          'text2':    '#5A6159',
+          'text3':    '#8B918A',
+          // Accent palette — each accent has solid / soft (bg) / fg (text on soft)
+          'green':       '#8FBF3F',
+          'greenSoft':   '#EFF6E0',
+          'greenFg':     '#4A7014',
+          'rose':        '#B83232',
+          'roseSoft':    '#FBEBEB',
+          'roseFg':      '#9E2A2A',
+          'blue':        '#2C6FBA',
+          'blueSoft':    '#E7F0FA',
+          'blueFg':      '#1E5390',
+          'amber':       '#A66600',
+          'amberSoft':   '#FCF2E0',
+          'amberFg':     '#8A5A00',
+          'violet':      '#6B4CBF',
+          'violetSoft':  '#EEE8FA',
+          'violetFg':    '#4F2E8E',
+          'pink':        '#B84477',
+          'pinkSoft':    '#FAE4ED',
+          'pinkFg':      '#8A2A57',
         },
       },
       fontFamily: {
