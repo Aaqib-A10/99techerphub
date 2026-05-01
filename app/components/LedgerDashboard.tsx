@@ -243,23 +243,19 @@ export default async function LedgerDashboard({
 
   return (
     <div className="font-sans text-core-text antialiased">
-      {/* Hero — quiet greeting + scope chip */}
-      <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1
-            className="text-[28px] font-semibold text-core-text leading-[1.1]"
-            style={{ letterSpacing: '-0.025em' }}
-          >
-            {greeting}
-          </h1>
-          <p className="mt-2 text-[14px] text-core-text2">
-            {today} · Viewing {scopeLabel.toLowerCase()}
-          </p>
-        </div>
-        <span className="inline-flex items-center gap-[6px] rounded-full border border-core-border bg-core-surface px-3 py-[7px] text-[12.5px] font-medium text-core-text2">
-          <span className="h-[6px] w-[6px] rounded-full bg-core-green" />
-          {scopeLabel}
-        </span>
+      {/* Hero — h1 + date subtitle. The scope dropdowns live above this
+          component (see DashboardFilterBar in app/page.tsx); a second scope
+          chip here would be visual duplication. */}
+      <div className="mb-9">
+        <h1
+          className="text-[28px] font-semibold text-core-text leading-[1.1]"
+          style={{ letterSpacing: '-0.025em' }}
+        >
+          {greeting}
+        </h1>
+        <p className="mt-2 text-[14px] text-core-text2">
+          {today} · Viewing {scopeLabel.toLowerCase()}
+        </p>
       </div>
 
       {/* KPI strip — 5 tiles, varied tones for visual rhythm */}
