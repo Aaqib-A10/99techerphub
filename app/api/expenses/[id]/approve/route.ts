@@ -13,6 +13,11 @@ export async function POST(
     if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    // Approvals are an admin/finance/accountant action — submitters
+    // cannot approve their own expense.
+    if (!['ADMIN', 'FINANCE', 'ACCOUNTANT'].includes(ctx.user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const expenseId = parseInt(params.id);
 

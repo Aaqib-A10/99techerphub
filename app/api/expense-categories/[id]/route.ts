@@ -11,6 +11,9 @@ export async function PATCH(
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (currentUser.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const id = parseInt(params.id);
     const data = await request.json();
@@ -65,6 +68,9 @@ export async function DELETE(
     const currentUser = await getSessionUser();
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (currentUser.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const id = parseInt(params.id);

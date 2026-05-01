@@ -9,6 +9,9 @@ export async function GET() {
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!["ADMIN", "ACCOUNTANT", "MANAGER"].includes(currentUser.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const commissions = await prisma.commission.findMany({
       include: { employee: { select: { firstName: true, lastName: true, empCode: true } } },
@@ -26,6 +29,9 @@ export async function POST(request: NextRequest) {
     const currentUser = await getSessionUser();
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!["ADMIN", "ACCOUNTANT", "MANAGER"].includes(currentUser.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const data = await request.json();

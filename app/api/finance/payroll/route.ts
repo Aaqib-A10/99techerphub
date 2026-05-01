@@ -10,6 +10,9 @@ export async function GET() {
     if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!["ADMIN", "ACCOUNTANT", "MANAGER"].includes(ctx.user.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const db = tenantPrisma(ctx.companyIds);
     const payrollRuns = await db.payrollRun.findMany({
@@ -32,6 +35,9 @@ export async function POST(request: NextRequest) {
     const ctx = await getSessionContext();
     if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!["ADMIN", "ACCOUNTANT", "MANAGER"].includes(ctx.user.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const data = await request.json();

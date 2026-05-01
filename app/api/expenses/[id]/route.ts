@@ -33,6 +33,11 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // EMPLOYEE viewers can only see expenses they themselves submitted.
+    if (ctx.user.role === 'EMPLOYEE' && expense.submittedById !== ctx.user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     return NextResponse.json(expense);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch expense' }, { status: 500 });
@@ -47,6 +52,12 @@ export async function DELETE(
     const ctx = await getSessionContext();
     if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    // Only ADMIN / FINANCE / ACCOUNTANT can delete an expense outright.
+    // The submitter can withdraw a DRAFT through a different flow, but
+    // this endpoint is a hard delete.
+    if (!['ADMIN', 'FINANCE', 'ACCOUNTANT'].includes(ctx.user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const id = parseInt(params.id);

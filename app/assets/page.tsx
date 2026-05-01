@@ -6,6 +6,7 @@ import AssetTable from './AssetTable';
 import DateFilter from '@/app/components/DateFilter';
 import SplitButton from '@/app/components/SplitButton';
 import { KpiTile, Card } from '@/app/components/design';
+import { ASSET_ROLES, requireRoleOrRedirect } from '@/lib/auth';
 
 /**
  * Extract a spec value from the JSON blob using case-insensitive
@@ -46,6 +47,11 @@ export default async function AssetsPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
+  // Asset directory is admin/HR/manager/finance only. Employees see
+  // their own assigned assets through the EmployeeDashboard widget — they
+  // never need to browse the org-wide list.
+  await requireRoleOrRedirect(ASSET_ROLES);
+
   // --------------------------------------------------------------
   // 1. Parse query params → filters + pagination
   // --------------------------------------------------------------

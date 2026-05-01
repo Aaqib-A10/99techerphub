@@ -10,6 +10,9 @@ export async function GET(request: NextRequest) {
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!["ADMIN", "HR", "MANAGER", "ACCOUNTANT"].includes(currentUser.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const { searchParams } = new URL(request.url);
     const meta = searchParams.get('meta');
@@ -62,6 +65,9 @@ export async function POST(request: NextRequest) {
     const currentUser = await getSessionUser();
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!["ADMIN", "HR", "MANAGER", "ACCOUNTANT"].includes(currentUser.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const data = await request.json();

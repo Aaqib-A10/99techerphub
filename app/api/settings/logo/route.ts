@@ -49,6 +49,9 @@ export async function GET() {
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (currentUser.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const current = await findCurrentLogo();
     return NextResponse.json({ logo: current });

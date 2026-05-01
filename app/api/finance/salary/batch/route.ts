@@ -15,6 +15,9 @@ export async function GET() {
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!["ADMIN", "ACCOUNTANT", "MANAGER"].includes(currentUser.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const salaries = await prisma.salaryHistory.findMany({
       where: { effectiveTo: null },

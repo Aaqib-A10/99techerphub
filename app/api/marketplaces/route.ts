@@ -5,6 +5,7 @@ import { getSessionUser } from '@/lib/auth';
 export async function GET(request: NextRequest) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (user.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { searchParams } = new URL(request.url);
   const includeInactive = searchParams.get('includeInactive') === '1';
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (user.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!['ADMIN', 'HR'].includes(user.role)) {
     return NextResponse.json({ error: 'Admin/HR only' }, { status: 403 });
   }

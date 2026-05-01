@@ -159,6 +159,67 @@ export async function requireRole(roles: UserRole[]): Promise<User & { role: Use
   return user;
 }
 
+// Role bundles used by page/layout guards. Single source of truth so a
+// future role rename only has to be applied here.
+//
+// The Prisma UserRole enum has five values: ADMIN, HR, MANAGER, EMPLOYEE,
+// ACCOUNTANT. There is no FINANCE role — finance work is done by
+// ACCOUNTANT. Older code referred to FINANCE in places; treat any sighting
+// as a synonym for ACCOUNTANT.
+export const ADMIN_ONLY: UserRole[] = ['ADMIN'];
+export const HR_ROLES: UserRole[] = ['ADMIN', 'HR'];
+export const FINANCE_ROLES: UserRole[] = ['ADMIN', 'ACCOUNTANT'];
+export const ASSET_ROLES: UserRole[] = ['ADMIN', 'HR', 'MANAGER', 'ACCOUNTANT'];
+export const BROWSE_ROLES: UserRole[] = ['ADMIN', 'HR', 'MANAGER', 'ACCOUNTANT'];
+
+/**
+ * Page/layout-friendly variant of requireRole — redirects instead of throwing.
+ *
+ *   - No session → /login
+ *   - Role mismatch → /unauthorized (or the override path)
+ *
+ * Use from a server component (page.tsx or layout.tsx). Returning null is
+ * not part of the contract: this function either returns a user or never
+ * returns at all (Next.js short-circuits the response on redirect()).
+ */
+export async function requireRoleOrRedirect(
+  roles: UserRole[],
+  forbiddenPath: string = '/unauthorized',
+): Promise<User & { role: UserRole }> {
+  // Pulling redirect at call time keeps the import server-only. The
+  // function is typed to return `never`, but the dynamic import erases
+  // that — assert non-null after the redirect calls so the caller still
+  // gets the User type rather than `User | null`.
+  const { redirect } = await import('next/navigation');
+  const user = await getSessionUser();
+  if (!user) redirect('/login');
+  if (!roles.includes(user!.role)) redirect(forbiddenPath);
+  return user!;
+}
+
+/**
+ * API-route-friendly role check. Returns null on auth failure (caller
+ * should immediately return a 401/403 response). Does NOT throw and does
+ * NOT redirect — those are page-level concerns.
+ */
+export async function requireRoleApi(
+  roles: UserRole[],
+): Promise<{ user: User & { role: UserRole } } | { error: NextResponseError }> {
+  const user = await getSessionUser();
+  if (!user) {
+    return { error: { status: 401, body: { error: 'Unauthorized' } } };
+  }
+  if (!roles.includes(user.role)) {
+    return { error: { status: 403, body: { error: 'Forbidden' } } };
+  }
+  return { user };
+}
+
+interface NextResponseError {
+  status: 401 | 403;
+  body: { error: string };
+}
+
 /**
  * Set the session cookie on the response
  */

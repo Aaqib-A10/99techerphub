@@ -9,6 +9,9 @@ export async function GET(request: NextRequest) {
     if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!["ADMIN", "ACCOUNTANT", "MANAGER"].includes(ctx.user.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const db = tenantPrisma(ctx.companyIds);
     const searchParams = request.nextUrl.searchParams;
@@ -47,6 +50,9 @@ export async function POST(request: NextRequest) {
     const ctx = await getSessionContext();
     if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!["ADMIN", "ACCOUNTANT", "MANAGER"].includes(ctx.user.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const data = await request.json();
@@ -166,6 +172,9 @@ export async function PATCH(request: NextRequest) {
     const ctx = await getSessionContext();
     if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!["ADMIN", "ACCOUNTANT", "MANAGER"].includes(ctx.user.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const data = await request.json();

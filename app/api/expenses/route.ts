@@ -30,7 +30,12 @@ export async function GET(request: NextRequest) {
     }
 
     const db = tenantPrisma(ctx.companyIds);
+    // EMPLOYEE viewers only see expenses they themselves submitted —
+    // the broad org list is for admin / finance / accountant / manager.
+    const isEmployeeRole = ctx.user.role === 'EMPLOYEE';
+    const where = isEmployeeRole ? { submittedById: ctx.user.id } : {};
     const expenses = await db.expense.findMany({
+      where,
       include: {
         category: true,
         company: true,
@@ -80,13 +85,27 @@ export async function POST(request: NextRequest) {
       return `${prefix}-${String(nextSeq).padStart(4, '0')}`;
     });
 
+    // Force EMPLOYEE-role submitters to use their own employeeId — they
+    // can't submit an expense in someone else's name. Higher roles
+    // (ADMIN/FINANCE/ACCOUNTANT/HR/MANAGER) can submit on behalf.
+    const isEmployeeRole = currentUser.role === 'EMPLOYEE';
+    const submittedById = isEmployeeRole
+      ? currentUser.employeeId ?? null
+      : parseInt(data.submittedById);
+    if (!submittedById || Number.isNaN(submittedById)) {
+      return NextResponse.json(
+        { error: 'Invalid submittedById' },
+        { status: 400 },
+      );
+    }
+
     const expense = await prisma.expense.create({
       data: {
         expenseNumber,
         categoryId: parseInt(data.categoryId),
         companyId: parseInt(data.companyId),
         departmentId: data.departmentId ? parseInt(data.departmentId) : null,
-        submittedById: parseInt(data.submittedById),
+        submittedById,
         amount: parseCurrency(data.amount),
         currency: data.currency || 'PKR',
         description: data.description,

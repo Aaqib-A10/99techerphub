@@ -90,6 +90,9 @@ export async function GET(
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (currentUser.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const type = getTypeParam(request);
     if (!type)
@@ -122,6 +125,9 @@ export async function PATCH(
     const currentUser = await getSessionUser();
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (currentUser.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const type = getTypeParam(request);
@@ -209,6 +215,9 @@ export async function DELETE(
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (currentUser.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const type = getTypeParam(request);
     if (!type)
@@ -286,6 +295,9 @@ export async function POST(
     const currentUser = await getSessionUser();
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (currentUser.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const type = getTypeParam(request);

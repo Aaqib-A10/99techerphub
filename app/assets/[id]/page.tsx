@@ -1,11 +1,12 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import StatusBadge from '@/components/StatusBadge';
 import AssetDetailClient from './client';
 import AssetSpecsEditor from './specs-editor';
 import NotesEditor from './notes-editor';
 import { AssetInfoEditor, PurchaseEditor, StatusEditor } from './section-editors';
+import { ASSET_ROLES, getSessionUser } from '@/lib/auth';
 
 function calculateWarrantyStatus(warrantyExpiry: Date | null) {
   if (!warrantyExpiry) return { daysRemaining: null, status: 'unknown', badgeColor: 'gray' };
@@ -62,6 +63,22 @@ export default async function AssetDetailPage({
   const assetId = parseInt(params.id);
   if (isNaN(assetId)) {
     notFound();
+  }
+
+  // Gate: admin/HR/manager/finance can see any asset; an EMPLOYEE may
+  // only view an asset that's currently assigned to them (linked from
+  // their dashboard's "My Assets" widget). Anyone else lands on
+  // /unauthorized rather than a 404, so the leaked URL doesn't reveal
+  // whether the asset exists.
+  const user = await getSessionUser();
+  if (!user) redirect('/login');
+  if (!ASSET_ROLES.includes(user.role)) {
+    if (!user.employeeId) redirect('/unauthorized');
+    const ownsAsset = await prisma.assetAssignment.findFirst({
+      where: { assetId, employeeId: user.employeeId, returnedDate: null },
+      select: { id: true },
+    });
+    if (!ownsAsset) redirect('/unauthorized');
   }
 
   const asset = await prisma.asset.findUnique({

@@ -1,14 +1,18 @@
 import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import ExpenseDetailClient from './client';
 import PageHero from '@/app/components/PageHero';
+import { getSessionUser } from '@/lib/auth';
 
 export default async function ExpenseDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const user = await getSessionUser();
+  if (!user) redirect('/login');
+
   const expense = await prisma.expense.findUnique({
     where: { id: parseInt(params.id) },
     include: {
@@ -24,6 +28,12 @@ export default async function ExpenseDetailPage({
   });
 
   if (!expense) return notFound();
+
+  // EMPLOYEE viewers only see expenses they themselves submitted.
+  // Higher roles (admin / finance / accountant / manager / hr) see any.
+  if (user.role === 'EMPLOYEE' && expense.submittedById !== user.id) {
+    redirect('/unauthorized');
+  }
 
   // Fetch related audit logs
   const auditLogs = await prisma.auditLog.findMany({

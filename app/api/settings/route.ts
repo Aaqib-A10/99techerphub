@@ -8,6 +8,9 @@ export async function GET() {
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (currentUser.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     const [companies, departments, locations, assetCategories, expenseCategories] = await Promise.all([
       prisma.company.findMany({ orderBy: { name: 'asc' } }),
@@ -27,6 +30,9 @@ export async function POST(request: NextRequest) {
     const currentUser = await getSessionUser();
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (currentUser.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const data = await request.json();

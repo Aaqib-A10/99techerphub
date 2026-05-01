@@ -8,6 +8,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (!ctx) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (!["ADMIN", "ACCOUNTANT", "MANAGER"].includes(ctx.user.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const id = parseInt(params.id);
 

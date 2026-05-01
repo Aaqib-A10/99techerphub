@@ -1,10 +1,15 @@
 import { prisma } from '@/lib/prisma';
 import EmployeeListClient from './client';
 import SplitButton from '@/app/components/SplitButton';
+import { BROWSE_ROLES, requireRoleOrRedirect } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function EmployeesPage() {
+  // Employee role does not need to browse the directory — they see their own
+  // profile + their team via the EmployeeDashboard. Anyone else with
+  // legitimate need (HR / Manager / Finance / Accountant / Admin) is allowed.
+  await requireRoleOrRedirect(BROWSE_ROLES);
   // Fetch employees with their multi-company assignments from the join table
   const employeesRaw = await prisma.employee.findMany({
     include: {
