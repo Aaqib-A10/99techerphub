@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma';
 import EmployeeListClient from './client';
-import PageHero from '@/app/components/PageHero';
 import SplitButton from '@/app/components/SplitButton';
 
 export const dynamic = 'force-dynamic';
@@ -93,11 +92,26 @@ export default async function EmployeesPage() {
 
   return (
     <div>
-      <PageHero
-        eyebrow="People / Directory"
-        title="Employees"
-        description="Manage employee lifecycle from offer to exit"
-        actions={
+      {/* Page header — design system aesthetic. Eyebrow + title + subtitle, actions to the right. */}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <div
+            className="mb-[6px] text-[10.5px] font-semibold uppercase text-core-text3"
+            style={{ letterSpacing: '0.09em' }}
+          >
+            People · Directory
+          </div>
+          <h1
+            className="text-[22px] font-semibold leading-tight text-core-text"
+            style={{ letterSpacing: '-0.018em' }}
+          >
+            Employees
+          </h1>
+          <p className="mt-[2px] text-[13px] text-core-text2">
+            Manage employee lifecycle from offer to exit
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
           <SplitButton
             primary={{
               label: 'Add Employee',
@@ -131,8 +145,8 @@ export default async function EmployeesPage() {
               },
             ]}
           />
-        }
-      />
+        </div>
+      </div>
 
       <EmployeeListClient
         initialEmployees={employees as any[]}

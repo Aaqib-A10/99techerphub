@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import Link from 'next/link';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ExportButton from '@/components/ExportButton';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
 import DateFilter from '@/app/components/DateFilter';
 import FilterChip from '@/app/components/FilterChip';
+import { KpiTile, Card, Badge, Tag, Avi, Btn } from '@/app/components/design';
 
 // Three-way employment lifecycle filter for the employees list.
 // Kept in URL-param form so dashboard tiles can deep-link e.g. ?status=exited.
@@ -300,67 +300,39 @@ export default function EmployeeListClient({
     { key: 'delete', label: 'Delete', variant: 'danger' as const, confirm: 'Permanently delete {count} employee(s)? This cannot be undone.' },
   ];
 
+  // KPI tiles — clickable, deep-link into the relevant filter view.
+  const totalActive = filters.lifecycleView === 'all' && !filters.status;
+  const activeOnly = filters.lifecycleView === 'active' && !filters.status;
+  const exitedOnly = filters.lifecycleView === 'exited';
+  const probationOnly = filters.status === 'PROBATION';
+
+  const kpiTileWrapper = (active: boolean, onClick: () => void, child: React.ReactNode) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full text-left transition focus:outline-none ${
+        active
+          ? 'rounded-2xl ring-2 ring-core-text/15 ring-offset-2 ring-offset-core-bg'
+          : 'hover:opacity-90'
+      }`}
+    >
+      {child}
+    </button>
+  );
+
   return (
     <div>
-      {/* Enhanced Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-        <div
-          className={`stat-card cursor-pointer hover:shadow-md transition ${
-            filters.lifecycleView === 'all' && !filters.status ? 'ring-2 ring-emerald-500 ring-offset-1' : ''
-          }`}
-          onClick={() => {
-            setFilters({ ...filters, lifecycleView: 'all', status: '' });
-            setCurrentPage(1);
-          }}
-          title="Click to view all employees"
-        >
-          <div className="stat-label">Total Employees</div>
-          <div className="stat-value">{stats.total}</div>
-          <div className="text-[11px] mt-1" style={{ color: '#75777E' }}>All time hired</div>
-        </div>
-        <div
-          className={`stat-card cursor-pointer hover:shadow-md transition ${
-            filters.lifecycleView === 'active' && !filters.status ? 'ring-2 ring-emerald-500 ring-offset-1' : ''
-          }`}
-          onClick={() => {
-            setFilters({ ...filters, lifecycleView: 'active', status: '' });
-            setCurrentPage(1);
-          }}
-          title="Click to view active employees"
-        >
-          <div className="stat-label">Active</div>
-          <div className="stat-value text-green-600">{stats.active}</div>
-        </div>
-        <div
-          className={`stat-card cursor-pointer hover:shadow-md transition ${
-            filters.lifecycleView === 'exited' ? 'ring-2 ring-emerald-500 ring-offset-1' : ''
-          }`}
-          onClick={() => {
-            setFilters({ ...filters, lifecycleView: 'exited', status: '' });
-            setCurrentPage(1);
-          }}
-          title="Click to view exited employees"
-        >
-          <div className="stat-label">Exited</div>
-          <div className="stat-value text-slate-600">{stats.exited ?? 0}</div>
-        </div>
-        <div
-          className={`stat-card cursor-pointer hover:shadow-md transition ${
-            filters.status === 'PROBATION' ? 'ring-2 ring-emerald-500 ring-offset-1' : ''
-          }`}
-          onClick={() => {
-            setFilters({ ...filters, lifecycleView: 'active', status: 'PROBATION' });
-            setCurrentPage(1);
-          }}
-          title="Click to view employees on probation"
-        >
-          <div className="stat-label">On Probation</div>
-          <div className="stat-value text-blue-600">{stats.onProbation}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">New This Month</div>
-          <div className="stat-value text-purple-600">{stats.newThisMonth}</div>
-        </div>
+      {/* KPI strip — 5 tinted Apple Wallet tiles per design */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        {kpiTileWrapper(totalActive, () => { setFilters({ ...filters, lifecycleView: 'all', status: '' }); setCurrentPage(1); },
+          <KpiTile tone="green" label="Total Employees" value={stats.total} meta="All time hired" />)}
+        {kpiTileWrapper(activeOnly, () => { setFilters({ ...filters, lifecycleView: 'active', status: '' }); setCurrentPage(1); },
+          <KpiTile tone="blue" label="Active" value={stats.active} />)}
+        {kpiTileWrapper(exitedOnly, () => { setFilters({ ...filters, lifecycleView: 'exited', status: '' }); setCurrentPage(1); },
+          <KpiTile tone="rose" label="Exited" value={stats.exited ?? 0} />)}
+        {kpiTileWrapper(probationOnly, () => { setFilters({ ...filters, lifecycleView: 'active', status: 'PROBATION' }); setCurrentPage(1); },
+          <KpiTile tone="amber" label="On Probation" value={stats.onProbation} />)}
+        <KpiTile tone="violet" label="New This Month" value={stats.newThisMonth} />
       </div>
 
       {/* Compact toolbar — search + chip filters + export */}
@@ -491,150 +463,126 @@ export default function EmployeeListClient({
       </div>
 
       {/* Employee Table */}
-      <div className="card">
-        <div className="card-header flex justify-between items-center">
-          <h2 className="section-heading">All Employees</h2>
-          <span className="text-sm text-gray-500">
-            Showing {paginatedEmployees.length} of {filteredEmployees.length} records
-          </span>
-        </div>
-        <div className="table-wrapper">
-          <table className="table">
+      <Card
+        title="All Employees"
+        subtitle={`Showing ${paginatedEmployees.length} of ${filteredEmployees.length} records`}
+        padded={false}
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full text-[12.5px]" style={{ borderCollapse: 'collapse' }}>
             <thead>
-              <tr>
-                <th style={{ width: 40 }}>
+              <tr className="bg-core-surface2">
+                <th className="border-b border-core-border px-[14px] py-[10px] text-left" style={{ width: 40 }}>
                   <input
                     type="checkbox"
                     checked={allPageSelected}
                     onChange={togglePageSelect}
                     onClick={(e) => e.stopPropagation()}
-                    style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                    style={{ width: 14, height: 14, cursor: 'pointer', accentColor: '#1F2320' }}
                   />
                 </th>
-                <th>Emp Code</th>
-                <th>Name</th>
-                <th>Department</th>
-                <th>Team</th>
-                <th>Bill to</th>
-                <th>Designation</th>
-                <th>Status</th>
-                <th>Joining Date</th>
-                <th className="col-sticky-right">Actions</th>
+                {['Emp Code', 'Name', 'Department', 'Team', 'Bill To', 'Designation', 'Status', 'Joining Date', 'Actions'].map((h) => (
+                  <th
+                    key={h}
+                    className="border-b border-core-border px-[14px] py-[10px] text-left text-[10px] font-bold uppercase text-core-text3"
+                    style={{ letterSpacing: '0.08em' }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {paginatedEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="text-center py-12 text-gray-500">
+                  <td colSpan={10} className="px-[14px] py-12 text-center text-core-text3">
                     {filteredEmployees.length === 0
                       ? 'No employees found. Try adjusting your filters.'
                       : 'No employees on this page.'}
                   </td>
                 </tr>
               ) : (
-                paginatedEmployees.map((emp) => (
-                  <tr
-                    key={emp.id}
-                    onClick={() => handleRowClick(emp.id)}
-                    className="cursor-pointer hover:bg-gray-50 transition-colors"
-                    style={selectedIds.has(emp.id) ? { backgroundColor: 'rgba(20, 184, 166, 0.06)' } : undefined}
-                  >
-                    <td onClick={(e) => e.stopPropagation()} style={{ width: 40 }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(emp.id)}
-                        onChange={() => toggleSelect(emp.id)}
-                        style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
-                      />
-                    </td>
-                    <td style={{ whiteSpace: 'nowrap', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.85rem', fontWeight: 600, color: '#0B1F3A' }}>
-                      {emp.empCode}
-                    </td>
-                    <td>
-                      <div className="font-medium">
-                        {emp.firstName} {emp.lastName}
-                      </div>
-                      {emp.email && <div className="text-xs text-gray-500">{emp.email}</div>}
-                    </td>
-                    <td>{emp.department.name}</td>
-                    <td>
-                      {(() => {
-                        const team = getTeam(emp.empCode, emp.designation);
-                        return team ? (
-                          <span style={{
-                            display: 'inline-block',
-                            backgroundColor: 'rgba(20, 184, 166, 0.08)',
-                            color: '#0B1F3A',
-                            fontFamily: 'JetBrains Mono, monospace',
-                            fontSize: '0.65rem',
-                            fontWeight: 700,
-                            padding: '2px 8px',
-                            borderRadius: 9999,
-                            whiteSpace: 'nowrap',
-                          }}>
-                            {team}
-                          </span>
-                        ) : <span style={{ color: '#C4C6CE' }}>—</span>;
-                      })()}
-                    </td>
-                    <td>
-                      {emp.companies && emp.companies.length > 0 ? (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                          {emp.companies.map((c) => (
-                            <span
-                              key={c.id}
-                              style={{
-                                display: 'inline-block',
-                                backgroundColor: 'rgba(11, 31, 58, 0.08)',
-                                color: '#0B1F3A',
-                                fontFamily: 'JetBrains Mono, monospace',
-                                fontSize: '0.65rem',
-                                fontWeight: 700,
-                                padding: '2px 8px',
-                                borderRadius: 9999,
-                                whiteSpace: 'nowrap',
-                                letterSpacing: '0.04em',
-                                textTransform: 'uppercase',
-                              }}
-                            >
-                              {c.code || c.name}
-                            </span>
-                          ))}
+                paginatedEmployees.map((emp, idx) => {
+                  const isLast = idx === paginatedEmployees.length - 1;
+                  const isSelected = selectedIds.has(emp.id);
+                  const initials =
+                    `${emp.firstName?.[0] ?? ''}${emp.lastName?.[0] ?? ''}`.toUpperCase() || '?';
+                  const team = getTeam(emp.empCode, emp.designation);
+                  const statusTone: 'green' | 'amber' | 'blue' | 'rose' = !emp.isActive
+                    ? 'rose'
+                    : emp.employmentStatus === 'PROBATION'
+                    ? 'amber'
+                    : emp.employmentStatus === 'CONSULTANT'
+                    ? 'blue'
+                    : 'green';
+                  const statusLabel = !emp.isActive ? 'EXITED' : emp.employmentStatus;
+                  return (
+                    <tr
+                      key={emp.id}
+                      onClick={() => handleRowClick(emp.id)}
+                      className="cursor-pointer transition-colors hover:bg-core-surface2"
+                      style={{
+                        height: 54,
+                        borderBottom: isLast ? 'none' : '1px solid #E5E8DD',
+                        ...(isSelected ? { backgroundColor: 'rgba(143, 191, 63, 0.06)' } : {}),
+                      }}
+                    >
+                      <td onClick={(e) => e.stopPropagation()} className="px-[14px]" style={{ width: 40 }}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(emp.id)}
+                          style={{ width: 14, height: 14, cursor: 'pointer', accentColor: '#1F2320' }}
+                        />
+                      </td>
+                      <td className="whitespace-nowrap px-[14px] font-mono text-[12px] font-semibold text-core-text">
+                        {emp.empCode}
+                      </td>
+                      <td className="px-[14px]">
+                        <div className="flex items-center gap-[10px]">
+                          <Avi seed={emp.empCode} initials={initials} size={28} />
+                          <div className="min-w-0">
+                            <div className="truncate font-medium text-core-text">
+                              {emp.firstName} {emp.lastName}
+                            </div>
+                            {emp.email && (
+                              <div className="mt-[1px] truncate text-[10.5px] text-core-text3">
+                                {emp.email}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      ) : (
-                        <span style={{ color: '#C4C6CE' }}>—</span>
-                      )}
-                    </td>
-                    <td>{emp.designation}</td>
-                    <td>
-                      {emp.isActive ? (
-                        <span
-                          className={`badge ${
-                            emp.employmentStatus === 'PROBATION' ? 'badge-yellow' :
-                            emp.employmentStatus === 'CONSULTANT' ? 'badge-blue' :
-                            'badge-green'
-                          }`}
-                        >
-                          {emp.employmentStatus}
-                        </span>
-                      ) : (
-                        <span className="badge badge-red">EXITED</span>
-                      )}
-                    </td>
-                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem', color: '#44474D' }}>
-                      {new Date(emp.dateOfJoining).toLocaleDateString()}
-                    </td>
-                    <td className="col-sticky-right" style={{ whiteSpace: 'nowrap' }}>
-                      <Link
-                        href={`/employees/${emp.id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="btn btn-sm btn-outline"
-                      >
-                        View Details
-                      </Link>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-[14px] text-core-text2">{emp.department.name}</td>
+                      <td className="px-[14px]">
+                        {team ? <Tag>{team}</Tag> : <span className="text-core-text3">—</span>}
+                      </td>
+                      <td className="px-[14px]">
+                        {emp.companies && emp.companies.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {emp.companies.map((c) => (
+                              <Tag key={c.id}>{c.code || c.name}</Tag>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-core-text3">—</span>
+                        )}
+                      </td>
+                      <td className="px-[14px] text-core-text2">{emp.designation}</td>
+                      <td className="px-[14px]">
+                        <Badge tone={statusTone}>{statusLabel}</Badge>
+                      </td>
+                      <td className="whitespace-nowrap px-[14px] text-core-text2 tabular-nums">
+                        {new Date(emp.dateOfJoining).toLocaleDateString()}
+                      </td>
+                      <td className="whitespace-nowrap px-[14px]" onClick={(e) => e.stopPropagation()}>
+                        <Btn as="a" href={`/employees/${emp.id}`} tone="ghost">
+                          View Details
+                        </Btn>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -648,7 +596,7 @@ export default function EmployeeListClient({
           onPageChange={setCurrentPage}
           onItemsPerPageChange={setItemsPerPage}
         />
-      </div>
+      </Card>
 
       {/* Bulk Action Bar */}
       <BulkActionBar
