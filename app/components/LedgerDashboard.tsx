@@ -5,7 +5,6 @@ import {
   Card,
   Avi,
   Glyph,
-  Tag,
 } from './design';
 
 // ============================================================================
@@ -162,7 +161,6 @@ export default async function LedgerDashboard({
     { label: 'Rejected', count: expRejected._count, amount: Number(expRejected._sum.amount) || 0, dot: 'bg-core-roseFg' as const },
     { label: 'Draft',    count: expDraft._count, amount: Number(expDraft._sum.amount) || 0, dot: 'bg-core-text3' as const },
   ];
-  const expenseTotalAmount = expenseStatusData.reduce((a, e) => a + e.amount, 0) || 1;
   const expenseTotal = expenseStatusData.reduce((a, e) => a + e.amount, 0);
 
   // Burn by category totals
@@ -358,14 +356,11 @@ export default async function LedgerDashboard({
                         </span>
                       </div>
                       {item.meta && (
-                        <div className="mt-[3px]">
-                          {item.kind === 'ASSIGNMENT' ? (
-                            <Tag>{item.meta}</Tag>
-                          ) : (
-                            <span className="text-[11.5px] tabular-nums text-core-text3">
-                              {item.meta}
-                            </span>
-                          )}
+                        <div
+                          className="mt-[3px] font-mono text-[11px] text-core-text3"
+                          style={{ letterSpacing: '0.02em' }}
+                        >
+                          {item.meta}
                         </div>
                       )}
                     </div>
@@ -378,25 +373,9 @@ export default async function LedgerDashboard({
 
         {/* Right rail */}
         <div className="space-y-4 lg:col-span-5">
-          {/* Expenses overview */}
+          {/* Expenses overview — rows + total. The design doesn't carry a
+              stacked bar at the top; it's just the dot legend + amounts. */}
           <Card title="Expenses overview" padded>
-            {/* Stacked bar */}
-            <div className="mb-4 flex h-[6px] w-full overflow-hidden rounded-full bg-core-surface2">
-              {expenseStatusData.map((s) => {
-                const pct = (s.amount / expenseTotalAmount) * 100;
-                if (pct === 0) return null;
-                return (
-                  <div
-                    key={s.label}
-                    className={s.dot}
-                    style={{ width: `${pct}%` }}
-                    title={`${s.label}: ${fmtMoney(s.amount)}`}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Legend */}
             <div className="space-y-[10px]">
               {expenseStatusData.map((s) => (
                 <div
