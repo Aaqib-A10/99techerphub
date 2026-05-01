@@ -7,6 +7,9 @@ import Modal from '@/components/Modal';
 import OnboardingChecklistPanel from './OnboardingChecklistPanel';
 import EmployeePicker from '@/app/components/EmployeePicker';
 import RolesEditor from './RolesEditor';
+import AssetsTab from './tabs/AssetsTab';
+import DigitalAccessTab from './tabs/DigitalAccessTab';
+import FinanceTab from './tabs/FinanceTab';
 import type { EmployeeWithRelations } from './types';
 import { getTeam } from '../client';
 
@@ -1128,380 +1131,37 @@ export default function EmployeeDetailClient({
 
       {/* Assets Tab */}
       {activeTab === 'assets' && (
-        <>
-          {/* Asset summary strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <div className="card">
-              <div className="card-body">
-                <div className="text-xs text-gray-500 uppercase tracking-wide">Active</div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {employee.assetAssignments.filter((a: any) => !a.returnedDate).length}
-                </div>
-                <div className="text-xs text-gray-500">Currently held</div>
-              </div>
-            </div>
-            <div className="card">
-              <div className="card-body">
-                <div className="text-xs text-gray-500 uppercase tracking-wide">Returned</div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {employee.assetAssignments.filter((a: any) => a.returnedDate).length}
-                </div>
-                <div className="text-xs text-gray-500">Closed assignments</div>
-              </div>
-            </div>
-            <div className="card">
-              <div className="card-body">
-                <div className="text-xs text-gray-500 uppercase tracking-wide">Total Ever</div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {employee.assetAssignments.length}
-                </div>
-                <div className="text-xs text-gray-500">Lifetime assignments</div>
-              </div>
-            </div>
-            <div className="card">
-              <div className="card-body">
-                <div className="text-xs text-gray-500 uppercase tracking-wide">Categories</div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {new Set(
-                    employee.assetAssignments
-                      .filter((a: any) => !a.returnedDate)
-                      .map((a: any) => a.asset?.category?.name)
-                      .filter(Boolean)
-                  ).size}
-                </div>
-                <div className="text-xs text-gray-500">Unique types active</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="card-header flex justify-between items-center">
-              <h3 className="section-heading">
-                Assignment History ({employee.assetAssignments.filter((a: any) => !a.returnedDate).length} active)
-              </h3>
-              {employee.isActive && (
-                <Link
-                  href={`/assets?assignment=unassigned`}
-                  className="btn btn-sm btn-primary"
-                >
-                  + Assign Asset
-                </Link>
-              )}
-            </div>
-            <div className="table-wrapper">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Asset Tag</th>
-                    <th>Category</th>
-                    <th>Model</th>
-                    <th>Assigned Date</th>
-                    <th>Returned Date</th>
-                    <th>Duration</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employee.assetAssignments.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center py-8 text-gray-500">No assets assigned</td></tr>
-                  ) : (
-                    employee.assetAssignments.map((a: any) => {
-                      const start = new Date(a.assignedDate).getTime();
-                      const end = a.returnedDate ? new Date(a.returnedDate).getTime() : Date.now();
-                      const days = Math.max(1, Math.floor((end - start) / (1000 * 60 * 60 * 24)));
-                      return (
-                        <tr key={a.id}>
-                          <td className="font-mono text-sm">
-                            <Link href={`/assets/${a.asset.id}`} className="text-brand-primary hover:underline">
-                              {a.asset.assetTag}
-                            </Link>
-                          </td>
-                          <td>{a.asset.category.name}</td>
-                          <td>{a.asset.manufacturer} {a.asset.model}</td>
-                          <td>{new Date(a.assignedDate).toLocaleDateString()}</td>
-                          <td>{a.returnedDate ? new Date(a.returnedDate).toLocaleDateString() : '-'}</td>
-                          <td className="text-sm text-gray-600">
-                            {days >= 365 ? `${Math.floor(days / 365)}y ${Math.floor((days % 365) / 30)}m` : days >= 30 ? `${Math.floor(days / 30)}m` : `${days}d`}
-                          </td>
-                          <td>
-                            <span className={`badge ${a.returnedDate ? 'badge-gray' : 'badge-green'}`}>
-                              {a.returnedDate ? 'Returned' : 'Active'}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
+        <AssetsTab
+          assetAssignments={employee.assetAssignments as any}
+          isActive={employee.isActive}
+        />
       )}
 
       {/* Digital Access Tab */}
       {activeTab === 'digital' && (
-        <div className="card">
-          <div className="card-header flex justify-between items-center">
-            <h3 className="section-heading">Digital Access & Licenses</h3>
-            <button onClick={() => setShowAccessModal(true)} className="btn btn-sm btn-primary">
-              Grant Access
-            </button>
-          </div>
-          <div className="table-wrapper">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Service</th>
-                  <th>Account ID</th>
-                  <th>Granted Date</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employee.digitalAccess.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-8 text-gray-500">No digital access records</td></tr>
-                ) : (
-                  employee.digitalAccess.map((da: any) => (
-                    <tr key={da.id}>
-                      <td className="font-semibold">{da.serviceName}</td>
-                      <td>{da.accountId || '-'}</td>
-                      <td>{new Date(da.grantedDate).toLocaleDateString()}</td>
-                      <td>
-                        <span className={`badge ${da.isActive ? 'badge-green' : 'badge-red'}`}>
-                          {da.isActive ? 'Active' : 'Revoked'}
-                        </span>
-                      </td>
-                      <td>
-                        {da.isActive && (
-                          <button
-                            onClick={() => handleRevokeAccess(da.id)}
-                            className="btn btn-sm btn-danger"
-                          >
-                            Revoke
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <DigitalAccessTab
+          digitalAccess={employee.digitalAccess}
+          onGrantClick={() => setShowAccessModal(true)}
+          onRevoke={handleRevokeAccess}
+        />
       )}
 
       {/* Finance Tab */}
       {activeTab === 'finance' && (
-        <>
-          <div className="mb-4 flex gap-2">
-            {!isEditMode && editingTab !== 'banking' ? (
-              <button
-                onClick={() => {
-                  setIsEditMode(true);
-                  setEditingTab('banking');
-                }}
-                className="btn btn-primary"
-                style={{ backgroundColor: '#0B1F3A' }}
-              >
-                Edit Banking Details
-              </button>
-            ) : editingTab === 'banking' ? (
-              <>
-                <button
-                  onClick={handleSaveProfile}
-                  disabled={loading}
-                  className="btn btn-primary"
-                  style={{ backgroundColor: '#0B1F3A' }}
-                >
-                  {loading ? 'Saving...' : 'Save Changes'}
-                </button>
-                <button
-                  onClick={cancelEdit}
-                  className="btn"
-                  style={{ backgroundColor: '#f0f0f0', color: '#333' }}
-                >
-                  Cancel
-                </button>
-              </>
-            ) : null}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="card">
-              <div className="card-header"><h3 className="section-heading">Banking Details</h3></div>
-              <div className="card-body space-y-3">
-                {editingTab === 'banking' && isEditMode ? (
-                  <>
-                    <div>
-                      <label className="form-label">Bank Name</label>
-                      <input
-                        type="text"
-                        value={editFormData.bankName}
-                        onChange={(e) => setEditFormData({ ...editFormData, bankName: e.target.value })}
-                        className="form-input"
-                      />
-                    </div>
-                    <div>
-                      <label className="form-label">Account Number</label>
-                      <input
-                        type="text"
-                        value={editFormData.bankAccountNumber}
-                        onChange={(e) => setEditFormData({ ...editFormData, bankAccountNumber: e.target.value })}
-                        className="form-input"
-                      />
-                    </div>
-                    <div>
-                      <label className="form-label">Branch</label>
-                      <input
-                        type="text"
-                        value={editFormData.bankBranch}
-                        onChange={(e) => setEditFormData({ ...editFormData, bankBranch: e.target.value })}
-                        className="form-input"
-                      />
-                    </div>
-                    <div>
-                      <label className="form-label">Account Status</label>
-                      <select
-                        value={editFormData.bankAccountStatus || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, bankAccountStatus: e.target.value })}
-                        className="form-select"
-                      >
-                        <option value="">Select Status</option>
-                        <option value="Valid">Valid</option>
-                        <option value="Invalid">Invalid</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Closed">Closed</option>
-                      </select>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <InfoRow label="Bank Name" value={employee.bankName} />
-                    <InfoRow label="Account Number" value={employee.bankAccountNumber} />
-                    <InfoRow label="Account Status" value={employee.bankAccountStatus} />
-                    <InfoRow label="Branch" value={employee.bankBranch} />
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="card">
-              <div className="card-header"><h3 className="section-heading">Salary History</h3></div>
-              <div className="card-body">
-                {employee.salaryHistory.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">No salary records yet</p>
-                ) : (
-                  <div className="space-y-3">
-                    {employee.salaryHistory.map((s: any) => (
-                      <div key={s.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                        <div>
-                          <div className="font-semibold">{s.currency} {Number(s.baseSalary).toLocaleString()}</div>
-                          <div className="text-xs text-gray-500">
-                            From {new Date(s.effectiveFrom).toLocaleDateString()}
-                            {s.incrementPct && ` (+${s.incrementPct}%)`}
-                          </div>
-                        </div>
-                        {s.reason && <span className="text-sm text-gray-600">{s.reason}</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <div className="card">
-              <div className="card-header flex justify-between items-center">
-                <h3 className="section-heading">Commissions</h3>
-                <a href={`/finance/commissions?employeeId=${employee.id}`} className="text-xs text-blue-600 hover:underline">Manage</a>
-              </div>
-              <div className="card-body">
-                {(!employee.commissions || employee.commissions.length === 0) ? (
-                  <p className="text-gray-500 text-center py-4">No commissions recorded</p>
-                ) : (
-                  <div className="space-y-3">
-                    {employee.commissions.map((c: any) => (
-                      <div key={c.id} className="flex justify-between items-start p-3 bg-gray-50 rounded">
-                        <div>
-                          <div className="font-semibold">{c.currency} {Number(c.amount).toLocaleString()}</div>
-                          <div className="text-xs text-gray-500">{c.description}</div>
-                          <div className="text-xs text-gray-400 mt-0.5">Period: {c.period}</div>
-                        </div>
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded ${c.isPaid ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                          {c.isPaid ? 'PAID' : 'UNPAID'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="card">
-              <div className="card-header flex justify-between items-center">
-                <h3 className="section-heading">Deductions</h3>
-                <a href={`/finance/deductions?employeeId=${employee.id}`} className="text-xs text-blue-600 hover:underline">Manage</a>
-              </div>
-              <div className="card-body">
-                {(!employee.deductions || employee.deductions.length === 0) ? (
-                  <p className="text-gray-500 text-center py-4">No deductions recorded</p>
-                ) : (
-                  <div className="space-y-3">
-                    {employee.deductions.map((d: any) => (
-                      <div key={d.id} className="flex justify-between items-start p-3 bg-gray-50 rounded">
-                        <div>
-                          <div className="font-semibold">{d.currency} {Number(d.amount).toLocaleString()}</div>
-                          <div className="text-xs text-gray-500">{d.description || d.deductionType}</div>
-                          <div className="text-xs text-gray-400 mt-0.5">Period: {d.period}</div>
-                        </div>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700">
-                          {d.deductionType}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="card mt-6">
-            <div className="card-header flex justify-between items-center">
-              <h3 className="section-heading">Billing Splits</h3>
-              <a href={`/finance/billing?employeeId=${employee.id}`} className="text-xs text-blue-600 hover:underline">Manage</a>
-            </div>
-            <div className="card-body">
-              {(!employee.billingSplits || employee.billingSplits.length === 0) ? (
-                <p className="text-gray-500 text-center py-4">No billing splits configured</p>
-              ) : (
-                <div className="space-y-3">
-                  {employee.billingSplits.map((b: any) => {
-                    const active = !b.effectiveTo || new Date(b.effectiveTo) > new Date();
-                    return (
-                      <div key={b.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                        <div>
-                          <div className="font-semibold">{b.company?.name || `Company #${b.companyId}`}</div>
-                          <div className="text-xs text-gray-500">
-                            From {new Date(b.effectiveFrom).toLocaleDateString()}
-                            {b.effectiveTo && ` — ${new Date(b.effectiveTo).toLocaleDateString()}`}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-lg">{Number(b.percentage).toFixed(2)}%</span>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
-                            {active ? 'ACTIVE' : 'ENDED'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </>
+        <FinanceTab
+          employee={employee as any}
+          isEditMode={isEditMode}
+          editingTab={editingTab}
+          editFormData={editFormData}
+          setEditFormData={setEditFormData}
+          loading={loading}
+          onEditClick={() => {
+            setIsEditMode(true);
+            setEditingTab('banking');
+          }}
+          onSave={handleSaveProfile}
+          onCancel={cancelEdit}
+        />
       )}
 
       {/* Documents Tab */}
