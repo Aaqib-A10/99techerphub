@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AssetCondition } from '@prisma/client';
-import StatusBadge from '@/components/StatusBadge';
 import BulkActionBar from '@/app/components/BulkActionBar';
 import { runBulk, summarizeBulk } from '@/app/components/bulkRunner';
+import { Avi, Badge, Tag, Btn } from '@/app/components/design';
+import type { BadgeTone } from '@/app/components/design';
 
 interface AssetRow {
   id: number;
@@ -22,9 +21,29 @@ interface AssetRow {
   category: { name: string };
   company: { code: string | null; name: string } | null;
   assignments: {
-    employee: { firstName: string; lastName: string };
+    employee: { firstName: string; lastName: string; empCode?: string };
   }[];
 }
+
+// Condition colour map matches the design's status palette: working/new
+// is a quiet green, damaged/repair is amber, lost is rose, retired is gray.
+const CONDITION_TONE: Record<string, BadgeTone> = {
+  NEW: 'green',
+  WORKING: 'green',
+  DAMAGED: 'rose',
+  IN_REPAIR: 'amber',
+  LOST: 'rose',
+  RETIRED: 'gray',
+};
+
+const CONDITION_LABEL: Record<string, string> = {
+  NEW: 'NEW',
+  WORKING: 'WORKING',
+  DAMAGED: 'DAMAGED',
+  IN_REPAIR: 'IN REPAIR',
+  LOST: 'LOST',
+  RETIRED: 'RETIRED',
+};
 
 export default function AssetTable({ assets }: { assets: AssetRow[] }) {
   const router = useRouter();
@@ -129,25 +148,20 @@ export default function AssetTable({ assets }: { assets: AssetRow[] }) {
 
   if (assets.length === 0) {
     return (
-      <div className="empty-state py-16 text-center">
-        <p className="text-sm" style={{ color: '#75777E' }}>
-          No assets match your filters. Try clearing some filters or adding a new asset.
-        </p>
+      <div className="px-4 py-16 text-center text-[12.5px] text-core-text3">
+        No assets match your filters. Try clearing some filters or adding a new asset.
       </div>
     );
   }
 
   return (
     <>
-      <div className="table-wrapper">
-        <table className="table w-full">
-          <thead
-            className="sticky top-0 z-10"
-            style={{ backgroundColor: '#EFF4FF' }}
-          >
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12.5px]" style={{ borderCollapse: 'collapse' }}>
+          <thead className="sticky top-0 z-10 bg-core-surface2">
             <tr>
               <th
-                className="text-left px-4 py-3"
+                className="border-b border-core-border px-[14px] py-[10px] text-left"
                 style={{ width: 40 }}
               >
                 <input
@@ -155,7 +169,7 @@ export default function AssetTable({ assets }: { assets: AssetRow[] }) {
                   checked={allPageSelected}
                   onChange={togglePageSelect}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                  style={{ width: 14, height: 14, cursor: 'pointer', accentColor: '#1F2320' }}
                 />
               </th>
               {[
@@ -174,11 +188,8 @@ export default function AssetTable({ assets }: { assets: AssetRow[] }) {
               ].map((h) => (
                 <th
                   key={h}
-                  className="text-left px-4 py-3 text-[10px] font-bold uppercase"
-                  style={{
-                    color: '#75777E',
-                    letterSpacing: '0.08em',
-                  }}
+                  className="border-b border-core-border px-[14px] py-[10px] text-left text-[10px] font-bold uppercase text-core-text3"
+                  style={{ letterSpacing: '0.08em' }}
                 >
                   {h}
                 </th>
@@ -186,119 +197,121 @@ export default function AssetTable({ assets }: { assets: AssetRow[] }) {
             </tr>
           </thead>
           <tbody>
-            {assets.map((asset, idx) => (
-              <tr
-                key={asset.id}
-                style={{
-                  backgroundColor: selectedIds.has(asset.id)
-                    ? 'rgba(20, 184, 166, 0.06)'
-                    : idx % 2 === 0
-                      ? '#FFFFFF'
-                      : '#F8F9FF',
-                }}
-              >
-                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()} style={{ width: 40 }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(asset.id)}
-                    onChange={() => toggleSelect(asset.id)}
-                    style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
-                  />
-                </td>
-                <td
-                  className="px-4 py-3 font-bold"
+            {assets.map((asset, idx) => {
+              const isLast = idx === assets.length - 1;
+              const isSelected = selectedIds.has(asset.id);
+              const assignedEmployee =
+                asset.assignments && asset.assignments.length > 0
+                  ? asset.assignments[0].employee
+                  : null;
+              const legacyName =
+                !assignedEmployee && asset.assignedToName &&
+                asset.assignedToName !== '' &&
+                asset.assignedToName.toLowerCase() !== 'available'
+                  ? asset.assignedToName
+                  : null;
+              const inUse = !!(assignedEmployee || legacyName);
+              const conditionTone = CONDITION_TONE[asset.condition] ?? 'gray';
+              const conditionLabel = CONDITION_LABEL[asset.condition] ?? asset.condition;
+              const assigneeFullName = assignedEmployee
+                ? `${assignedEmployee.firstName} ${assignedEmployee.lastName}`
+                : legacyName ?? '';
+              const assigneeInitials = assigneeFullName
+                ? assigneeFullName
+                    .split(/\s+/)
+                    .map((n) => n[0])
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase()
+                : '';
+              const aviSeed =
+                assignedEmployee?.empCode || assignedEmployee?.firstName || legacyName || asset.assetTag;
+
+              return (
+                <tr
+                  key={asset.id}
+                  className="transition-colors hover:bg-core-surface2"
                   style={{
-                    color: '#006B5F',
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    fontSize: 12,
-                    whiteSpace: 'nowrap',
+                    borderBottom: isLast ? 'none' : '1px solid #E5E8DD',
+                    ...(isSelected ? { backgroundColor: 'rgba(143, 191, 63, 0.06)' } : {}),
                   }}
                 >
-                  {asset.assetTag}
-                </td>
-                <td className="px-4 py-3 text-sm" style={{ color: '#44474D' }}>
-                  {asset.category.name}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="font-semibold text-sm" style={{ color: '#0B1C30' }}>
-                    {asset.model}
-                  </div>
-                  <div className="text-xs" style={{ color: '#75777E' }}>
-                    {asset.manufacturer}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-sm" style={{ color: '#44474D', fontFamily: 'var(--font-jetbrains-mono), monospace' }}>
-                  {asset._ram || <span style={{ color: '#C4C6CE' }}>—</span>}
-                </td>
-                <td className="px-4 py-3 text-sm" style={{ color: '#44474D', fontFamily: 'var(--font-jetbrains-mono), monospace' }}>
-                  {asset._storage || <span style={{ color: '#C4C6CE' }}>—</span>}
-                </td>
-                <td className="px-4 py-3 text-sm" style={{ color: '#44474D' }}>
-                  {asset._cpu || <span style={{ color: '#C4C6CE' }}>—</span>}
-                </td>
-                <td className="px-4 py-3 text-sm" style={{ color: '#44474D' }}>
-                  {asset._gpu || <span style={{ color: '#C4C6CE' }}>—</span>}
-                </td>
-                <td className="px-4 py-3">
-                  {asset.company ? (
-                    <span
-                      className="inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
-                      style={{
-                        backgroundColor: 'rgba(11, 31, 58, 0.08)',
-                        color: '#0B1F3A',
-                        fontFamily: 'var(--font-jetbrains-mono), monospace',
-                      }}
-                    >
-                      {asset.company.code || asset.company.name}
-                    </span>
-                  ) : (
-                    <span style={{ color: '#C4C6CE' }}>—</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge condition={asset.condition as AssetCondition} />
-                </td>
-                <td className="px-4 py-3">
-                  {(asset.assignments && asset.assignments.length > 0) ||
-                   (asset.assignedToName && asset.assignedToName !== '' && asset.assignedToName.toLowerCase() !== 'available') ? (
-                    <span
-                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-                      style={{
-                        backgroundColor: 'rgba(20, 184, 166, 0.12)',
-                        color: '#006B5F',
-                      }}
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#14B8A6' }} />
-                      In Use
-                    </span>
-                  ) : (
-                    <span
-                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-                      style={{
-                        backgroundColor: '#EFF4FF',
-                        color: '#75777E',
-                      }}
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#C4C6CE' }} />
-                      Available
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-sm" style={{ color: '#0B1C30' }}>
-                  {asset.assignments && asset.assignments.length > 0
-                    ? `${asset.assignments[0].employee.firstName} ${asset.assignments[0].employee.lastName}`
-                    : asset.assignedToName || <span style={{ color: '#C4C6CE' }}>—</span>}
-                </td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/assets/${asset.id}`}
-                    className="btn btn-sm btn-outline"
+                  <td
+                    className="px-[14px] py-3"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ width: 40 }}
                   >
-                    View →
-                  </Link>
-                </td>
-              </tr>
-            ))}
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelect(asset.id)}
+                      style={{ width: 14, height: 14, cursor: 'pointer', accentColor: '#1F2320' }}
+                    />
+                  </td>
+                  <td className="whitespace-nowrap px-[14px] py-3">
+                    <Tag>{asset.assetTag}</Tag>
+                  </td>
+                  <td className="px-[14px] py-3 text-core-text2">{asset.category.name}</td>
+                  <td className="px-[14px] py-3">
+                    <div className="font-medium text-core-text">{asset.model}</div>
+                    {asset.manufacturer && (
+                      <div className="mt-[1px] text-[10.5px] text-core-text3">
+                        {asset.manufacturer}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-[14px] py-3 font-mono text-[11.5px] text-core-text2">
+                    {asset._ram || <span className="text-core-text3">—</span>}
+                  </td>
+                  <td className="px-[14px] py-3 font-mono text-[11.5px] text-core-text2">
+                    {asset._storage || <span className="text-core-text3">—</span>}
+                  </td>
+                  <td className="px-[14px] py-3 text-core-text2">
+                    {asset._cpu || <span className="text-core-text3">—</span>}
+                  </td>
+                  <td className="px-[14px] py-3 text-core-text2">
+                    {asset._gpu || <span className="text-core-text3">—</span>}
+                  </td>
+                  <td className="px-[14px] py-3">
+                    {asset.company ? (
+                      <Tag>{asset.company.code || asset.company.name}</Tag>
+                    ) : (
+                      <span className="text-core-text3">—</span>
+                    )}
+                  </td>
+                  <td className="px-[14px] py-3">
+                    <Badge tone={conditionTone}>{conditionLabel}</Badge>
+                  </td>
+                  <td className="px-[14px] py-3">
+                    {inUse ? (
+                      <Badge tone="blue">IN USE</Badge>
+                    ) : (
+                      <Badge tone="gray">AVAILABLE</Badge>
+                    )}
+                  </td>
+                  <td className="px-[14px] py-3">
+                    {assigneeFullName ? (
+                      <div className="flex items-center gap-[9px]">
+                        <Avi
+                          seed={aviSeed}
+                          initials={assigneeInitials || '?'}
+                          size={24}
+                        />
+                        <span className="text-core-text">{assigneeFullName}</span>
+                      </div>
+                    ) : (
+                      <span className="text-core-text3">—</span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-[14px] py-3">
+                    <Btn as="a" href={`/assets/${asset.id}`} tone="ghost">
+                      Manage
+                    </Btn>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

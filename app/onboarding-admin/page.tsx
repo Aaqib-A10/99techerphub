@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import PageHero from '@/app/components/PageHero';
 import CopyLinkButton from './CopyLinkButton';
+import { KpiTile, Card, Avi, Btn } from '@/app/components/design';
+import type { CoreTone } from '@/app/components/design';
 
 // Admin list buckets. Order matters — "Pending Review" is the action
 // queue and lands first by default.
@@ -12,30 +13,33 @@ type Bucket =
   | 'APPROVED'
   | 'REJECTED';
 
-const BUCKET_META: Record<Bucket, { label: string; color: string; description: string }> = {
+const BUCKET_META: Record<
+  Bucket,
+  { label: string; tone: CoreTone; description: string }
+> = {
   PENDING_REVIEW: {
     label: 'Pending Review',
-    color: 'text-amber-700 bg-amber-50 border-amber-200',
+    tone: 'amber',
     description: 'Candidate has submitted — needs your review.',
   },
   INVITATION_SENT: {
     label: 'Invitation Sent',
-    color: 'text-blue-700 bg-blue-50 border-blue-200',
+    tone: 'blue',
     description: 'Link generated, candidate has not yet filled the form.',
   },
   NEEDS_REVISION: {
     label: 'Needs Revision',
-    color: 'text-orange-700 bg-orange-50 border-orange-200',
+    tone: 'rose',
     description: 'You asked for changes. Waiting on candidate to resubmit.',
   },
   APPROVED: {
     label: 'Approved',
-    color: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+    tone: 'green',
     description: 'Hire complete — Employee record created.',
   },
   REJECTED: {
     label: 'Rejected',
-    color: 'text-rose-700 bg-rose-50 border-rose-200',
+    tone: 'violet',
     description: 'Application was rejected.',
   },
 };
@@ -86,7 +90,7 @@ export default async function OnboardingAdminPage({
   const activeRows = grouped[activeTab];
 
   const formatDate = (date: Date | string | null | undefined) => {
-    if (!date) return '-';
+    if (!date) return '—';
     return new Date(date).toLocaleDateString();
   };
 
@@ -94,19 +98,38 @@ export default async function OnboardingAdminPage({
 
   return (
     <div>
-      <PageHero
-        eyebrow="People / Onboarding"
-        title="Candidate Onboarding"
-        description="Manage candidate onboarding submissions"
-        actions={
-          <Link href="/onboarding-admin/new" className="btn btn-accent">
-            Send Onboarding Form
-          </Link>
-        }
-      />
+      {/* Page header */}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <div
+            className="mb-[6px] text-[10.5px] font-semibold uppercase text-core-text3"
+            style={{ letterSpacing: '0.09em' }}
+          >
+            People · Lifecycle
+          </div>
+          <h1
+            className="text-[22px] font-semibold leading-tight text-core-text"
+            style={{ letterSpacing: '-0.018em' }}
+          >
+            Onboarding
+          </h1>
+          <p className="mt-[2px] text-[13px] text-core-text2">
+            {submissions.length} candidate{submissions.length === 1 ? '' : 's'} moving through your hiring pipeline
+          </p>
+        </div>
+        <Link
+          href="/onboarding-admin/new"
+          className="inline-flex items-center gap-[6px] rounded-lg border border-core-text bg-core-text px-[13px] py-2 text-[12.5px] font-semibold text-core-surface transition hover:opacity-90"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14 M5 12h14" />
+          </svg>
+          Send Onboarding Form
+        </Link>
+      </div>
 
-      {/* Tabs */}
-      <div className="mb-4 flex flex-wrap gap-2">
+      {/* KPI / tab strip — clicking a tile filters the list below */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         {BUCKET_ORDER.map((b) => {
           const meta = BUCKET_META[b];
           const count = grouped[b].length;
@@ -115,114 +138,128 @@ export default async function OnboardingAdminPage({
             <Link
               key={b}
               href={`/onboarding-admin?tab=${b}`}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+              className={`block rounded-2xl transition focus:outline-none ${
                 isActive
-                  ? meta.color + ' shadow-sm'
-                  : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                  ? 'ring-2 ring-core-text/15 ring-offset-2 ring-offset-core-bg'
+                  : 'hover:opacity-90'
               }`}
             >
-              {meta.label}
-              <span
-                className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
-                  isActive ? 'bg-white/70' : 'bg-gray-100'
-                }`}
-              >
-                {count}
-              </span>
+              <KpiTile tone={meta.tone} label={meta.label} value={count} />
             </Link>
           );
         })}
       </div>
 
-      <p className="text-xs text-gray-500 mb-4">{BUCKET_META[activeTab].description}</p>
+      <p className="mb-3 text-[12px] text-core-text3">
+        {BUCKET_META[activeTab].description}
+      </p>
 
       {activeRows.length === 0 ? (
-        <div className="card">
-          <div className="card-body text-center py-12">
-            <p className="text-gray-500">Nothing in this bucket.</p>
+        <Card>
+          <div className="py-12 text-center text-[13px] text-core-text3">
+            Nothing in this bucket.
           </div>
-        </div>
+        </Card>
       ) : (
-        <div className="card">
+        <Card padded={false}>
           <div className="overflow-x-auto">
-            <table className="table">
+            <table className="w-full text-[12.5px]" style={{ borderCollapse: 'collapse' }}>
               <thead>
-                <tr>
-                  <th>Candidate</th>
-                  <th>Position</th>
-                  <th>Company</th>
-                  <th>
-                    {activeTab === 'PENDING_REVIEW' || activeTab === 'INVITATION_SENT'
+                <tr className="bg-core-surface2">
+                  {[
+                    'Candidate',
+                    'Position',
+                    'Company',
+                    activeTab === 'PENDING_REVIEW' || activeTab === 'INVITATION_SENT'
                       ? 'Created'
                       : activeTab === 'APPROVED'
                       ? 'Approved'
-                      : 'Updated'}
-                  </th>
-                  <th className="col-sticky-right">Actions</th>
+                      : 'Updated',
+                    'Actions',
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      className="border-b border-core-border px-[14px] py-[10px] text-left text-[10px] font-bold uppercase text-core-text3"
+                      style={{ letterSpacing: '0.08em' }}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {activeRows.map((submission: any) => (
-                  <tr key={submission.id}>
-                    <td className="font-medium">
-                      <div>{submission.candidateName || '-'}</div>
-                      {submission.candidateEmail && (
-                        <div className="text-xs text-gray-500">
-                          {submission.candidateEmail}
+                {activeRows.map((submission: any, idx) => {
+                  const isLast = idx === activeRows.length - 1;
+                  const candidate = submission.candidateName || '—';
+                  const initials =
+                    submission.candidateName
+                      ?.split(/\s+/)
+                      .map((n: string) => n[0])
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase() || '?';
+                  return (
+                    <tr
+                      key={submission.id}
+                      className="transition-colors hover:bg-core-surface2"
+                      style={{ borderBottom: isLast ? 'none' : '1px solid #E5E8DD' }}
+                    >
+                      <td className="px-[14px] py-3">
+                        <div className="flex items-center gap-[10px]">
+                          <Avi seed={submission.candidateEmail || candidate} initials={initials} size={28} />
+                          <div className="min-w-0">
+                            <div className="font-medium text-core-text">{candidate}</div>
+                            {submission.candidateEmail && (
+                              <div className="mt-[1px] text-[10.5px] text-core-text3">
+                                {submission.candidateEmail}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </td>
-                    <td>{submission.position || '-'}</td>
-                    <td>{submission.companyName || '-'}</td>
-                    <td>
-                      {formatDate(
-                        activeTab === 'PENDING_REVIEW' || activeTab === 'INVITATION_SENT'
-                          ? submission.submittedAt || submission.createdAt
-                          : submission.reviewedAt || submission.updatedAt
-                      )}
-                    </td>
-                    <td className="col-sticky-right">
-                      {activeTab === 'INVITATION_SENT' ? (
-                        <CopyLinkButton url={`${getAppUrl()}/onboarding/${submission.token}`} />
-                      ) : activeTab === 'APPROVED' && submission.employee?.id ? (
-                        <Link
-                          href={`/employees/${submission.employee.id}`}
-                          className="text-brand-primary hover:text-brand-dark font-medium text-sm"
-                        >
-                          View Employee →
-                        </Link>
-                      ) : activeTab === 'PENDING_REVIEW' || activeTab === 'NEEDS_REVISION' ? (
-                        <div className="flex items-center gap-3">
-                          <Link
-                            href={`/onboarding-admin/${submission.id}`}
-                            className="text-brand-primary hover:text-brand-dark font-medium text-sm"
-                          >
+                      </td>
+                      <td className="px-[14px] py-3 text-core-text2">
+                        {submission.position || <span className="text-core-text3">—</span>}
+                      </td>
+                      <td className="px-[14px] py-3 text-core-text2">
+                        {submission.companyName || <span className="text-core-text3">—</span>}
+                      </td>
+                      <td className="whitespace-nowrap px-[14px] py-3 text-core-text2 tabular-nums">
+                        {formatDate(
+                          activeTab === 'PENDING_REVIEW' || activeTab === 'INVITATION_SENT'
+                            ? submission.submittedAt || submission.createdAt
+                            : submission.reviewedAt || submission.updatedAt,
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-[14px] py-3">
+                        {activeTab === 'INVITATION_SENT' ? (
+                          <CopyLinkButton url={`${getAppUrl()}/onboarding/${submission.token}`} />
+                        ) : activeTab === 'APPROVED' && submission.employee?.id ? (
+                          <Btn as="a" href={`/employees/${submission.employee.id}`} tone="ghost">
+                            View Employee
+                          </Btn>
+                        ) : activeTab === 'PENDING_REVIEW' || activeTab === 'NEEDS_REVISION' ? (
+                          <div className="flex items-center gap-2">
+                            <Btn as="a" href={`/onboarding-admin/${submission.id}`} tone="primary">
+                              Review
+                            </Btn>
+                            {submission.token && (
+                              <CopyLinkButton url={`${getAppUrl()}/onboarding/${submission.token}`} />
+                            )}
+                          </div>
+                        ) : (
+                          <Btn as="a" href={`/onboarding-admin/${submission.id}`} tone="ghost">
                             Review
-                          </Link>
-                          {submission.token && (
-                            <>
-                              <span className="text-gray-300">·</span>
-                              <CopyLinkButton
-                                url={`${getAppUrl()}/onboarding/${submission.token}`}
-                              />
-                            </>
-                          )}
-                        </div>
-                      ) : (
-                        <Link
-                          href={`/onboarding-admin/${submission.id}`}
-                          className="text-brand-primary hover:text-brand-dark font-medium text-sm"
-                        >
-                          Review
-                        </Link>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                          </Btn>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

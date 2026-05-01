@@ -4,8 +4,8 @@ import ExportButton from '@/components/ExportButton';
 import Pagination from '@/components/Pagination';
 import AssetTable from './AssetTable';
 import DateFilter from '@/app/components/DateFilter';
-import PageHero from '@/app/components/PageHero';
 import SplitButton from '@/app/components/SplitButton';
+import { KpiTile, Card } from '@/app/components/design';
 
 /**
  * Extract a spec value from the JSON blob using case-insensitive
@@ -157,7 +157,41 @@ export default async function AssetsPage({
   // --------------------------------------------------------------
   const hasSpecFilter = !!(ramFilter || storageFilter || cpuFilter || gpuFilter);
 
-  const [companies, locations, categories, activeEmployees, assignedEmployees] = await Promise.all([
+  // Inventory-wide KPI counts (independent of the user's current filter
+  // selection — these reflect the full asset pool so the row stays stable
+  // as filters change).
+  const ASSIGNED_LEGACY_OR_OPEN: any = {
+    OR: [
+      { assignments: { some: { returnedDate: null } } },
+      { assignedToName: { not: null, notIn: ['', 'Available', 'available'] } },
+    ],
+  };
+  const UNASSIGNED_AND_NOT_TIED_UP: any = {
+    AND: [
+      { assignments: { none: { returnedDate: null } } },
+      {
+        OR: [
+          { assignedToName: null },
+          { assignedToName: { in: ['', 'Available', 'available'] } },
+        ],
+      },
+      { condition: { notIn: ['IN_REPAIR', 'RETIRED', 'LOST'] } },
+    ],
+  };
+
+  const [
+    companies,
+    locations,
+    categories,
+    activeEmployees,
+    assignedEmployees,
+    totalAssetCount,
+    assignedCount,
+    availableCount,
+    inRepairCount,
+    retiredCount,
+    valueAgg,
+  ] = await Promise.all([
     prisma.company.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
     prisma.location.findMany({ orderBy: { name: 'asc' } }),
     prisma.assetCategory.findMany({ orderBy: { name: 'asc' } }),
@@ -176,7 +210,17 @@ export default async function AssetsPage({
       select: { id: true, firstName: true, lastName: true, empCode: true },
       orderBy: { firstName: 'asc' }
     }),
+    prisma.asset.count(),
+    prisma.asset.count({ where: ASSIGNED_LEGACY_OR_OPEN }),
+    prisma.asset.count({ where: UNASSIGNED_AND_NOT_TIED_UP }),
+    prisma.asset.count({ where: { condition: 'IN_REPAIR' } }),
+    prisma.asset.count({ where: { condition: 'RETIRED' } }),
+    prisma.asset.aggregate({ _sum: { purchasePrice: true } }),
   ]);
+
+  const totalValue = Number(valueAgg._sum.purchasePrice ?? 0);
+  const utilization =
+    totalAssetCount > 0 ? Math.round((assignedCount / totalAssetCount) * 100) : 0;
 
   // Merge and deduplicate: active employees + exited employees with active assignments
   const employeeMap = new Map<number, typeof activeEmployees[0]>();
@@ -265,13 +309,34 @@ export default async function AssetsPage({
     };
   });
 
+  const valueLabel = totalValue.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'PKR',
+    maximumFractionDigits: 0,
+  });
+
   return (
     <div>
-      <PageHero
-        eyebrow="Asset Management"
-        title="Assets"
-        description="Track every device, scan QR labels, and assign hardware to employees."
-        actions={
+      {/* Page header — design system aesthetic */}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <div
+            className="mb-[6px] text-[10.5px] font-semibold uppercase text-core-text3"
+            style={{ letterSpacing: '0.09em' }}
+          >
+            Inventory · Hardware
+          </div>
+          <h1
+            className="text-[22px] font-semibold leading-tight text-core-text"
+            style={{ letterSpacing: '-0.018em' }}
+          >
+            All Assets
+          </h1>
+          <p className="mt-[2px] text-[13px] text-core-text2">
+            {totalAssetCount.toLocaleString()} items across {categories.length} categories — total value {valueLabel}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
           <SplitButton
             primary={{
               label: 'Add Asset',
@@ -305,8 +370,17 @@ export default async function AssetsPage({
               },
             ]}
           />
-        }
-      />
+        </div>
+      </div>
+
+      {/* KPI strip — 5 tinted Apple Wallet tiles */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        <KpiTile tone="blue" label="Total Assets" value={totalAssetCount.toLocaleString()} meta={`${valueLabel} value`} />
+        <KpiTile tone="green" label="Assigned" value={assignedCount.toLocaleString()} meta={`${utilization}% utilization`} />
+        <KpiTile tone="violet" label="Available" value={availableCount.toLocaleString()} />
+        <KpiTile tone="amber" label="In Repair" value={inRepairCount.toLocaleString()} />
+        <KpiTile tone="rose" label="Retired" value={retiredCount.toLocaleString()} />
+      </div>
 
       {/* Compact toolbar — chip filters live inside AssetFilters; date + export sit on the right */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -341,7 +415,11 @@ export default async function AssetsPage({
       </div>
 
       {/* Assets Table */}
-      <div className="overflow-hidden rounded-lg bg-white border border-zinc-200/85 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
+      <Card
+        title="All Assets"
+        subtitle={`Showing ${assets.length} of ${totalFiltered.toLocaleString()} records`}
+        padded={false}
+      >
         <AssetTable assets={JSON.parse(JSON.stringify(assets))} />
         <Pagination
           page={safePage}
@@ -349,7 +427,7 @@ export default async function AssetsPage({
           total={totalFiltered}
           showing={assets.length}
         />
-      </div>
+      </Card>
     </div>
   );
 }

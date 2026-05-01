@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import PageHero from '@/app/components/PageHero';
 import ResponsibilitiesClient from './client';
 
 export const dynamic = 'force-dynamic';
@@ -66,11 +65,23 @@ export default async function ResponsibilitiesPage() {
 
   return (
     <div>
-      <PageHero
-        eyebrow="People"
-        title="Roles & Responsibilities"
-        description="What every active employee is accountable for, and which marketplaces they own. Filter by department or marketplace to find subject-matter owners fast."
-      />
+      <div className="mb-6">
+        <div
+          className="mb-[6px] text-[10.5px] font-semibold uppercase text-core-text3"
+          style={{ letterSpacing: '0.09em' }}
+        >
+          People · Permissions
+        </div>
+        <h1
+          className="text-[22px] font-semibold leading-tight text-core-text"
+          style={{ letterSpacing: '-0.018em' }}
+        >
+          Roles &amp; Responsibilities
+        </h1>
+        <p className="mt-[2px] max-w-[820px] text-[13px] text-core-text2">
+          What every active employee is accountable for, and which marketplaces they own. Filter by department or marketplace to find subject-matter owners fast.
+        </p>
+      </div>
       <ResponsibilitiesClient
         rows={rows}
         marketplaces={marketplaces}

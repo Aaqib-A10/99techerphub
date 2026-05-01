@@ -197,25 +197,29 @@ export default async function EmployeeDetailPage({
                 {employee.firstName} {employee.lastName}
               </h1>
               <p>
-                <span className="mono text-emerald-600">{employee.empCode}</span>
+                <span className="font-mono font-semibold text-core-text">{employee.empCode}</span>
                 {employee.designation ? ` · ${employee.designation}` : ''}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium ring-1 ${
+                  className={`inline-flex items-center gap-[5px] rounded-[5px] px-2 py-[3px] text-[10.5px] font-semibold uppercase ${
                     employee.isActive
-                      ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
-                      : 'bg-rose-50 text-rose-700 ring-rose-200'
+                      ? 'bg-core-greenSoft text-core-greenFg'
+                      : 'bg-core-roseSoft text-core-roseFg'
                   }`}
+                  style={{ letterSpacing: '0.04em' }}
                 >
                   <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      employee.isActive ? 'bg-emerald-500' : 'bg-rose-500'
+                    className={`h-[5px] w-[5px] rounded-full ${
+                      employee.isActive ? 'bg-core-greenFg' : 'bg-core-roseFg'
                     }`}
                   />
                   {employee.lifecycleStage.replace(/_/g, ' ')}
                 </span>
-                <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-700 ring-1 ring-zinc-200">
+                <span
+                  className="inline-flex items-center rounded-[5px] bg-core-surface2 px-2 py-[3px] text-[10.5px] font-semibold uppercase text-core-text2"
+                  style={{ letterSpacing: '0.04em' }}
+                >
                   {employee.employmentStatus}
                 </span>
                 {(employeeCompanies.length > 0
@@ -226,7 +230,8 @@ export default async function EmployeeDetailPage({
                 ).map((c: any) => (
                   <span
                     key={c.id}
-                    className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-amber-200"
+                    className="inline-flex items-center rounded-[4px] bg-core-surface2 px-[6px] py-[2px] font-mono text-[10px] font-semibold text-core-text2"
+                    style={{ letterSpacing: '0.04em' }}
                   >
                     {c.code || c.name}
                   </span>
@@ -234,34 +239,34 @@ export default async function EmployeeDetailPage({
               </div>
               {lastEditInfo && (
                 <p
-                  className="mt-2 text-[11px] text-zinc-400"
+                  className="mt-2 text-[11px] text-core-text3"
                   title={new Date(lastEditInfo.at).toLocaleString()}
                 >
                   Last edited <RelativeTime iso={lastEditInfo.at} /> by{' '}
-                  <span className="text-zinc-600">{lastEditInfo.byName}</span>
+                  <span className="text-core-text2">{lastEditInfo.byName}</span>
                 </p>
               )}
             </div>
           </div>
 
           {/* Contact column */}
-          <div className="flex flex-col items-end gap-1 text-[12.5px] text-zinc-500">
+          <div className="flex flex-col items-end gap-1 text-[12.5px] text-core-text2">
             {employee.email && (
               <a
                 href={`mailto:${employee.email}`}
-                className="truncate hover:text-zinc-800"
+                className="truncate hover:text-core-text"
                 title="Send email"
               >
                 ✉ {employee.email}
               </a>
             )}
             {employee.phone && (
-              <a href={`tel:${employee.phone}`} className="hover:text-zinc-800" title="Call">
+              <a href={`tel:${employee.phone}`} className="hover:text-core-text" title="Call">
                 ☎ {employee.phone}
               </a>
             )}
             {employee.location?.name && (
-              <span className="text-zinc-400">📍 {employee.location.name}</span>
+              <span className="text-core-text3">📍 {employee.location.name}</span>
             )}
           </div>
         </div>

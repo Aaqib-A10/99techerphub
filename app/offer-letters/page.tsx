@@ -2,8 +2,8 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import PageHero from '@/app/components/PageHero';
 import OfferLetterTable from './OfferLetterTable';
+import { KpiTile, Card } from '@/app/components/design';
 
 export default async function OfferLettersPage() {
   const offerLetters = await prisma.offerLetter.findMany({
@@ -22,48 +22,51 @@ export default async function OfferLettersPage() {
 
   return (
     <div>
-      <PageHero
-        eyebrow="People / Offers"
-        title="Offer Letters"
-        description="Create and manage employment offer letters"
-        actions={
-          <Link href="/offer-letters/new" className="btn btn-accent">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Create Offer Letter
-          </Link>
-        }
-      />
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="stat-card">
-          <div className="stat-label">Total Offers</div>
-          <div className="stat-value">{offerLetters.length}</div>
+      {/* Page header */}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <div
+            className="mb-[6px] text-[10.5px] font-semibold uppercase text-core-text3"
+            style={{ letterSpacing: '0.09em' }}
+          >
+            People · Documents
+          </div>
+          <h1
+            className="text-[22px] font-semibold leading-tight text-core-text"
+            style={{ letterSpacing: '-0.018em' }}
+          >
+            Offer Letters
+          </h1>
+          <p className="mt-[2px] text-[13px] text-core-text2">
+            Track and manage candidate offers
+          </p>
         </div>
-        <div className="stat-card">
-          <div className="stat-label">Draft</div>
-          <div className="stat-value text-gray-600">{draftCount}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Sent</div>
-          <div className="stat-value text-blue-600">{sentCount}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Accepted</div>
-          <div className="stat-value text-green-600">{acceptedCount}</div>
-        </div>
+        <Link
+          href="/offer-letters/new"
+          className="inline-flex items-center gap-[6px] rounded-lg border border-core-text bg-core-text px-[13px] py-2 text-[12.5px] font-semibold text-core-surface transition hover:opacity-90"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 5v14 M5 12h14" />
+          </svg>
+          New Offer
+        </Link>
       </div>
 
-      {/* Offer Letters Table */}
-      <div className="card">
-        <div className="card-header flex justify-between items-center">
-          <h2 className="section-heading">All Offer Letters</h2>
-          <span className="text-sm text-gray-500">{offerLetters.length} records</span>
-        </div>
+      {/* KPI strip */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-4">
+        <KpiTile tone="amber" label="Draft" value={draftCount} meta="Awaiting send" />
+        <KpiTile tone="blue" label="Sent" value={sentCount} meta="Pending response" />
+        <KpiTile tone="green" label="Accepted" value={acceptedCount} />
+        <KpiTile tone="rose" label="Declined" value={declinedCount} />
+      </div>
+
+      <Card
+        title="All Offers"
+        subtitle={`${offerLetters.length} ${offerLetters.length === 1 ? 'record' : 'records'}`}
+        padded={false}
+      >
         <OfferLetterTable offerLetters={JSON.parse(JSON.stringify(offerLetters))} />
-      </div>
+      </Card>
     </div>
   );
 }

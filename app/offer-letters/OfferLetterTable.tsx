@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
 import { runBulk, summarizeBulk } from '@/app/components/bulkRunner';
+import { Avi, Badge, Btn } from '@/app/components/design';
+import type { BadgeTone } from '@/app/components/design';
 
 interface OfferLetter {
   id: number;
@@ -20,11 +21,11 @@ interface OfferLetter {
   employee: { firstName: string; lastName: string } | null;
 }
 
-const statusColors: Record<string, string> = {
-  DRAFT: 'badge-gray',
-  SENT: 'badge-blue',
-  ACCEPTED: 'badge-green',
-  DECLINED: 'badge-red',
+const STATUS_TONE: Record<string, BadgeTone> = {
+  DRAFT: 'gray',
+  SENT: 'blue',
+  ACCEPTED: 'green',
+  DECLINED: 'rose',
 };
 
 export default function OfferLetterTable({ offerLetters }: { offerLetters: OfferLetter[] }) {
@@ -118,89 +119,97 @@ export default function OfferLetterTable({ offerLetters }: { offerLetters: Offer
 
   return (
     <>
-      <div className="table-wrapper">
-        <table className="table">
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12.5px]" style={{ borderCollapse: 'collapse' }}>
           <thead>
-            <tr>
-              <th style={{ width: 40 }}>
+            <tr className="bg-core-surface2">
+              <th className="border-b border-core-border px-[14px] py-[10px] text-left" style={{ width: 40 }}>
                 <input
                   type="checkbox"
                   checked={allPageSelected}
                   onChange={togglePageSelect}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                  style={{ width: 14, height: 14, cursor: 'pointer', accentColor: '#1F2320' }}
                 />
               </th>
-              <th>Candidate Name</th>
-              <th>Position</th>
-              <th>Company</th>
-              <th>Salary</th>
-              <th>Template Type</th>
-              <th>Status</th>
-              <th>Offer Date</th>
-              <th className="col-sticky-right">Actions</th>
+              {['Candidate', 'Position', 'Company', 'Salary', 'Template', 'Status', 'Offer Date', 'Actions'].map((h) => (
+                <th
+                  key={h}
+                  className="border-b border-core-border px-[14px] py-[10px] text-left text-[10px] font-bold uppercase text-core-text3"
+                  style={{ letterSpacing: '0.08em' }}
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {paginated.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-12 text-gray-500">
+                <td colSpan={9} className="px-[14px] py-12 text-center text-core-text3">
                   No offer letters created yet.
                 </td>
               </tr>
             ) : (
-              paginated.map((letter) => (
-                <tr
-                  key={letter.id}
-                  style={selectedIds.has(letter.id) ? { backgroundColor: 'rgba(20, 184, 166, 0.06)' } : undefined}
-                >
-                  <td onClick={(e) => e.stopPropagation()} style={{ width: 40 }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(letter.id)}
-                      onChange={() => toggleSelect(letter.id)}
-                      style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
-                    />
-                  </td>
-                  <td className="font-medium">
-                    {getDisplayName(letter)}
-                  </td>
-                  <td>{letter.position}</td>
-                  <td>{letter.companyName || '-'}</td>
-                  <td style={{ whiteSpace: 'nowrap', fontWeight: 600, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.85rem' }}>
-                    {letter.currency} {Number(letter.salary).toLocaleString()}
-                  </td>
-                  <td>
-                    <span className="text-sm">
+              paginated.map((letter, idx) => {
+                const isLast = idx === paginated.length - 1;
+                const isSelected = selectedIds.has(letter.id);
+                const displayName = getDisplayName(letter);
+                const initials = displayName
+                  .split(/\s+/)
+                  .map((n) => n[0])
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase() || '?';
+                const tone: BadgeTone = STATUS_TONE[letter.status] ?? 'gray';
+                return (
+                  <tr
+                    key={letter.id}
+                    className="transition-colors hover:bg-core-surface2"
+                    style={{
+                      borderBottom: isLast ? 'none' : '1px solid #E5E8DD',
+                      ...(isSelected ? { backgroundColor: 'rgba(143, 191, 63, 0.06)' } : {}),
+                    }}
+                  >
+                    <td className="px-[14px] py-3" onClick={(e) => e.stopPropagation()} style={{ width: 40 }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelect(letter.id)}
+                        style={{ width: 14, height: 14, cursor: 'pointer', accentColor: '#1F2320' }}
+                      />
+                    </td>
+                    <td className="px-[14px] py-3">
+                      <div className="flex items-center gap-[10px]">
+                        <Avi seed={displayName} initials={initials} size={28} />
+                        <span className="font-medium text-core-text">{displayName}</span>
+                      </div>
+                    </td>
+                    <td className="px-[14px] py-3 text-core-text2">{letter.position}</td>
+                    <td className="px-[14px] py-3 text-core-text2">
+                      {letter.companyName || <span className="text-core-text3">—</span>}
+                    </td>
+                    <td className="whitespace-nowrap px-[14px] py-3 font-mono text-[12px] font-semibold text-core-text">
+                      {letter.currency} {Number(letter.salary).toLocaleString()}
+                    </td>
+                    <td className="px-[14px] py-3 text-core-text2">
                       {letter.templateType.charAt(0) + letter.templateType.slice(1).toLowerCase()}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`badge ${statusColors[letter.status]}`}>
-                      {letter.status}
-                    </span>
-                  </td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{new Date(letter.offerDate).toLocaleDateString()}</td>
-                  <td className="col-sticky-right">
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/offer-letters/${letter.id}`}
-                        className="btn btn-sm btn-outline"
-                      >
+                    </td>
+                    <td className="px-[14px] py-3">
+                      <Badge tone={tone}>{letter.status}</Badge>
+                    </td>
+                    <td className="whitespace-nowrap px-[14px] py-3 text-core-text2 tabular-nums">
+                      {new Date(letter.offerDate).toLocaleDateString()}
+                    </td>
+                    <td className="whitespace-nowrap px-[14px] py-3">
+                      <Btn as="a" href={`/offer-letters/${letter.id}`} tone="ghost">
                         View
-                      </Link>
-                      {letter.status === 'DRAFT' && (
-                        <Link
-                          href={`/offer-letters/${letter.id}`}
-                          className="btn btn-sm btn-secondary"
-                        >
-                          Edit
-                        </Link>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                      </Btn>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

@@ -152,10 +152,10 @@ body {
   background-color: #FFFFFF;
 }
 .table-wrapper table tbody tr:hover .col-sticky-right {
-  background-color: rgba(244, 244, 245, 0.6);
+  background-color: #F7F8F4;
 }
 .table-wrapper table thead .col-sticky-right {
-  background-color: #FAFAFA;
+  background-color: #F7F8F4;
 }
 /* Soft shadow on the left edge of the sticky column so it visually
    separates from scrolled content underneath. */
@@ -175,21 +175,22 @@ body {
    ============================================================ */
 .eyebrow {
   font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #71717A;
+  color: #8B918A;
 }
 
 .section-title {
   font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.015em;
-  color: #09090B;
+  color: #1F2320;
 }
 
 /* ============================================================
-   Page hero — quiet header, no navy banner
+   Page hero — design system tokens (used by inline page-hero blocks
+   in pages that haven't migrated to the React `PageHero` component)
    ============================================================ */
 .page-hero {
   margin-bottom: 24px;
@@ -199,15 +200,15 @@ body {
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.018em;
-  color: #09090B;
+  color: #1F2320;
   line-height: 1.2;
   margin: 0;
 }
 
 .page-hero p {
   font-size: 13px;
-  color: #71717A;
-  margin-top: 4px;
+  color: #5A6159;
+  margin-top: 2px;
 }
 
 .page-hero .eyebrow {
@@ -220,99 +221,105 @@ body {
    ============================================================ */
 .card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  border: 1px solid rgba(228, 228, 231, 0.85);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  transition: box-shadow 0.25s ease;
-}
-
-.card:hover {
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  border: 1px solid #E5E8DD;
+  transition: background-color 0.18s ease;
 }
 
 .card-header {
-  padding: 14px 18px;
-  border-bottom: 1px solid rgba(228, 228, 231, 0.85);
+  padding: 14px 20px;
+  border-bottom: 1px solid #E5E8DD;
 }
 
 .card-header h2,
 .card-header h3 {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 600;
-  color: #09090B;
-  letter-spacing: -0.005em;
+  color: #1F2320;
+  letter-spacing: -0.01em;
+}
+
+.section-heading {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #1F2320;
+  letter-spacing: -0.01em;
 }
 
 .card-body {
-  padding: 18px;
+  padding: 18px 20px;
 }
 
 .card-footer {
-  padding: 12px 18px;
-  border-top: 1px solid rgba(228, 228, 231, 0.85);
-  background-color: #FAFAFA;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #E5E8DD;
+  background-color: #F7F8F4;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 
 /* ============================================================
-   Stat cards — Linear-style KPI tile
+   Stat cards — design system (legacy fallback)
+   New surfaces should prefer the React `KpiTile` component which has
+   tinted backgrounds. This stays for older pages (settings, master-data,
+   audit, etc.) so they pick up the design tokens without being fully
+   redesigned.
    ============================================================ */
 .stat-card {
   background-color: #FFFFFF;
-  border-radius: 8px;
-  border: 1px solid rgba(228, 228, 231, 0.85);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  border: 1px solid #E5E8DD;
   padding: 18px;
-  transition: box-shadow 0.25s ease;
+  transition: background-color 0.18s ease;
   position: relative;
   overflow: hidden;
 }
 
 .stat-card:hover {
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+  background-color: #F7F8F4;
 }
 
 .stat-label {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #71717A;
+  color: #8B918A;
   margin-bottom: 10px;
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: #09090B;
+  color: #1F2320;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
 
 .stat-change {
   font-size: 11.5px;
-  color: #71717A;
+  color: #5A6159;
   margin-top: 8px;
 }
 
 /* ============================================================
-   Badges — muted tints with ring-inset
+   Badges — design system token-backed status pills
+   New components prefer the React `Badge` component but legacy code
+   uses these CSS classes. Same earthy palette as the design tokens.
    ============================================================ */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 500;
-  font-feature-settings: 'tnum' 1;
-  box-shadow: inset 0 0 0 1px transparent;
-  letter-spacing: 0;
-  text-transform: none;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   border: none;
+  font-feature-settings: 'tnum' 1;
 }
 
 .badge::before {
@@ -321,61 +328,54 @@ body {
   height: 5px;
   border-radius: 50%;
   background-color: currentColor;
-  opacity: 0.7;
   flex-shrink: 0;
 }
 
 .badge-green {
-  color: #047857;
-  background-color: #ECFDF5;
-  box-shadow: inset 0 0 0 1px #D1FAE5;
+  color: #4A7014;
+  background-color: #EFF6E0;
 }
 
 .badge-red {
-  color: #B91C1C;
-  background-color: #FEF2F2;
-  box-shadow: inset 0 0 0 1px #FECACA;
+  color: #9E2A2A;
+  background-color: #FBEBEB;
 }
 
 .badge-yellow,
 .badge-orange {
-  color: #B45309;
-  background-color: #FFFBEB;
-  box-shadow: inset 0 0 0 1px #FEF3C7;
+  color: #8A5A00;
+  background-color: #FCF2E0;
 }
 
 .badge-blue {
-  color: #1D4ED8;
-  background-color: #EFF6FF;
-  box-shadow: inset 0 0 0 1px #DBEAFE;
+  color: #1E5390;
+  background-color: #E7F0FA;
 }
 
 .badge-gray {
-  color: #3F3F46;
-  background-color: #F4F4F5;
-  box-shadow: inset 0 0 0 1px #E4E4E7;
+  color: #8B918A;
+  background-color: #F7F8F4;
 }
 
 .badge-purple,
 .badge-indigo {
-  color: #6D28D9;
-  background-color: #F5F3FF;
-  box-shadow: inset 0 0 0 1px #EDE9FE;
+  color: #4F2E8E;
+  background-color: #EEE8FA;
 }
 
 /* ============================================================
-   Buttons — clean, low-chrome
+   Buttons — design system token-backed
    ============================================================ */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 12px;
+  padding: 0 13px;
   height: 32px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
   border: 1px solid transparent;
   white-space: nowrap;
   transition: all 0.18s ease;
@@ -384,41 +384,37 @@ body {
 
 .btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(11, 31, 58, 0.12);
+  box-shadow: 0 0 0 3px rgba(31, 35, 32, 0.12);
 }
 
 .btn-primary {
-  background-color: #0B1F3A;
+  background-color: #1F2320;
   color: #FFFFFF;
+  border-color: #1F2320;
 }
 
 .btn-primary:hover {
-  background-color: #152B4C;
-}
-
-.btn-primary:active {
-  opacity: 0.95;
+  opacity: 0.9;
 }
 
 .btn-secondary {
   background-color: #FFFFFF;
-  color: #18181B;
-  border-color: rgba(228, 228, 231, 0.95);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  color: #5A6159;
+  border-color: #E5E8DD;
 }
 
 .btn-secondary:hover {
-  background-color: #FAFAFA;
-  border-color: #D4D4D8;
+  background-color: #F7F8F4;
 }
 
 .btn-accent {
-  background-color: #0B1F3A;
+  background-color: #1F2320;
   color: #FFFFFF;
+  border-color: #1F2320;
 }
 
 .btn-accent:hover {
-  background-color: #152B4C;
+  opacity: 0.9;
 }
 
 .btn-danger {
@@ -492,9 +488,6 @@ body {
 .table-wrapper {
   overflow-x: auto;
   background-color: #FFFFFF;
-  border-radius: 8px;
-  border: 1px solid rgba(228, 228, 231, 0.85);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
 }
 
 .table {
@@ -504,21 +497,21 @@ body {
 
 .table th {
   text-align: left;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 10px 18px;
-  color: #71717A;
-  background-color: #FAFAFA;
-  border-bottom: 1px solid rgba(228, 228, 231, 0.85);
+  padding: 10px 14px;
+  color: #8B918A;
+  background-color: #F7F8F4;
+  border-bottom: 1px solid #E5E8DD;
 }
 
 .table td {
-  padding: 11px 18px;
-  font-size: 13px;
-  color: #18181B;
-  border-bottom: 1px solid rgba(244, 244, 245, 0.9);
+  padding: 11px 14px;
+  font-size: 12.5px;
+  color: #1F2320;
+  border-bottom: 1px solid #E5E8DD;
 }
 
 .table tr:last-child td {
@@ -530,17 +523,17 @@ body {
 }
 
 .table tbody tr:hover {
-  background-color: #FAFAFA;
+  background-color: #F7F8F4;
 }
 
 .table td a {
-  color: #18181B;
+  color: #1F2320;
   font-weight: 500;
   transition: color 0.12s ease;
 }
 
 .table td a:hover {
-  color: #09090B;
+  color: #1F2320;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -554,11 +547,11 @@ body {
 
 .form-label {
   display: block;
-  font-size: 11.5px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #52525B;
+  color: #5A6159;
   margin-bottom: 6px;
 }
 
@@ -566,12 +559,12 @@ body {
 .form-select,
 .form-textarea {
   width: 100%;
-  padding: 8px 10px;
-  font-size: 13px;
-  border-radius: 6px;
+  padding: 9px 11px;
+  font-size: 12.5px;
+  border-radius: 8px;
   background-color: #FFFFFF;
-  color: #09090B;
-  border: 1px solid rgba(228, 228, 231, 0.95);
+  color: #1F2320;
+  border: 1px solid #E5E8DD;
   font-family: inherit;
   transition: all 0.18s ease;
   line-height: 1.4;
@@ -579,15 +572,15 @@ body {
 
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: #A1A1AA;
+  color: #8B918A;
 }
 
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #0B1F3A;
-  box-shadow: 0 0 0 3px rgba(11, 31, 58, 0.08);
+  border-color: rgba(31, 35, 32, 0.3);
+  box-shadow: 0 0 0 3px rgba(31, 35, 32, 0.06);
 }
 
 .form-textarea {
@@ -839,19 +832,19 @@ body {
 }
 
 /* ============================================================
-   Profile tabs (horizontal underline)
+   Profile tabs (horizontal underline) — design system tokens
    ============================================================ */
 .profile-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid rgba(228, 228, 231, 0.85);
+  border-bottom: 1px solid #E5E8DD;
 }
 
 .profile-tab {
   padding: 10px 14px;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
-  color: #71717A;
+  color: #5A6159;
   border-bottom: 2px solid transparent;
   cursor: pointer;
   background: none;
@@ -862,13 +855,13 @@ body {
 }
 
 .profile-tab:hover:not(.active) {
-  color: #18181B;
+  color: #1F2320;
 }
 
 .profile-tab.active {
-  color: #09090B;
+  color: #1F2320;
   font-weight: 600;
-  border-bottom-color: #0B1F3A;
+  border-bottom-color: #1F2320;
 }
 
 /* ============================================================
