@@ -114,7 +114,7 @@ export default function SecurityForm({ email, isSsoOnly }: Props) {
             type="submit"
             disabled={submitting}
             className="btn btn-primary"
-            style={{ backgroundColor: '#0B1F3A' }}
+            style={{ backgroundColor: '#1F2320' }}
           >
             {submitting ? 'Saving…' : isSsoOnly ? 'Set password' : 'Change password'}
           </button>

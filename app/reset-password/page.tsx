@@ -4,10 +4,10 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-const NAVY = '#0B1F3A';
-const TEAL_DEEP = '#006B5F';
-const INK = '#0B1C30';
-const OUTLINE = '#75777E';
+const NAVY = '#1F2320';
+const TEAL_DEEP = '#4A7014';
+const INK = '#1F2320';
+const OUTLINE = '#5A6159';
 
 function ResetPasswordInner() {
   const router = useRouter();

@@ -13,8 +13,8 @@ import { useMemo, useState } from 'react';
 // ────────────────────────────────────────────────────────────────────
 // Tokens
 // ────────────────────────────────────────────────────────────────────
-const ACCENT = '#0B1F3A'; // deep ink — used for CTAs only
-const ACCENT_TEAL = '#14B8A6'; // micro accent for live state
+const ACCENT = '#1F2320'; // deep ink — used for CTAs only
+const ACCENT_TEAL = '#8FBF3F'; // micro accent for live state
 
 // ────────────────────────────────────────────────────────────────────
 // Icons
@@ -71,7 +71,7 @@ const ICONS = {
 // ────────────────────────────────────────────────────────────────────
 function Sparkline({
   values,
-  color = '#0B1F3A',
+  color = '#1F2320',
   width = 96,
   height = 28,
 }: {
@@ -186,9 +186,9 @@ function Sidebar({ active = 'inventory' as keyof typeof ICONS }) {
   ];
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 w-14 border-r border-core-border/70 bg-[#FAFAFA] flex flex-col items-center py-3">
+    <aside className="fixed inset-y-0 left-0 z-30 w-14 border-r border-core-border/70 bg-[#F7F8F4] flex flex-col items-center py-3">
       {/* Wordmark */}
-      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#0B1F3A] text-white text-[11px] font-semibold tracking-tight">
+      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#1F2320] text-white text-[11px] font-semibold tracking-tight">
         99
       </div>
 
@@ -205,7 +205,7 @@ function Sidebar({ active = 'inventory' as keyof typeof ICONS }) {
               }`}
             >
               {isActive && (
-                <span className="absolute -left-1.5 h-4 w-[2px] rounded-r-full bg-[#0B1F3A]" />
+                <span className="absolute -left-1.5 h-4 w-[2px] rounded-r-full bg-[#1F2320]" />
               )}
               <Icon d={ICONS[it.key]} size={17} strokeWidth={1.5} />
               {/* Hover label */}
@@ -234,7 +234,7 @@ function Sidebar({ active = 'inventory' as keyof typeof ICONS }) {
 // ────────────────────────────────────────────────────────────────────
 function Topbar() {
   return (
-    <header className="sticky top-0 z-20 h-14 border-b border-core-border/70 bg-[#FAFAFA]/90 backdrop-blur supports-[backdrop-filter]:bg-[#FAFAFA]/70">
+    <header className="sticky top-0 z-20 h-14 border-b border-core-border/70 bg-[#F7F8F4]/90 backdrop-blur supports-[backdrop-filter]:bg-[#F7F8F4]/70">
       <div className="flex h-full items-center justify-between px-6">
         {/* Left: breadcrumb */}
         <div className="flex items-center gap-2 text-[13px]">
@@ -485,7 +485,7 @@ export default function InventoryAuditLab() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] font-sans text-core-text antialiased">
+    <div className="min-h-screen bg-[#F7F8F4] font-sans text-core-text antialiased">
       <Sidebar active="inventory" />
 
       <div className="pl-14">

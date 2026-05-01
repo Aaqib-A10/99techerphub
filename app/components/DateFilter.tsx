@@ -180,7 +180,7 @@ export default function DateFilter() {
                 type="button"
                 onClick={applyCustom}
                 disabled={!customFrom && !customTo}
-                className="inline-flex h-7 items-center rounded bg-[#0B1F3A] px-3 text-[11.5px] font-medium text-white transition-opacity hover:opacity-95 disabled:opacity-40"
+                className="inline-flex h-7 items-center rounded bg-[#1F2320] px-3 text-[11.5px] font-medium text-white transition-opacity hover:opacity-95 disabled:opacity-40"
               >
                 Apply
               </button>

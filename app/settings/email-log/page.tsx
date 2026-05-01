@@ -80,12 +80,12 @@ export default function EmailLogPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-bold" style={{ color: '#0B1F3A' }}>{email.subject}</h3>
-                        <p className="text-sm mt-1" style={{ color: '#44474D' }}>To: {email.to}</p>
-                        <p className="text-xs mt-1" style={{ color: '#75777E' }}>
+                        <h3 className="font-bold" style={{ color: '#1F2320' }}>{email.subject}</h3>
+                        <p className="text-sm mt-1" style={{ color: '#1F2320' }}>To: {email.to}</p>
+                        <p className="text-xs mt-1" style={{ color: '#5A6159' }}>
                           Template: <span className="badge badge-blue">{email.templateKey}</span>
                         </p>
-                        <p className="text-xs mono mt-1" style={{ color: '#C4C6CE' }}>
+                        <p className="text-xs mono mt-1" style={{ color: '#8B918A' }}>
                           {new Date(email.timestamp).toLocaleString()}
                         </p>
                       </div>
@@ -109,7 +109,7 @@ export default function EmailLogPage() {
                     {/* Expanded Preview */}
                     {expandedId === email.id && (
                       <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(196, 198, 206, 0.28)' }}>
-                        <p className="text-sm p-3 rounded-lg" style={{ color: '#44474D', backgroundColor: '#F8F9FF' }}>
+                        <p className="text-sm p-3 rounded-lg" style={{ color: '#1F2320', backgroundColor: '#F7F8F4' }}>
                           {email.preview}
                           {email.preview.length === 200 && '...'}
                         </p>

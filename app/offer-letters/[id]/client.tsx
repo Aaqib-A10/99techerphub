@@ -95,7 +95,7 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
                 onClick={() => setShowSendModal(true)}
                 disabled={loading}
                 className="w-full btn btn-primary flex items-center justify-center gap-2"
-                style={{ backgroundColor: '#00C853' }}
+                style={{ backgroundColor: '#8FBF3F' }}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -225,7 +225,7 @@ export default function OfferLetterDetailClient({ offerLetter }: { offerLetter: 
                     onClick={handleSendEmail}
                     disabled={loading}
                     className="flex-1 px-4 py-2 bg-core-text text-white rounded hover:opacity-90 disabled:opacity-50"
-                    style={{ backgroundColor: '#00C853' }}
+                    style={{ backgroundColor: '#8FBF3F' }}
                   >
                     {loading ? 'Sending...' : 'Send'}
                   </button>

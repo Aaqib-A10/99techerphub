@@ -122,7 +122,7 @@ export default function ProfilePhotoUpload({
               className="w-full h-full rounded-full flex items-center justify-center"
               style={{ background: 'rgba(20,184,166,0.15)' }}
             >
-              <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#14B8A6' }}>
+              <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#8FBF3F' }}>
                 {initials}
               </span>
             </div>

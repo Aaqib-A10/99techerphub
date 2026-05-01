@@ -32,7 +32,7 @@ export default async function Dashboard({
             fallback={
               <div
                 className="text-center py-16"
-                style={{ color: '#75777E', fontFamily: 'var(--font-jetbrains-mono), monospace' }}
+                style={{ color: '#5A6159', fontFamily: 'var(--font-jetbrains-mono), monospace' }}
               >
                 LOADING DASHBOARD…
               </div>
@@ -80,7 +80,7 @@ export default async function Dashboard({
           fallback={
             <div
               className="text-center py-16"
-              style={{ color: '#75777E', fontFamily: 'var(--font-jetbrains-mono), monospace' }}
+              style={{ color: '#5A6159', fontFamily: 'var(--font-jetbrains-mono), monospace' }}
             >
               LOADING DASHBOARD…
             </div>

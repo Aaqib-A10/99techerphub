@@ -50,7 +50,7 @@ async function AuditStats() {
         </div>
         <div className="stat-card">
           <div className="stat-label">Entries Today</div>
-          <div className="stat-value" style={{ color: '#14B8A6' }}>{entriesCount}</div>
+          <div className="stat-value" style={{ color: '#8FBF3F' }}>{entriesCount}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Most Active Module</div>

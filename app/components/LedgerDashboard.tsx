@@ -495,7 +495,7 @@ function BurnDonut({
           cy="18"
           r={radius}
           fill="none"
-          stroke="#F0F2EC"
+          stroke="#E5E8DD"
           strokeWidth="3"
         />
         {total > 0 &&

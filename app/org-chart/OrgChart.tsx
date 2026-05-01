@@ -323,7 +323,7 @@ function layout(flat: FlatNode[]): { nodes: Node[]; edges: Edge[] } {
       source: String(f.parentId),
       target: String(f.node.id),
       type: 'smoothstep',
-      style: { stroke: '#cbd5e1', strokeWidth: 1.5 },
+      style: { stroke: '#E5E8DD', strokeWidth: 1.5 },
     });
   });
 
@@ -405,10 +405,10 @@ function OrgChartInner({ roots, ancestry, focusEmployeeId, searchable, totalActi
         source: String(link.managerId),
         target: String(link.employeeId),
         type: 'smoothstep',
-        style: { stroke: '#f59e0b', strokeWidth: 1.5, strokeDasharray: '4 4' },
+        style: { stroke: '#A66600', strokeWidth: 1.5, strokeDasharray: '4 4' },
         label: 'dotted',
-        labelStyle: { fill: '#92400e', fontSize: 9, fontWeight: 600 },
-        labelBgStyle: { fill: '#fef3c7' },
+        labelStyle: { fill: '#8A5A00', fontSize: 9, fontWeight: 600 },
+        labelBgStyle: { fill: '#FCF2E0' },
         labelBgPadding: [4, 2] as [number, number],
         labelBgBorderRadius: 4,
       });
@@ -570,9 +570,9 @@ function OrgChartInner({ roots, ancestry, focusEmployeeId, searchable, totalActi
           nodesConnectable={false}
           elementsSelectable={false}
           proOptions={{ hideAttribution: true }}
-          defaultEdgeOptions={{ type: 'smoothstep', style: { stroke: '#cbd5e1', strokeWidth: 1.5 } }}
+          defaultEdgeOptions={{ type: 'smoothstep', style: { stroke: '#E5E8DD', strokeWidth: 1.5 } }}
         >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e4e4e7" />
+          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#E5E8DD" />
           <Controls
             position="bottom-right"
             showInteractive={false}

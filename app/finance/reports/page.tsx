@@ -180,13 +180,13 @@ export default function MonthlyReportsPage() {
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
                       {[
                         { label: 'Headcount', value: summary.headcount || 0 },
-                        { label: 'New Hires', value: summary.newHires || 0, color: '#14B8A6' },
+                        { label: 'New Hires', value: summary.newHires || 0, color: '#8FBF3F' },
                         { label: 'Total Assets', value: summary.totalAssets || 0 },
                         { label: `Expenses (${summary.totalExpenseCount || 0})`, value: `PKR ${(summary.totalExpenseAmount || 0).toLocaleString()}` },
-                        { label: 'Payroll Gross', value: `PKR ${(summary.payrollGross || 0).toLocaleString()}`, color: '#006B5F' },
-                        { label: 'Payroll Deductions', value: `PKR ${(summary.payrollDeductions || 0).toLocaleString()}`, color: '#E11D48' },
-                        { label: 'Net Payroll', value: `PKR ${(summary.payrollNet || 0).toLocaleString()}`, color: '#0B1F3A' },
-                        { label: 'Pending Expenses', value: summary.pendingExpenses || 0, color: '#F59E0B' },
+                        { label: 'Payroll Gross', value: `PKR ${(summary.payrollGross || 0).toLocaleString()}`, color: '#4A7014' },
+                        { label: 'Payroll Deductions', value: `PKR ${(summary.payrollDeductions || 0).toLocaleString()}`, color: '#9E2A2A' },
+                        { label: 'Net Payroll', value: `PKR ${(summary.payrollNet || 0).toLocaleString()}`, color: '#1F2320' },
+                        { label: 'Pending Expenses', value: summary.pendingExpenses || 0, color: '#A66600' },
                       ].map((item) => (
                         <div key={item.label} className="quick-fact">
                           <div className="quick-fact-label">{item.label}</div>

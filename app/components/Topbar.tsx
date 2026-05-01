@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import NotificationBell from './NotificationBell';
+import { Avi } from './design';
 
 interface CurrentUser {
   email: string;
@@ -141,7 +142,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
 
         {/* Right: search + actions */}
         <div className="flex items-center gap-1.5">
-          <div className="hidden md:flex h-8 w-64 items-center rounded-md border border-core-border/95 bg-core-surface pl-2.5 pr-1.5 transition-all duration-200 hover:border-core-border focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)]">
+          <div className="hidden md:flex h-8 w-64 items-center rounded-lg border border-core-border bg-core-surface pl-2.5 pr-1.5 transition focus-within:border-core-text/30 focus-within:shadow-[0_0_0_3px_rgba(31,35,32,0.06)]">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="text-core-text3 flex-shrink-0">
               <path d="M21 21l-4.35-4.35 M11 19a8 8 0 100-16 8 8 0 000 16z" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -163,12 +164,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex h-8 items-center gap-2 rounded-md pl-1 pr-2 transition-colors hover:bg-core-surface2"
             >
-              <div
-                className="flex h-6 w-6 items-center justify-center rounded-full text-white text-[10.5px] font-semibold"
-                style={{ backgroundColor: '#0B1F3A' }}
-              >
-                {initials}
-              </div>
+              <Avi seed={user?.email ?? 'admin'} initials={initials} size={24} />
               <span className="hidden sm:block text-[12.5px] font-medium text-core-text">
                 {user?.email?.split('@')[0] || 'User'}
               </span>
@@ -183,7 +179,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
             {showDropdown && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />
-                <div className="absolute right-0 mt-2 w-56 rounded-lg bg-core-surface shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)] border border-core-border/85 z-50 overflow-hidden">
+                <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-core-border bg-core-surface shadow-[0_12px_32px_-8px_rgba(0,0,0,0.10)]">
                   <div className="px-3.5 py-3 border-b border-core-border">
                     <p className="text-[12.5px] font-medium text-core-text truncate">{user?.email}</p>
                     <p className="text-[11px] text-core-text3 mt-0.5 uppercase tracking-wider">{user?.role}</p>

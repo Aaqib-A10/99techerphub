@@ -503,7 +503,7 @@ export default function NewEmployeePage() {
                               fontWeight: 600,
                               backgroundColor: isChecked ? 'rgba(11, 31, 58, 0.08)' : 'transparent',
                               border: isChecked ? '1px solid rgba(11, 31, 58, 0.2)' : '1px solid #E5E7EB',
-                              color: '#0B1F3A',
+                              color: '#1F2320',
                               transition: 'all 0.15s',
                             }}
                           >
@@ -518,7 +518,7 @@ export default function NewEmployeePage() {
                                     : [...prev.companyIds, c.id],
                                 }));
                               }}
-                              style={{ accentColor: '#14B8A6', width: 14, height: 14 }}
+                              style={{ accentColor: '#8FBF3F', width: 14, height: 14 }}
                             />
                             {c.code || c.name}
                           </label>
@@ -528,7 +528,7 @@ export default function NewEmployeePage() {
                         <span style={{ color: '#9CA3AF', fontSize: '0.85rem' }}>Loading companies...</span>
                       )}
                     </div>
-                    <p style={{ marginTop: 4, fontSize: '0.75rem', color: '#6B7280' }}>
+                    <p style={{ marginTop: 4, fontSize: '0.75rem', color: '#5A6159' }}>
                       Select one or more companies this employee works for
                     </p>
                   </div>

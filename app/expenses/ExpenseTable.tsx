@@ -135,7 +135,7 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
                   checked={allPageSelected}
                   onChange={togglePageSelect}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                  style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#8FBF3F' }}
                 />
               </th>
               <th>Expense #</th>
@@ -166,10 +166,10 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
                       type="checkbox"
                       checked={selectedIds.has(exp.id)}
                       onChange={() => toggleSelect(exp.id)}
-                      style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                      style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#8FBF3F' }}
                     />
                   </td>
-                  <td style={{ whiteSpace: 'nowrap', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.85rem', fontWeight: 600, color: '#0B1F3A' }}>
+                  <td style={{ whiteSpace: 'nowrap', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.85rem', fontWeight: 600, color: '#1F2320' }}>
                     {exp.expenseNumber}
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>{new Date(exp.expenseDate).toLocaleDateString()}</td>

@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 
-const NAVY = '#0B1F3A';
-const TEAL = '#14B8A6';
+const NAVY = '#1F2320';
+const TEAL = '#8FBF3F';
 
 export default function UnauthorizedPage() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export default function UnauthorizedPage() {
     <div
       className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
-        background: `linear-gradient(135deg, ${NAVY} 0%, #152B4C 100%)`,
+        background: `linear-gradient(135deg, ${NAVY} 0%, #1F2320 100%)`,
       }}
     >
       {/* Ambient teal glow */}
@@ -76,7 +76,7 @@ export default function UnauthorizedPage() {
             <svg
               className="w-8 h-8"
               fill="none"
-              stroke="#F43F5E"
+              stroke="#9E2A2A"
               viewBox="0 0 24 24"
             >
               <path

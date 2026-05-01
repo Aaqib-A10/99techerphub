@@ -40,7 +40,7 @@ export default function PageBack() {
         title="Go back"
         className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold transition-all"
         style={{
-          color: '#0B1F3A',
+          color: '#1F2320',
           background: '#FFFFFF',
           border: '1px solid rgba(196,198,206,0.4)',
           boxShadow: '0 1px 3px rgba(11,31,58,0.06)',
@@ -54,11 +54,11 @@ export default function PageBack() {
 
       <span style={{ height: 16, width: 1, background: 'rgba(196,198,206,0.4)' }} aria-hidden />
 
-      <nav className="flex min-w-0 flex-1 items-center gap-1.5 flex-wrap" style={{ fontSize: '0.8rem', color: '#75777E' }}>
+      <nav className="flex min-w-0 flex-1 items-center gap-1.5 flex-wrap" style={{ fontSize: '0.8rem', color: '#5A6159' }}>
         <Link
           href="/"
           className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors"
-          style={{ color: '#75777E' }}
+          style={{ color: '#5A6159' }}
         >
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -73,7 +73,7 @@ export default function PageBack() {
                 className="mono rounded-md px-2 py-0.5"
                 style={{
                   fontWeight: 600,
-                  color: '#14B8A6',
+                  color: '#8FBF3F',
                   background: 'rgba(20,184,166,0.08)',
                   fontSize: '0.75rem',
                   letterSpacing: '0.02em',
@@ -82,7 +82,7 @@ export default function PageBack() {
                 {c.label}
               </span>
             ) : (
-              <Link href={c.href} className="rounded-md px-1.5 py-0.5 transition-colors" style={{ color: '#75777E' }}>
+              <Link href={c.href} className="rounded-md px-1.5 py-0.5 transition-colors" style={{ color: '#5A6159' }}>
                 {c.label}
               </Link>
             )}

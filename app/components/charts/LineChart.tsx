@@ -7,7 +7,7 @@ interface LineChartProps {
 
 export default function LineChart({
   data,
-  color = '#00C853',
+  color = '#8FBF3F',
   width = 400,
   height = 250,
 }: LineChartProps) {

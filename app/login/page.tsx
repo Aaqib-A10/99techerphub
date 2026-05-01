@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 // 99 Hub ERP — Login
 // Architectural Ledger design — navy left panel + editorial white card.
-// NOTE: Uses Tailwind arbitrary-value syntax (bg-[#0B1F3A], etc.) so it renders
+// NOTE: Uses Tailwind arbitrary-value syntax (bg-[#1F2320], etc.) so it renders
 // correctly regardless of whether the dev server has picked up the custom
 // `ledger-*` theme tokens from tailwind.config.ts.
 
@@ -18,15 +18,15 @@ const REGION_TZ: Record<Region, string> = {
 };
 
 // Architectural Ledger palette
-const NAVY = '#0B1F3A';
-const NAVY_HOVER = '#152B4C';
-const TEAL = '#14B8A6';
-const TEAL_DEEP = '#006B5F';
-const SURFACE = '#F8F9FF';
-const SURFACE_LOW = '#EFF4FF';
-const INK = '#0B1C30';
-const INK_MUTED = '#44474D';
-const OUTLINE = '#75777E';
+const NAVY = '#1F2320';
+const NAVY_HOVER = '#1F2320';
+const TEAL = '#8FBF3F';
+const TEAL_DEEP = '#4A7014';
+const SURFACE = '#F7F8F4';
+const SURFACE_LOW = '#F7F8F4';
+const INK = '#1F2320';
+const INK_MUTED = '#1F2320';
+const OUTLINE = '#5A6159';
 
 // Friendly mapping for SSO error codes the callback can redirect with.
 const SSO_ERROR_MESSAGES: Record<string, string> = {
@@ -484,10 +484,10 @@ function LoginPageInner() {
                 className="mb-6 p-4 rounded-r"
                 style={{
                   backgroundColor: 'rgba(225, 29, 72, 0.05)',
-                  borderLeft: '2px solid #E11D48',
+                  borderLeft: '2px solid #9E2A2A',
                 }}
               >
-                <p className="text-sm font-medium" style={{ color: '#E11D48' }}>
+                <p className="text-sm font-medium" style={{ color: '#9E2A2A' }}>
                   {error}
                 </p>
               </div>
@@ -513,14 +513,14 @@ function LoginPageInner() {
                   placeholder="name@99hub.com"
                   className="w-full bg-transparent border-0 py-3 px-0 focus:outline-none focus:ring-0 text-sm"
                   style={{
-                    borderBottom: '1px solid #C4C6CE',
+                    borderBottom: '1px solid #8B918A',
                     color: INK,
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderBottom = `2px solid ${TEAL}`;
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderBottom = '1px solid #C4C6CE';
+                    e.currentTarget.style.borderBottom = '1px solid #8B918A';
                   }}
                 />
               </div>
@@ -554,14 +554,14 @@ function LoginPageInner() {
                   placeholder="••••••••"
                   className="w-full bg-transparent border-0 py-3 px-0 focus:outline-none focus:ring-0 text-sm"
                   style={{
-                    borderBottom: '1px solid #C4C6CE',
+                    borderBottom: '1px solid #8B918A',
                     color: INK,
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderBottom = `2px solid ${TEAL}`;
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderBottom = '1px solid #C4C6CE';
+                    e.currentTarget.style.borderBottom = '1px solid #8B918A';
                   }}
                 />
               </div>
@@ -860,7 +860,7 @@ function LocationNode({
   active: boolean;
   labelPlacement?: LabelPlacement;
 }) {
-  const TEAL = '#14B8A6';
+  const TEAL = '#8FBF3F';
 
   // Label offset presets (relative to the 6px core dot at 0,0)
   const labelStyle: React.CSSProperties = (() => {

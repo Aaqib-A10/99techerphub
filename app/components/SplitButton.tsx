@@ -37,7 +37,7 @@ export default function SplitButton({ primary, actions, className = '' }: Props)
 
   function PrimaryChunk() {
     const inner = (
-      <span className="inline-flex h-8 items-center gap-1.5 rounded-l-md bg-[#0B1F3A] px-3 text-[13px] font-medium text-white transition-opacity hover:opacity-95">
+      <span className="inline-flex h-8 items-center gap-1.5 rounded-l-md bg-[#1F2320] px-3 text-[13px] font-medium text-white transition-opacity hover:opacity-95">
         {primary.icon}
         {primary.label}
       </span>
@@ -58,7 +58,7 @@ export default function SplitButton({ primary, actions, className = '' }: Props)
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="More actions"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-r-md bg-[#0B1F3A] text-white transition-opacity hover:opacity-95"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-r-md bg-[#1F2320] text-white transition-opacity hover:opacity-95"
       >
         <svg
           width="12"

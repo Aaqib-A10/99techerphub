@@ -133,7 +133,7 @@ export default function NotificationBell() {
         {unreadCount > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500 ring-2 ring-[#FAFAFA]" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500 ring-2 ring-[#F7F8F4]" />
           </span>
         )}
       </button>

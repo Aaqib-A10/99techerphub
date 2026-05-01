@@ -395,7 +395,7 @@ export default function UserAccountsPage() {
                     checked={allPageSelected}
                     onChange={togglePageSelect}
                     onClick={(e) => e.stopPropagation()}
-                    style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                    style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#8FBF3F' }}
                   />
                 </th>
                 <th>Email</th>
@@ -430,14 +430,14 @@ export default function UserAccountsPage() {
                         type="checkbox"
                         checked={selectedIds.has(user.id)}
                         onChange={() => toggleSelect(user.id)}
-                        style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                        style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#8FBF3F' }}
                       />
                     </td>
                     <td>
-                      <div className="font-semibold" style={{ color: '#0B1F3A' }}>
+                      <div className="font-semibold" style={{ color: '#1F2320' }}>
                         {user.email}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#75777E', fontFamily: 'JetBrains Mono, monospace' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#5A6159', fontFamily: 'JetBrains Mono, monospace' }}>
                         ID: {user.id}
                       </div>
                     </td>
@@ -452,7 +452,7 @@ export default function UserAccountsPage() {
                           <div className="font-medium text-sm">
                             {user.employee.firstName} {user.employee.lastName}
                           </div>
-                          <div style={{ fontSize: '0.75rem', color: '#75777E', fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: '0.75rem', color: '#5A6159', fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'nowrap' }}>
                             {user.employee.empCode} — {user.employee.designation}
                           </div>
                         </div>
@@ -460,7 +460,7 @@ export default function UserAccountsPage() {
                         <span className="text-sm text-core-text3">Not linked</span>
                       )}
                     </td>
-                    <td className="text-sm" style={{ color: '#44474D' }}>
+                    <td className="text-sm" style={{ color: '#1F2320' }}>
                       {formatDate(user.lastLoginAt)}
                     </td>
                     <td>
@@ -562,7 +562,7 @@ export default function UserAccountsPage() {
                 </option>
               ))}
             </select>
-            <p className="text-xs mt-1" style={{ color: '#75777E' }}>
+            <p className="text-xs mt-1" style={{ color: '#5A6159' }}>
               Admin: Full access | HR: Employees & onboarding | Manager: Department-level |
               Accountant: Finance & payroll | Employee: Self-service
             </p>

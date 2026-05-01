@@ -200,7 +200,7 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
                   checked={allPageSelected}
                   onChange={togglePageSelect}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                  style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#8FBF3F' }}
                 />
               </th>
               <th>Employee</th>
@@ -231,14 +231,14 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
                       type="checkbox"
                       checked={selectedIds.has(r.id)}
                       onChange={() => toggleSelect(r.id)}
-                      style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                      style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#8FBF3F' }}
                     />
                   </td>
                   <td>
                     <div className="font-medium">
                       {r.employee ? `${r.employee.firstName} ${r.employee.lastName}` : '—'}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#75777E', fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'nowrap' }}>{r.employee?.employeeCode || ''}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#5A6159', fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'nowrap' }}>{r.employee?.employeeCode || ''}</div>
                   </td>
                   <td>{r.employee?.department?.name || '—'}</td>
                   <td>

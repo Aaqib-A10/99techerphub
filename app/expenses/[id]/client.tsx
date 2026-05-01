@@ -152,8 +152,8 @@ export default function ExpenseDetailClient({ expense }: { expense: any }) {
         </div>
         <div className="card-body space-y-3">
           <div>
-            <div className="text-sm" style={{ color: '#75777E' }}>Amount</div>
-            <div className="text-2xl font-bold mono mt-1" style={{ color: '#0B1F3A' }}>
+            <div className="text-sm" style={{ color: '#5A6159' }}>Amount</div>
+            <div className="text-2xl font-bold mono mt-1" style={{ color: '#1F2320' }}>
               {expense.currency} {Number(expense.amount).toLocaleString()}
             </div>
           </div>

@@ -52,7 +52,7 @@ export default function TablePagination({
       style={{ borderTop: '1px solid rgba(196, 198, 206, 0.25)', backgroundColor: 'rgba(248, 249, 255, 0.5)' }}
     >
       {/* Left: row counter + page-size switcher */}
-      <div className="flex flex-wrap items-center gap-3 text-sm" style={{ color: '#44474D' }}>
+      <div className="flex flex-wrap items-center gap-3 text-sm" style={{ color: '#1F2320' }}>
         <span>
           {totalItems === 0
             ? 'No records'
@@ -60,7 +60,7 @@ export default function TablePagination({
         </span>
 
         <label className="flex items-center gap-2">
-          <span style={{ fontSize: '0.75rem', color: '#75777E' }}>Per page</span>
+          <span style={{ fontSize: '0.75rem', color: '#5A6159' }}>Per page</span>
           <select
             value={String(itemsPerPage)}
             onChange={(e) => handlePerPage(e.target.value)}
@@ -70,7 +70,7 @@ export default function TablePagination({
               backgroundColor: '#FFFFFF',
               padding: '4px 8px',
               fontSize: '0.85rem',
-              color: '#0B1F3A',
+              color: '#1F2320',
               cursor: 'pointer',
             }}
           >
@@ -96,7 +96,7 @@ export default function TablePagination({
               padding: '4px 12px',
               fontSize: '0.85rem',
               fontWeight: 500,
-              color: currentPage <= 1 ? '#C4C6CE' : '#0B1F3A',
+              color: currentPage <= 1 ? '#8B918A' : '#1F2320',
               cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
               opacity: currentPage <= 1 ? 0.5 : 1,
             }}
@@ -106,7 +106,7 @@ export default function TablePagination({
 
           {pages.map((p, idx) =>
             p === 'ellipsis' ? (
-              <span key={`e-${idx}`} style={{ padding: '0 8px', color: '#C4C6CE' }}>
+              <span key={`e-${idx}`} style={{ padding: '0 8px', color: '#8B918A' }}>
                 …
               </span>
             ) : (
@@ -121,8 +121,8 @@ export default function TablePagination({
                   fontSize: '0.85rem',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  backgroundColor: p === currentPage ? '#0B1F3A' : '#FFFFFF',
-                  color: p === currentPage ? '#FFFFFF' : '#0B1F3A',
+                  backgroundColor: p === currentPage ? '#1F2320' : '#FFFFFF',
+                  color: p === currentPage ? '#FFFFFF' : '#1F2320',
                   border: p === currentPage ? 'none' : '1px solid rgba(196, 198, 206, 0.4)',
                 }}
               >
@@ -142,7 +142,7 @@ export default function TablePagination({
               padding: '4px 12px',
               fontSize: '0.85rem',
               fontWeight: 500,
-              color: currentPage >= totalPages ? '#C4C6CE' : '#0B1F3A',
+              color: currentPage >= totalPages ? '#8B918A' : '#1F2320',
               cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
               opacity: currentPage >= totalPages ? 0.5 : 1,
             }}

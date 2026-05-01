@@ -20,21 +20,21 @@ import { useRouter } from 'next/navigation';
 // ────────────────────────────────────────────────────────────────
 // Architectural Ledger palette
 // ────────────────────────────────────────────────────────────────
-const NAVY = '#0B1F3A';
-const NAVY_HOVER = '#152B4C';
-const TEAL = '#14B8A6';
-const TEAL_DEEP = '#006B5F';
-const TEAL_TINT = '#E6FAF6';
-const SURFACE = '#F8F9FF';
-const SURFACE_LOW = '#EFF4FF';
+const NAVY = '#1F2320';
+const NAVY_HOVER = '#1F2320';
+const TEAL = '#8FBF3F';
+const TEAL_DEEP = '#4A7014';
+const TEAL_TINT = '#EFF6E0';
+const SURFACE = '#F7F8F4';
+const SURFACE_LOW = '#F7F8F4';
 const SURFACE_LOWEST = '#FFFFFF';
-const SURFACE_HIGH = '#DCE9FF';
-const INK = '#0B1C30';
-const INK_MUTED = '#44474D';
-const OUTLINE = '#75777E';
-const OUTLINE_VARIANT = '#C4C6CE';
-const AMBER = '#F59E0B';
-const ROSE = '#E11D48';
+const SURFACE_HIGH = '#E7F0FA';
+const INK = '#1F2320';
+const INK_MUTED = '#1F2320';
+const OUTLINE = '#5A6159';
+const OUTLINE_VARIANT = '#8B918A';
+const AMBER = '#A66600';
+const ROSE = '#9E2A2A';
 
 const MONO = 'var(--font-jetbrains-mono), monospace';
 
@@ -672,7 +672,7 @@ export default function ExpenseCapturePage() {
                   <div
                     style={{
                       padding: 16,
-                      backgroundColor: '#FEF2F2',
+                      backgroundColor: '#FBEBEB',
                       border: `1px solid ${ROSE}40`,
                       borderRadius: 8,
                       color: ROSE,
@@ -944,7 +944,7 @@ function Step1Capture({
             width: '100%',
             padding: '12px 16px',
             borderRadius: 12,
-            backgroundColor: '#FEF2F2',
+            backgroundColor: '#FBEBEB',
             border: `1px solid ${ROSE}40`,
             color: ROSE,
             fontSize: 12,
@@ -1497,7 +1497,7 @@ function Step3Review({
           style={{
             padding: 12,
             borderRadius: 12,
-            backgroundColor: '#FEF2F2',
+            backgroundColor: '#FBEBEB',
             color: ROSE,
             fontSize: 12,
             fontWeight: 500,
@@ -1774,7 +1774,7 @@ function BottomNavItem({
   icon: 'home' | 'assets' | 'expenses' | 'inbox' | 'profile';
   active?: boolean;
 }) {
-  const color = active ? TEAL : '#94A3B8';
+  const color = active ? TEAL : '#8B918A';
   return (
     <div
       style={{

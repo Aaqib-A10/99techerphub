@@ -261,7 +261,7 @@ export default function EmailTemplatesPage() {
                     checked={allPageSelected}
                     onChange={togglePageSelect}
                     onClick={(e) => e.stopPropagation()}
-                    style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                    style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#8FBF3F' }}
                   />
                 </th>
                 <th>Name</th>
@@ -296,7 +296,7 @@ export default function EmailTemplatesPage() {
                         type="checkbox"
                         checked={selectedIds.has(template.id)}
                         onChange={() => toggleSelect(template.id)}
-                        style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#14B8A6' }}
+                        style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#8FBF3F' }}
                       />
                     </td>
                     <td className="font-semibold">{template.name}</td>
@@ -312,7 +312,7 @@ export default function EmailTemplatesPage() {
                     <td className="text-sm text-core-text2 max-w-xs truncate">
                       {template.subject}
                     </td>
-                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem', color: '#6B7280' }}>
+                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.85rem', color: '#5A6159' }}>
                       {formatDate(template.updatedAt)}
                     </td>
                     <td>

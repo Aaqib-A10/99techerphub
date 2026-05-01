@@ -114,7 +114,7 @@ export default function EmploymentTab(props: Props) {
           <button
             onClick={props.onEditClick}
             className="btn btn-primary"
-            style={{ backgroundColor: '#0B1F3A' }}
+            style={{ backgroundColor: '#1F2320' }}
           >
             Edit Employment
           </button>
@@ -124,7 +124,7 @@ export default function EmploymentTab(props: Props) {
               onClick={props.onSave}
               disabled={props.loading}
               className="btn btn-primary"
-              style={{ backgroundColor: '#0B1F3A' }}
+              style={{ backgroundColor: '#1F2320' }}
             >
               {props.loading ? 'Saving...' : 'Save Changes'}
             </button>
@@ -203,7 +203,7 @@ export default function EmploymentTab(props: Props) {
                             border: isChecked
                               ? '1px solid rgba(11, 31, 58, 0.2)'
                               : '1px solid #E5E7EB',
-                            color: '#0B1F3A',
+                            color: '#1F2320',
                             transition: 'all 0.15s',
                           }}
                         >
@@ -218,14 +218,14 @@ export default function EmploymentTab(props: Props) {
                                   : [...currentIds, c.id],
                               });
                             }}
-                            style={{ accentColor: '#14B8A6', width: 14, height: 14 }}
+                            style={{ accentColor: '#8FBF3F', width: 14, height: 14 }}
                           />
                           {c.code} — {c.name}
                         </label>
                       );
                     })}
                   </div>
-                  <p style={{ marginTop: 4, fontSize: '0.75rem', color: '#6B7280' }}>
+                  <p style={{ marginTop: 4, fontSize: '0.75rem', color: '#5A6159' }}>
                     Select one or more companies this employee works for
                   </p>
                 </div>
@@ -487,7 +487,7 @@ export default function EmploymentTab(props: Props) {
                       className="btn w-full mt-4"
                       style={{
                         backgroundColor: Object.values(clearanceStatus).every(Boolean)
-                          ? '#00C853'
+                          ? '#8FBF3F'
                           : '#ccc',
                         color: 'white',
                         cursor: Object.values(clearanceStatus).every(Boolean)
