@@ -36,7 +36,6 @@ export default function NewAssetPage() {
     currency: 'PKR',
     warrantyExpiry: '',
     batchId: '',
-    photoUrl: '',
   });
 
   const [categories, setCategories] = useState<any[]>([]);
@@ -303,22 +302,6 @@ export default function NewAssetPage() {
                   />
                   <p className="text-xs text-core-text3 mt-1">
                     Optional. Group assets purchased together.
-                  </p>
-                </div>
-
-                {/* Photo URL */}
-                <div className="form-group">
-                  <label className="form-label">Photo URL</label>
-                  <input
-                    type="url"
-                    name="photoUrl"
-                    value={formData.photoUrl}
-                    onChange={handleChange}
-                    placeholder="https://example.com/photo.jpg"
-                    className="form-input"
-                  />
-                  <p className="text-xs text-core-text3 mt-1">
-                    Optional. URL to asset photo.
                   </p>
                 </div>
 

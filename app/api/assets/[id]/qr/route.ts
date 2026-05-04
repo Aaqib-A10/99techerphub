@@ -34,7 +34,18 @@ export async function GET(
     }
 
     // Build a self-referencing URL that the scan page can resolve.
-    const origin = request.nextUrl.origin;
+    //
+    // Behind Cloudflare / a reverse proxy, `request.nextUrl.origin` can
+    // resolve to the internal hostname (localhost:3000) instead of the
+    // public domain — that was sending scanned labels to localhost.
+    // Prefer NEXT_PUBLIC_APP_URL (set explicitly in .env on prod), then
+    // the proxy-forwarded host, then the request's own origin as a last
+    // resort.
+    const forwardedHost = request.headers.get('x-forwarded-host');
+    const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https';
+    const explicitOrigin = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
+    const proxyOrigin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : null;
+    const origin = explicitOrigin || proxyOrigin || request.nextUrl.origin;
     const payload = `${origin}/assets/scan?tag=${encodeURIComponent(asset.assetTag)}`;
 
     // Generate a real, scannable QR code as SVG.
@@ -52,7 +63,10 @@ export async function GET(
     return new NextResponse(svg, {
       headers: {
         'Content-Type': 'image/svg+xml',
-        'Cache-Control': 'public, max-age=3600',
+        // Don't cache long — labels are regenerated cheaply and stale
+        // origins (e.g. while NEXT_PUBLIC_APP_URL is being rotated) hurt
+        // more than the bandwidth saving helps.
+        'Cache-Control': 'public, max-age=60, must-revalidate',
       },
     });
   } catch (error) {

@@ -86,17 +86,22 @@ export default function EmployeeListClient({
     return 'active';
   })();
 
-  // Hydrate company / department from URL too so the dashboard's KPI tiles
-  // (and any external link) carry their filter through to this list.
+  // All filters hydrate from the URL on mount, and every change writes
+  // back to the URL via router.replace. This is the single fix for two
+  // bugs: (a) browser back from /employees/[id] no longer drops filters
+  // — the URL still carries them, so the page rehydrates the same view,
+  // and (b) bookmarks / shared links capture the exact filter state.
+  // Using `replace` (not `push`) keeps the history clean while typing.
   const [filters, setFilters] = useState<FilterParams>({
-    search: '',
+    search: searchParams?.get('q') ?? '',
     department: searchParams?.get('department') ?? '',
     company: searchParams?.get('company') ?? '',
-    status: '',
-    team: '',
+    status: searchParams?.get('empStatus') ?? '',
+    team: searchParams?.get('team') ?? '',
     lifecycleView: initialLifecycleView,
   });
-  const [currentPage, setCurrentPage] = useState(1);
+  const initialPage = Math.max(1, parseInt(searchParams?.get('page') ?? '1', 10) || 1);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkLoading, setBulkLoading] = useState<string | null>(null);
@@ -114,9 +119,30 @@ export default function EmployeeListClient({
     if (!s) return;
     const next: LifecycleView = s === 'exited' ? 'exited' : s === 'all' ? 'all' : 'active';
     setFilters((prev) => (prev.lifecycleView === next ? prev : { ...prev, lifecycleView: next }));
-    setCurrentPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  // Push current filter state back to the URL so back navigation
+  // restores it. Uses router.replace to avoid every keystroke creating
+  // a new history entry.
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.search) params.set('q', filters.search);
+    if (filters.department) params.set('department', filters.department);
+    if (filters.company) params.set('company', filters.company);
+    if (filters.status) params.set('empStatus', filters.status);
+    if (filters.team) params.set('team', filters.team);
+    if (filters.lifecycleView !== 'active') params.set('status', filters.lifecycleView);
+    if (currentPage > 1) params.set('page', String(currentPage));
+    // Carry the date-range params through so they don't get wiped.
+    const from = searchParams?.get('from');
+    const to = searchParams?.get('to');
+    if (from) params.set('from', from);
+    if (to) params.set('to', to);
+    const qs = params.toString();
+    router.replace(qs ? `?${qs}` : '?', { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, currentPage]);
 
   // Date filter from URL params
   const dateFrom = searchParams?.get('from') || '';
@@ -300,6 +326,61 @@ export default function EmployeeListClient({
     { key: 'delete', label: 'Delete', variant: 'danger' as const, confirm: 'Permanently delete {count} employee(s)? This cannot be undone.' },
   ];
 
+  // KPI tiles count within the *current scope* — the same set of
+  // department / company / team / search / date filters the user has
+  // applied — but ignore the lifecycle + employmentStatus filters so all
+  // five tiles stay visible (otherwise clicking "On Probation" would
+  // collapse "Exited" to zero and the strip would be useless).
+  const scopedPool = useMemo(() => {
+    const start = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    return initialEmployees.filter((emp) => {
+      const searchTerm = filters.search.toLowerCase();
+      const fullName = `${emp.firstName} ${emp.lastName}`.toLowerCase();
+      const matchesSearch =
+        !searchTerm ||
+        emp.empCode.toLowerCase().includes(searchTerm) ||
+        fullName.includes(searchTerm) ||
+        (emp.email && emp.email.toLowerCase().includes(searchTerm)) ||
+        (emp.phone && emp.phone.includes(searchTerm));
+      const matchesDept =
+        !filters.department || emp.department.id.toString() === filters.department;
+      const matchesCompany =
+        !filters.company ||
+        emp.companies?.some((c) => c.id.toString() === filters.company) ||
+        emp.company?.id.toString() === filters.company;
+      const empTeam = getTeam(emp.empCode, emp.designation);
+      const matchesTeam = !filters.team || empTeam === filters.team;
+      let matchesDate = true;
+      if (dateFrom || dateTo) {
+        const joinDate = new Date(emp.dateOfJoining);
+        if (dateFrom && joinDate < new Date(dateFrom)) matchesDate = false;
+        if (dateTo && joinDate > new Date(dateTo + 'T23:59:59')) matchesDate = false;
+      }
+      return matchesSearch && matchesDept && matchesCompany && matchesTeam && matchesDate;
+    });
+  }, [filters.search, filters.department, filters.company, filters.team, dateFrom, dateTo, initialEmployees]);
+
+  const scopedKpis = useMemo(() => {
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    let total = 0;
+    let active = 0;
+    let exited = 0;
+    let probation = 0;
+    let newThisMonth = 0;
+    for (const emp of scopedPool) {
+      total++;
+      const isExited =
+        !emp.isActive ||
+        emp.lifecycleStage === 'EXITED' ||
+        emp.lifecycleStage === 'EXIT_INITIATED';
+      if (isExited) exited++;
+      else active++;
+      if (emp.isActive && emp.employmentStatus === 'PROBATION') probation++;
+      if (new Date(emp.dateOfJoining) >= monthStart) newThisMonth++;
+    }
+    return { total, active, exited, probation, newThisMonth };
+  }, [scopedPool]);
+
   // KPI tiles — clickable, deep-link into the relevant filter view.
   const totalActive = filters.lifecycleView === 'all' && !filters.status;
   const activeOnly = filters.lifecycleView === 'active' && !filters.status;
@@ -322,17 +403,19 @@ export default function EmployeeListClient({
 
   return (
     <div>
-      {/* KPI strip — 5 tinted Apple Wallet tiles per design */}
+      {/* KPI strip — 5 tinted Apple Wallet tiles. Numbers reflect the
+          current scope (department / company / team / search / date),
+          not all-time, so the cards move with the user's filters. */}
       <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         {kpiTileWrapper(totalActive, () => { setFilters({ ...filters, lifecycleView: 'all', status: '' }); setCurrentPage(1); },
-          <KpiTile tone="green" label="Total Employees" value={stats.total} meta="All time hired" />)}
+          <KpiTile tone="green" label="Total Employees" value={scopedKpis.total} meta="In current view" />)}
         {kpiTileWrapper(activeOnly, () => { setFilters({ ...filters, lifecycleView: 'active', status: '' }); setCurrentPage(1); },
-          <KpiTile tone="blue" label="Active" value={stats.active} />)}
+          <KpiTile tone="blue" label="Active" value={scopedKpis.active} />)}
         {kpiTileWrapper(exitedOnly, () => { setFilters({ ...filters, lifecycleView: 'exited', status: '' }); setCurrentPage(1); },
-          <KpiTile tone="rose" label="Exited" value={stats.exited ?? 0} />)}
+          <KpiTile tone="rose" label="Exited" value={scopedKpis.exited} />)}
         {kpiTileWrapper(probationOnly, () => { setFilters({ ...filters, lifecycleView: 'active', status: 'PROBATION' }); setCurrentPage(1); },
-          <KpiTile tone="amber" label="On Probation" value={stats.onProbation} />)}
-        <KpiTile tone="violet" label="New This Month" value={stats.newThisMonth} />
+          <KpiTile tone="amber" label="On Probation" value={scopedKpis.probation} />)}
+        <KpiTile tone="violet" label="New This Month" value={scopedKpis.newThisMonth} />
       </div>
 
       {/* Compact toolbar — search + chip filters + export */}

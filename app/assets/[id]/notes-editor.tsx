@@ -49,26 +49,20 @@ export default function NotesEditor({ assetId, currentNotes }: NotesEditorProps)
     return (
       <div>
         {notes ? (
-          <div>
-            <p className="text-core-text text-sm mb-3">{notes}</p>
-            <button
-              onClick={() => setIsEditing(true)}
-              className="text-sm text-core-text2 hover:text-core-greenFg font-medium"
-            >
-              Edit Notes
-            </button>
-          </div>
+          <p className="mb-3 text-[13px] text-core-text">{notes}</p>
         ) : (
-          <div>
-            <p className="text-core-text3 text-sm mb-3">No notes added yet</p>
-            <button
-              onClick={() => setIsEditing(true)}
-              className="text-sm text-core-text2 hover:text-core-greenFg font-medium"
-            >
-              Add Notes
-            </button>
-          </div>
+          <p className="mb-3 text-[13px] text-core-text3">No notes added yet</p>
         )}
+        <button
+          onClick={() => setIsEditing(true)}
+          className="inline-flex items-center gap-[5px] rounded-lg border border-core-border bg-core-surface px-[10px] py-[5px] text-[12px] font-semibold text-core-text2 transition hover:bg-core-surface2 hover:text-core-text"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          {notes ? 'Edit Notes' : 'Add Notes'}
+        </button>
       </div>
     );
   }
