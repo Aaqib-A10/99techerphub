@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
 import EmployeePicker from '@/app/components/EmployeePicker';
+import { KpiTile } from '@/app/components/design';
 
 export default function DeductionsPage() {
   const [deductions, setDeductions] = useState<any[]>([]);
@@ -60,10 +61,33 @@ export default function DeductionsPage() {
     OTHER: 'Other',
   };
 
+  const kpis = useMemo(() => {
+    const totalAmount = deductions.reduce((s: number, d: any) => s + Number(d.amount || 0), 0);
+    const taxTotal = deductions
+      .filter((d: any) => d.deductionType === 'TAX')
+      .reduce((s: number, d: any) => s + Number(d.amount || 0), 0);
+    const loanTotal = deductions
+      .filter((d: any) => d.deductionType === 'LOAN')
+      .reduce((s: number, d: any) => s + Number(d.amount || 0), 0);
+    const advanceTotal = deductions
+      .filter((d: any) => d.deductionType === 'ADVANCE')
+      .reduce((s: number, d: any) => s + Number(d.amount || 0), 0);
+    return {
+      total: deductions.length,
+      totalAmount,
+      taxTotal,
+      loanTotal,
+      advanceTotal,
+    };
+  }, [deductions]);
+
+  const fmt = (n: number) =>
+    `PKR ${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+
   return (
     <div>
       <PageHero
-        eyebrow="Finance / Deductions"
+        eyebrow="Finance · Deductions"
         title="Deduction Management"
         description="Track tax, loan, insurance, and other deductions"
         actions={
@@ -73,8 +97,17 @@ export default function DeductionsPage() {
         }
       />
 
-      {error && <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
-      {success && <div className="mb-6 p-4 bg-core-greenSoft text-core-greenFg rounded-lg">{success}</div>}
+      {/* KPI strip */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        <KpiTile tone="rose" label="Total Records" value={kpis.total} meta="All deductions" />
+        <KpiTile tone="amber" label="Total Amount" value={fmt(kpis.totalAmount)} />
+        <KpiTile tone="violet" label="Income Tax" value={fmt(kpis.taxTotal)} />
+        <KpiTile tone="blue" label="Loans" value={fmt(kpis.loanTotal)} />
+        <KpiTile tone="green" label="Advances" value={fmt(kpis.advanceTotal)} />
+      </div>
+
+      {error && <div className="mb-6 rounded-lg bg-core-roseSoft p-4 text-core-roseFg">{error}</div>}
+      {success && <div className="mb-6 rounded-lg bg-core-greenSoft p-4 text-core-greenFg">{success}</div>}
 
       {showForm && (
         <div className="card mb-6">

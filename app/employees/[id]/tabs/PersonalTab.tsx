@@ -73,11 +73,7 @@ export default function PersonalTab(props: Props) {
     <>
       <div className="mb-4 flex gap-2">
         {!props.isEditMode ? (
-          <button
-            onClick={props.onEditClick}
-            className="btn btn-primary"
-            style={{ backgroundColor: '#1F2320' }}
-          >
+          <button onClick={props.onEditClick} className="btn btn-primary">
             Edit Profile
           </button>
         ) : (
@@ -86,15 +82,10 @@ export default function PersonalTab(props: Props) {
               onClick={props.onSave}
               disabled={props.loading}
               className="btn btn-primary"
-              style={{ backgroundColor: '#1F2320' }}
             >
-              {props.loading ? 'Saving...' : 'Save Changes'}
+              {props.loading ? 'Saving…' : 'Save Changes'}
             </button>
-            <button
-              onClick={props.onCancel}
-              className="btn"
-              style={{ backgroundColor: '#f0f0f0', color: '#333' }}
-            >
+            <button onClick={props.onCancel} className="btn btn-secondary">
               Cancel
             </button>
           </>
@@ -317,9 +308,9 @@ export default function PersonalTab(props: Props) {
 
       {/* Exit details — only for exited employees */}
       {employee.lifecycleStage === 'EXITED' && (
-        <div className="card mt-6 border-l-4 border-red-400">
+        <div className="card mt-6 border-core-roseFg/40">
           <div className="card-header">
-            <h3 className="section-heading">Exit Information</h3>
+            <h3 className="section-heading text-core-roseFg">Exit Information</h3>
           </div>
           <div className="card-body space-y-3">
             <Row
@@ -327,7 +318,7 @@ export default function PersonalTab(props: Props) {
               value={
                 employee.dateOfLeaving
                   ? new Date(employee.dateOfLeaving).toLocaleDateString()
-                  : '-'
+                  : '—'
               }
             />
             <Row label="Exit Reason" value={employee.exitReason} />
@@ -399,9 +390,11 @@ function Select({
 
 function Row({ label, value }: { label: string; value: string | null | undefined }) {
   return (
-    <div className="flex justify-between">
-      <span className="text-sm text-core-text3">{label}</span>
-      <span className="text-sm font-medium">{value || '-'}</span>
+    <div className="flex items-baseline justify-between gap-3 border-b border-core-border last:border-0 py-[6px]">
+      <span className="text-[12px] text-core-text3">{label}</span>
+      <span className="text-[12.5px] font-medium text-core-text text-right">
+        {value || <span className="text-core-text3">—</span>}
+      </span>
     </div>
   );
 }

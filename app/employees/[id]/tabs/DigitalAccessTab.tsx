@@ -1,5 +1,7 @@
 'use client';
 
+import { Badge } from '@/app/components/design';
+
 /**
  * Digital Access tab — list of granted services + revoke action.
  *
@@ -29,53 +31,68 @@ export default function DigitalAccessTab({
 }: Props) {
   return (
     <div className="card">
-      <div className="card-header flex justify-between items-center">
-        <h3 className="section-heading">Digital Access & Licenses</h3>
+      <div className="card-header flex items-center justify-between">
+        <h3 className="section-heading">Digital Access &amp; Licenses</h3>
         <button onClick={onGrantClick} className="btn btn-sm btn-primary">
           Grant Access
         </button>
       </div>
-      <div className="table-wrapper">
-        <table className="table">
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12.5px]" style={{ borderCollapse: 'collapse' }}>
           <thead>
-            <tr>
-              <th>Service</th>
-              <th>Account ID</th>
-              <th>Granted Date</th>
-              <th>Status</th>
-              <th>Actions</th>
+            <tr className="bg-core-surface2">
+              {['Service', 'Account ID', 'Granted Date', 'Status', 'Actions'].map((h) => (
+                <th
+                  key={h}
+                  className="border-b border-core-border px-[14px] py-[10px] text-left text-[10px] font-bold uppercase text-core-text3"
+                  style={{ letterSpacing: '0.08em' }}
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {digitalAccess.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-core-text3">
+                <td colSpan={5} className="px-[14px] py-12 text-center text-core-text3">
                   No digital access records
                 </td>
               </tr>
             ) : (
-              digitalAccess.map((da) => (
-                <tr key={da.id}>
-                  <td className="font-semibold">{da.serviceName}</td>
-                  <td>{da.accountId || '-'}</td>
-                  <td>{new Date(da.grantedDate).toLocaleDateString()}</td>
-                  <td>
-                    <span className={`badge ${da.isActive ? 'badge-green' : 'badge-red'}`}>
-                      {da.isActive ? 'Active' : 'Revoked'}
-                    </span>
-                  </td>
-                  <td>
-                    {da.isActive && (
-                      <button
-                        onClick={() => onRevoke(da.id)}
-                        className="btn btn-sm btn-danger"
-                      >
-                        Revoke
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))
+              digitalAccess.map((da, idx) => {
+                const isLast = idx === digitalAccess.length - 1;
+                return (
+                  <tr
+                    key={da.id}
+                    className="transition-colors hover:bg-core-surface2"
+                    style={{ borderBottom: isLast ? 'none' : '1px solid #E5E8DD' }}
+                  >
+                    <td className="px-[14px] py-3 font-medium text-core-text">
+                      {da.serviceName}
+                    </td>
+                    <td className="px-[14px] py-3 font-mono text-[11.5px] text-core-text2">
+                      {da.accountId || <span className="text-core-text3">—</span>}
+                    </td>
+                    <td className="whitespace-nowrap px-[14px] py-3 text-core-text2 tabular-nums">
+                      {new Date(da.grantedDate).toLocaleDateString()}
+                    </td>
+                    <td className="px-[14px] py-3">
+                      {da.isActive ? <Badge tone="green">Active</Badge> : <Badge tone="rose">Revoked</Badge>}
+                    </td>
+                    <td className="px-[14px] py-3">
+                      {da.isActive && (
+                        <button
+                          onClick={() => onRevoke(da.id)}
+                          className="btn btn-sm btn-danger"
+                        >
+                          Revoke
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

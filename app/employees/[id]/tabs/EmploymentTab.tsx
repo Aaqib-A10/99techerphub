@@ -114,7 +114,6 @@ export default function EmploymentTab(props: Props) {
           <button
             onClick={props.onEditClick}
             className="btn btn-primary"
-            style={{ backgroundColor: '#1F2320' }}
           >
             Edit Employment
           </button>
@@ -124,14 +123,12 @@ export default function EmploymentTab(props: Props) {
               onClick={props.onSave}
               disabled={props.loading}
               className="btn btn-primary"
-              style={{ backgroundColor: '#1F2320' }}
             >
               {props.loading ? 'Saving...' : 'Save Changes'}
             </button>
             <button
               onClick={props.onCancel}
-              className="btn"
-              style={{ backgroundColor: '#f0f0f0', color: '#333' }}
+              className="btn btn-secondary"
             >
               Cancel
             </button>

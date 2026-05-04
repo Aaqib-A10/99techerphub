@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { KpiTile } from '@/app/components/design';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
 
@@ -71,10 +72,19 @@ export default function MonthlyReportsPage() {
     SENT: { action: 'acknowledge', label: 'Mark Acknowledged' },
   };
 
+  const kpis = useMemo(() => {
+    const total = reports.length;
+    const draft = reports.filter((r: any) => r.status === 'DRAFT').length;
+    const review = reports.filter((r: any) => r.status === 'UNDER_REVIEW').length;
+    const sent = reports.filter((r: any) => r.status === 'SENT').length;
+    const acknowledged = reports.filter((r: any) => r.status === 'ACKNOWLEDGED').length;
+    return { total, draft, review, sent, acknowledged };
+  }, [reports]);
+
   return (
     <div>
       <PageHero
-        eyebrow="Finance / Reports"
+        eyebrow="Finance · Reports"
         title="Monthly Reports"
         description="Generate and track monthly financial reports"
         actions={
@@ -84,7 +94,16 @@ export default function MonthlyReportsPage() {
         }
       />
 
-      {error && <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
+      {/* KPI strip */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        <KpiTile tone="blue" label="Total Reports" value={kpis.total} meta="All periods" />
+        <KpiTile tone="amber" label="Draft" value={kpis.draft} meta="In progress" />
+        <KpiTile tone="violet" label="Under Review" value={kpis.review} meta="Pending sign-off" />
+        <KpiTile tone="green" label="Sent" value={kpis.sent} meta="Awaiting ack" />
+        <KpiTile tone="rose" label="Acknowledged" value={kpis.acknowledged} meta="Closed" />
+      </div>
+
+      {error && <div className="mb-6 rounded-lg bg-core-roseSoft p-4 text-core-roseFg">{error}</div>}
 
       {showForm && (
         <div className="card mb-6">

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
 import EmployeePicker from '@/app/components/EmployeePicker';
+import { KpiTile } from '@/app/components/design';
 
 export default function SalaryManagementPage() {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -72,10 +73,37 @@ export default function SalaryManagementPage() {
     return matchEmployee && matchYear;
   });
 
+  const kpis = useMemo(() => {
+    const thisYear = new Date().getFullYear();
+    const inThisYear = salaryHistory.filter(
+      (r: any) => new Date(r.effectiveFrom).getFullYear() === thisYear,
+    );
+    const incrementsWithPct = salaryHistory.filter((r: any) => r.incrementPct);
+    const avgIncrement =
+      incrementsWithPct.length > 0
+        ? incrementsWithPct.reduce(
+            (sum: number, r: any) => sum + Number(r.incrementPct || 0),
+            0,
+          ) / incrementsWithPct.length
+        : 0;
+    const last30 = salaryHistory.filter((r: any) => {
+      const days = (Date.now() - new Date(r.effectiveFrom).getTime()) / (1000 * 60 * 60 * 24);
+      return days <= 30;
+    }).length;
+    const uniqueEmployees = new Set(salaryHistory.map((r: any) => r.employeeId)).size;
+    return {
+      total: salaryHistory.length,
+      thisYear: inThisYear.length,
+      avgIncrement: avgIncrement.toFixed(1),
+      last30,
+      uniqueEmployees,
+    };
+  }, [salaryHistory]);
+
   return (
     <div>
       <PageHero
-        eyebrow="Finance / Salary"
+        eyebrow="Finance · Salary"
         title="Salary Management"
         description="Process salary increments and adjustments"
         actions={
@@ -85,8 +113,17 @@ export default function SalaryManagementPage() {
         }
       />
 
-      {error && <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
-      {success && <div className="mb-6 p-4 bg-core-greenSoft text-core-greenFg rounded-lg">{success}</div>}
+      {/* KPI strip */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        <KpiTile tone="blue" label="Total Records" value={kpis.total} meta="Across all employees" />
+        <KpiTile tone="green" label="This Year" value={kpis.thisYear} meta="Updates so far" />
+        <KpiTile tone="violet" label="Avg Increment" value={`${kpis.avgIncrement}%`} meta="On records that have one" />
+        <KpiTile tone="amber" label="Last 30 Days" value={kpis.last30} meta="Recent updates" />
+        <KpiTile tone="rose" label="Employees Touched" value={kpis.uniqueEmployees} meta="With salary records" />
+      </div>
+
+      {error && <div className="mb-6 rounded-lg bg-core-roseSoft p-4 text-core-roseFg">{error}</div>}
+      {success && <div className="mb-6 rounded-lg bg-core-greenSoft p-4 text-core-greenFg">{success}</div>}
 
       {showForm && (
         <div className="card mb-6">

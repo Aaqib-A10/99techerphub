@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
 import EmployeePicker from '@/app/components/EmployeePicker';
+import { KpiTile } from '@/app/components/design';
 
 export default function CommissionsPage() {
   const [commissions, setCommissions] = useState<any[]>([]);
@@ -51,10 +52,29 @@ export default function CommissionsPage() {
     }
   };
 
+  const kpis = useMemo(() => {
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    const totalAmount = commissions.reduce(
+      (sum: number, c: any) => sum + Number(c.amount || 0),
+      0,
+    );
+    const thisMonthAmount = commissions
+      .filter((c: any) => c.period === thisMonth)
+      .reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
+    const uniqueEmployees = new Set(commissions.map((c: any) => c.employeeId)).size;
+    return {
+      total: commissions.length,
+      thisMonth: commissions.filter((c: any) => c.period === thisMonth).length,
+      totalAmount,
+      thisMonthAmount,
+      uniqueEmployees,
+    };
+  }, [commissions]);
+
   return (
     <div>
       <PageHero
-        eyebrow="Finance / Commissions"
+        eyebrow="Finance · Commissions"
         title="Commission Management"
         description="Track and manage employee commissions and bonuses"
         actions={
@@ -64,8 +84,25 @@ export default function CommissionsPage() {
         }
       />
 
-      {error && <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>}
-      {success && <div className="mb-6 p-4 bg-core-greenSoft text-core-greenFg rounded-lg">{success}</div>}
+      {/* KPI strip */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        <KpiTile tone="green" label="Total Records" value={kpis.total} meta="All time" />
+        <KpiTile tone="blue" label="This Month" value={kpis.thisMonth} meta="Records" />
+        <KpiTile
+          tone="amber"
+          label="Total Amount"
+          value={`PKR ${kpis.totalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+        />
+        <KpiTile
+          tone="violet"
+          label="This Month Total"
+          value={`PKR ${kpis.thisMonthAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+        />
+        <KpiTile tone="rose" label="Employees Paid" value={kpis.uniqueEmployees} />
+      </div>
+
+      {error && <div className="mb-6 rounded-lg bg-core-roseSoft p-4 text-core-roseFg">{error}</div>}
+      {success && <div className="mb-6 rounded-lg bg-core-greenSoft p-4 text-core-greenFg">{success}</div>}
 
       {showForm && (
         <div className="card mb-6">

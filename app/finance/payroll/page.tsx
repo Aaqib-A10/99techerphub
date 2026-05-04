@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHero from '@/app/components/PageHero';
+import { KpiTile } from '@/app/components/design';
 
 export default function PayrollPage() {
   const router = useRouter();
@@ -85,10 +86,25 @@ export default function PayrollPage() {
     PAID: 'badge-green',
   };
 
+  const kpis = useMemo(() => {
+    const total = payrollRuns.length;
+    const draft = payrollRuns.filter((p: any) => p.status === 'DRAFT').length;
+    const finalized = payrollRuns.filter((p: any) => p.status === 'FINALIZED').length;
+    const paid = payrollRuns.filter((p: any) => p.status === 'PAID').length;
+    const totalNet = payrollRuns.reduce(
+      (s: number, p: any) => s + Number(p.totalNet || 0),
+      0,
+    );
+    return { total, draft, finalized, paid, totalNet };
+  }, [payrollRuns]);
+
+  const fmtPkr = (n: number) =>
+    `PKR ${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+
   return (
     <div>
       <PageHero
-        eyebrow="Finance / Payroll"
+        eyebrow="Finance · Payroll"
         title="Payroll Management"
         description="Process monthly payroll for all employees"
         actions={
@@ -101,8 +117,17 @@ export default function PayrollPage() {
         }
       />
 
+      {/* KPI strip */}
+      <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+        <KpiTile tone="blue" label="Total Runs" value={kpis.total} />
+        <KpiTile tone="amber" label="Draft" value={kpis.draft} meta="Need finalize" />
+        <KpiTile tone="violet" label="Finalized" value={kpis.finalized} meta="Awaiting payout" />
+        <KpiTile tone="green" label="Paid" value={kpis.paid} meta="Closed runs" />
+        <KpiTile tone="rose" label="Total Net" value={fmtPkr(kpis.totalNet)} meta="Across all runs" />
+      </div>
+
       {error && (
-        <div className="mb-6 p-4 bg-core-roseSoft text-core-roseFg rounded-lg">{error}</div>
+        <div className="mb-6 rounded-lg bg-core-roseSoft p-4 text-core-roseFg">{error}</div>
       )}
 
       {showCreateForm && (
