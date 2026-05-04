@@ -25,15 +25,16 @@ interface LabelAsset {
  * the guessing entirely: the URL the QR points at is, by definition,
  * the same URL the user is currently looking at.
  */
-function useQrDataUrl(assetTag: string): string | null {
+function useQrDataUrl(assetTag: string): { dataUrl: string | null; payload: string | null } {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
+  const [payload, setPayload] = useState<string | null>(null);
 
-  // Build the payload from the live origin. Memoized so we don't recompute
-  // on every render, but it does have to wait for hydration (window
-  // doesn't exist on the server).
-  const payload = useMemo(() => {
-    if (typeof window === 'undefined') return null;
-    return `${window.location.origin}/assets/scan?tag=${encodeURIComponent(assetTag)}`;
+  // Read the live origin once on mount (window doesn't exist during SSR).
+  // Re-deriving on every render isn't useful — origin doesn't change.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const url = `${window.location.origin}/assets/scan?tag=${encodeURIComponent(assetTag)}`;
+    setPayload(url);
   }, [assetTag]);
 
   useEffect(() => {
@@ -56,7 +57,7 @@ function useQrDataUrl(assetTag: string): string | null {
     };
   }, [payload]);
 
-  return dataUrl;
+  return { dataUrl, payload };
 }
 
 // Print-only portal: renders a single label directly under <body> so we can
@@ -78,7 +79,8 @@ function PrintPortal({ asset, qrDataUrl }: { asset: LabelAsset; qrDataUrl: strin
 }
 
 export default function LabelClient({ asset }: { asset: LabelAsset }) {
-  const qrDataUrl = useQrDataUrl(asset.assetTag);
+  const { dataUrl: qrDataUrl, payload: qrPayload } = useQrDataUrl(asset.assetTag);
+  const looksLocal = !!qrPayload && /localhost|127\.0\.0\.1/.test(qrPayload);
 
   return (
     <div>
@@ -106,7 +108,7 @@ export default function LabelClient({ asset }: { asset: LabelAsset }) {
       </div>
 
       {/* On-screen preview — hidden during print */}
-      <div className="flex justify-center no-print">
+      <div className="flex flex-col items-center gap-3 no-print">
         <div className="rounded-2xl border-2 border-dashed border-core-border bg-core-surface2 p-8">
           <p className="mb-4 text-center text-xs uppercase tracking-widest text-core-text3">
             Preview
@@ -130,6 +132,40 @@ export default function LabelClient({ asset }: { asset: LabelAsset }) {
             </p>
           </div>
         </div>
+
+        {/* Decoded payload — so the operator can verify what's encoded
+            BEFORE printing dozens of stickers. Flagged red if it
+            resolves to a local origin so they can't miss the misconfig. */}
+        {qrPayload && (
+          <div
+            className={`max-w-[420px] rounded-xl border px-4 py-3 text-center ${
+              looksLocal
+                ? 'border-core-roseFg/40 bg-core-roseSoft text-core-roseFg'
+                : 'border-core-border bg-core-surface text-core-text2'
+            }`}
+          >
+            <div
+              className="mb-1 text-[10px] font-semibold uppercase"
+              style={{ letterSpacing: '0.09em' }}
+            >
+              {looksLocal ? 'Encoded URL — looks wrong' : 'Encoded URL'}
+            </div>
+            <a
+              href={qrPayload}
+              target="_blank"
+              rel="noreferrer"
+              className="break-all font-mono text-[11px] underline-offset-2 hover:underline"
+            >
+              {qrPayload}
+            </a>
+            {looksLocal && (
+              <p className="mt-2 text-[11px]">
+                You're viewing this page through a local URL, so the QR will encode
+                that. Open the same page on the production domain before printing.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Print-only copy via portal, lives as direct child of <body> */}
