@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import QRCode from 'qrcode';
 
 interface LabelAsset {
   id: number;
@@ -14,30 +15,71 @@ interface LabelAsset {
   locationName: string;
 }
 
+/**
+ * Generate the QR code in the browser using `window.location.origin`.
+ *
+ * Server-side QR generation kept failing on prod because the Next.js
+ * server (running on localhost:3000 behind Cloudflare) couldn't
+ * reliably tell what its own public URL was — it'd embed
+ * http://localhost:3000 in the SVG. Doing the encoding here removes
+ * the guessing entirely: the URL the QR points at is, by definition,
+ * the same URL the user is currently looking at.
+ */
+function useQrDataUrl(assetTag: string): string | null {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+
+  // Build the payload from the live origin. Memoized so we don't recompute
+  // on every render, but it does have to wait for hydration (window
+  // doesn't exist on the server).
+  const payload = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return `${window.location.origin}/assets/scan?tag=${encodeURIComponent(assetTag)}`;
+  }, [assetTag]);
+
+  useEffect(() => {
+    if (!payload) return;
+    let cancelled = false;
+    QRCode.toDataURL(payload, {
+      errorCorrectionLevel: 'M',
+      margin: 1,
+      width: 320,
+      color: { dark: '#000000', light: '#ffffff' },
+    })
+      .then((url) => {
+        if (!cancelled) setDataUrl(url);
+      })
+      .catch((err) => {
+        console.error('QR generation failed:', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [payload]);
+
+  return dataUrl;
+}
+
 // Print-only portal: renders a single label directly under <body> so we can
 // hide everything else with `display: none` and guarantee ONE copy on the page.
-function PrintPortal({ asset }: { asset: LabelAsset }) {
+function PrintPortal({ asset, qrDataUrl }: { asset: LabelAsset; qrDataUrl: string | null }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  if (!mounted || typeof document === 'undefined') return null;
+  if (!mounted || typeof document === 'undefined' || !qrDataUrl) return null;
 
   return createPortal(
     <div id="print-label-root">
       <div className="print-label-box">
-        <img
-          src={`/api/assets/${asset.id}/qr?v=2`}
-          alt="Asset QR Code"
-          width={140}
-          height={140}
-        />
+        <img src={qrDataUrl} alt="Asset QR Code" width={140} height={140} />
         <p>{asset.assetTag}</p>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }
 
 export default function LabelClient({ asset }: { asset: LabelAsset }) {
+  const qrDataUrl = useQrDataUrl(asset.assetTag);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6 no-print">
@@ -49,7 +91,8 @@ export default function LabelClient({ asset }: { asset: LabelAsset }) {
         </div>
         <button
           onClick={() => window.print()}
-          className="inline-flex items-center gap-2 rounded-lg bg-core-text px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-core-green hover:shadow active:scale-95"
+          disabled={!qrDataUrl}
+          className="inline-flex items-center gap-2 rounded-lg bg-core-text px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-core-green hover:shadow active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path
@@ -69,13 +112,19 @@ export default function LabelClient({ asset }: { asset: LabelAsset }) {
             Preview
           </p>
           <div className="inline-flex flex-col items-center rounded-lg border border-gray-900 bg-core-surface p-3 shadow">
-            <img
-              src={`/api/assets/${asset.id}/qr?v=2`}
-              alt="Asset QR Code"
-              width={128}
-              height={128}
-              className="h-32 w-32"
-            />
+            {qrDataUrl ? (
+              <img
+                src={qrDataUrl}
+                alt="Asset QR Code"
+                width={128}
+                height={128}
+                className="h-32 w-32"
+              />
+            ) : (
+              <div className="flex h-32 w-32 items-center justify-center text-[10px] text-core-text3">
+                Generating…
+              </div>
+            )}
             <p className="mt-2 text-center font-mono text-xs font-semibold tracking-tight text-core-text">
               {asset.assetTag}
             </p>
@@ -84,7 +133,7 @@ export default function LabelClient({ asset }: { asset: LabelAsset }) {
       </div>
 
       {/* Print-only copy via portal, lives as direct child of <body> */}
-      <PrintPortal asset={asset} />
+      <PrintPortal asset={asset} qrDataUrl={qrDataUrl} />
 
       <style jsx global>{`
         /* Hide print portal on screen */
