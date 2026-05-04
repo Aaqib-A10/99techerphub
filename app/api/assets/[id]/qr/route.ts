@@ -33,19 +33,51 @@ export async function GET(
       return NextResponse.json({ error: 'Asset not found' }, { status: 404 });
     }
 
-    // Build a self-referencing URL that the scan page can resolve.
+    // Resolve the public-facing origin the QR should point to.
     //
-    // Behind Cloudflare / a reverse proxy, `request.nextUrl.origin` can
-    // resolve to the internal hostname (localhost:3000) instead of the
-    // public domain — that was sending scanned labels to localhost.
-    // Prefer NEXT_PUBLIC_APP_URL (set explicitly in .env on prod), then
-    // the proxy-forwarded host, then the request's own origin as a last
-    // resort.
-    const forwardedHost = request.headers.get('x-forwarded-host');
-    const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https';
-    const explicitOrigin = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
-    const proxyOrigin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : null;
-    const origin = explicitOrigin || proxyOrigin || request.nextUrl.origin;
+    // Behind Cloudflare / nginx, the proxied request reaches Next.js
+    // bound to localhost:3000 — `request.nextUrl.origin` reads that
+    // internal address, which is why scanned labels were sending
+    // people to localhost. Source-of-truth order:
+    //   1. NEXT_PUBLIC_APP_URL — set in .env, the canonical answer.
+    //   2. x-forwarded-host — Cloudflare + most proxies set this.
+    //   3. host header — what the original client requested.
+    //   4. request.nextUrl.origin — internal bind, often localhost.
+    // If everything resolves to localhost in production, that's a misconfig
+    // and we'd rather refuse than embed a broken URL.
+    function pickOrigin(): string | null {
+      const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
+      if (fromEnv && !/localhost|127\.0\.0\.1/i.test(fromEnv)) return fromEnv;
+
+      const proto =
+        request.headers.get('x-forwarded-proto') ??
+        (process.env.NODE_ENV === 'production' ? 'https' : 'http');
+
+      const xfh = request.headers.get('x-forwarded-host');
+      if (xfh && !/localhost|127\.0\.0\.1/i.test(xfh)) return `${proto}://${xfh}`;
+
+      const host = request.headers.get('host');
+      if (host && !/localhost|127\.0\.0\.1/i.test(host)) return `${proto}://${host}`;
+
+      const fallback = request.nextUrl.origin;
+      if (!/localhost|127\.0\.0\.1/i.test(fallback)) return fallback;
+
+      // Last resort: env var even if it looks like localhost (so dev
+      // still works), or null in prod so we surface the misconfig.
+      if (process.env.NODE_ENV !== 'production') return fromEnv || fallback;
+      return fromEnv || null;
+    }
+
+    const origin = pickOrigin();
+    if (!origin) {
+      return NextResponse.json(
+        {
+          error:
+            'Cannot determine public origin. Set NEXT_PUBLIC_APP_URL in the prod .env (e.g. https://99techerp.com) and restart PM2.',
+        },
+        { status: 500 },
+      );
+    }
     const payload = `${origin}/assets/scan?tag=${encodeURIComponent(asset.assetTag)}`;
 
     // Generate a real, scannable QR code as SVG.

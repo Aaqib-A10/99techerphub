@@ -25,7 +25,7 @@ function PrintPortal({ asset }: { asset: LabelAsset }) {
     <div id="print-label-root">
       <div className="print-label-box">
         <img
-          src={`/api/assets/${asset.id}/qr`}
+          src={`/api/assets/${asset.id}/qr?v=2`}
           alt="Asset QR Code"
           width={140}
           height={140}
@@ -70,7 +70,7 @@ export default function LabelClient({ asset }: { asset: LabelAsset }) {
           </p>
           <div className="inline-flex flex-col items-center rounded-lg border border-gray-900 bg-core-surface p-3 shadow">
             <img
-              src={`/api/assets/${asset.id}/qr`}
+              src={`/api/assets/${asset.id}/qr?v=2`}
               alt="Asset QR Code"
               width={128}
               height={128}
