@@ -397,9 +397,17 @@ export default async function EmployeeDashboard({
           </div>
           <div className="px-5 py-4">
             {employee.digitalAccess.length === 0 ? (
-              <p className="py-2 text-[13px] text-core-text3">
-                No services granted yet. Ask IT if something is missing.
-              </p>
+              <div className="py-2">
+                <p className="mb-2 text-[13px] text-core-text3">
+                  No services granted yet.
+                </p>
+                <Link
+                  href="/access-catalog"
+                  className="text-[12px] font-semibold text-core-text2 hover:text-core-text"
+                >
+                  Browse the catalog and request access →
+                </Link>
+              </div>
             ) : (
               <ul className="space-y-[10px]">
                 {employee.digitalAccess.slice(0, 8).map((d) => (
@@ -420,10 +428,10 @@ export default async function EmployeeDashboard({
                 )}
                 <li>
                   <Link
-                    href={`/employees/${employee.id}#digital`}
+                    href="/access-catalog"
                     className="mt-2 block text-[12px] font-semibold text-core-text2 hover:text-core-text"
                   >
-                    Manage access →
+                    Browse catalog &amp; request more →
                   </Link>
                 </li>
               </ul>

@@ -126,6 +126,7 @@ model User {
   expenseApprovals      ExpenseApproval[]
   auditLogs             AuditLog[]        @relation("AuditUser")
   orgAssignmentsCreated OrgAssignment[]   @relation("AssignmentCreatedBy")
+  reviewedAccessRequests DigitalAccessRequest[]
 
   @@map("users")
 }
@@ -299,6 +300,8 @@ model Employee {
   deductions           Deduction[]
   billingSplits        BillingSplit[]
   employeeCompanies    EmployeeCompany[]
+  ownedServices        DigitalService[]      @relation("DigitalServiceOwner")
+  accessRequests       DigitalAccessRequest[]
 
   @@map("employees")
 }
@@ -530,6 +533,61 @@ model DigitalAccess {
   employee Employee @relation(fields: [employeeId], references: [id])
 
   @@map("digital_access")
+}
+
+// Catalog of SaaS / digital tools that employees can request access to.
+// Admin-maintained; surfaced read-only to employees on /access-catalog.
+model DigitalService {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique
+  description     String?
+  category        String? // "Communication", "Development", "Design", etc.
+  iconUrl         String?
+  defaultPlan     String? // "Business Standard", "Pro", etc.
+  // Optional owner who reviews requests for this service. Falls back to
+  // any ADMIN user if null.
+  ownerEmployeeId Int?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  owner    Employee?              @relation("DigitalServiceOwner", fields: [ownerEmployeeId], references: [id])
+  requests DigitalAccessRequest[]
+
+  @@map("digital_services")
+}
+
+enum AccessRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+// Request from an employee for access to a DigitalService. Approving a
+// request creates a DigitalAccess record (the existing per-employee
+// grant table) — this model just queues the workflow.
+model DigitalAccessRequest {
+  id           Int                 @id @default(autoincrement())
+  employeeId   Int
+  serviceId    Int
+  status       AccessRequestStatus @default(PENDING)
+  notes        String? // employee's reason for requesting
+  reviewNotes  String? // admin's response on approve/reject
+  requestedAt  DateTime            @default(now())
+  reviewedAt   DateTime?
+  reviewedById Int? // user.id of the reviewer
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  employee Employee       @relation(fields: [employeeId], references: [id])
+  service  DigitalService @relation(fields: [serviceId], references: [id])
+  reviewer User?          @relation(fields: [reviewedById], references: [id])
+
+  @@index([employeeId])
+  @@index([serviceId])
+  @@index([status])
+  @@map("digital_access_requests")
 }
 
 model EmployeeExit {

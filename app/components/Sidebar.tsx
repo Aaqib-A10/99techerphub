@@ -50,6 +50,9 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { type: 'link', name: 'Dashboard', href: '/', icon: 'grid' },
       { type: 'link', name: 'Org Chart', href: '/org-chart', icon: 'users' },
+      // Self-service catalog — visible to every signed-in user. Employees
+      // request access from here; admins manage the queue under System.
+      { type: 'link', name: 'Access Catalog', href: '/access-catalog', icon: 'package' },
       {
         type: 'group',
         name: 'Employees',
@@ -70,6 +73,7 @@ const NAV_SECTIONS: NavSection[] = [
         children: [
           { name: 'All Assets', href: '/assets' },
           { name: 'Digital Access', href: '/digital-access' },
+          { name: 'Access Requests', href: '/access-requests' },
         ],
       },
     ],
