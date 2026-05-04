@@ -269,7 +269,9 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
               paginatedRecords.map((r) => (
                 <tr
                   key={r.id}
-                  style={selectedIds.has(r.id) ? { backgroundColor: 'rgba(20, 184, 166, 0.06)' } : undefined}
+                  onClick={() => openEdit(r)}
+                  className="cursor-pointer transition-colors hover:bg-core-surface2"
+                  style={selectedIds.has(r.id) ? { backgroundColor: 'rgba(143, 191, 63, 0.06)' } : undefined}
                 >
                   <td onClick={(e) => e.stopPropagation()} style={{ width: 40 }}>
                     <input
@@ -299,7 +301,7 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
                       <span className="badge badge-red">Revoked</span>
                     )}
                   </td>
-                  <td className="col-sticky-right">
+                  <td className="col-sticky-right" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openEdit(r)}
