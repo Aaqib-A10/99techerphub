@@ -231,7 +231,8 @@ export default function AssetTable({ assets }: { assets: AssetRow[] }) {
               return (
                 <tr
                   key={asset.id}
-                  className="transition-colors hover:bg-core-surface2"
+                  onClick={() => router.push(`/assets/${asset.id}`)}
+                  className="cursor-pointer transition-colors hover:bg-core-surface2"
                   style={{
                     borderBottom: isLast ? 'none' : '1px solid #E5E8DD',
                     ...(isSelected ? { backgroundColor: 'rgba(143, 191, 63, 0.06)' } : {}),
@@ -304,7 +305,7 @@ export default function AssetTable({ assets }: { assets: AssetRow[] }) {
                       <span className="text-core-text3">—</span>
                     )}
                   </td>
-                  <td className="whitespace-nowrap px-[14px] py-3">
+                  <td className="whitespace-nowrap px-[14px] py-3" onClick={(e) => e.stopPropagation()}>
                     <Btn as="a" href={`/assets/${asset.id}`} tone="ghost">
                       Manage
                     </Btn>
