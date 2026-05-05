@@ -194,6 +194,45 @@ export default function AccessCatalogClient({
         <KpiTile tone="blue" label="Can Request" value={counts.available} meta="Not yet granted" />
       </div>
 
+      {/* Recent requests — last 5 across all statuses so an employee can
+          see what they've submitted at a glance, including rejected /
+          cancelled rows that the per-service card alone wouldn't surface. */}
+      {myRequests.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-core-border bg-core-surface">
+          <div className="border-b border-core-border px-5 py-3">
+            <h2
+              className="text-[10.5px] font-semibold uppercase text-core-text3"
+              style={{ letterSpacing: '0.09em' }}
+            >
+              Your recent requests
+            </h2>
+          </div>
+          <ul className="divide-y divide-core-border">
+            {myRequests.slice(0, 5).map((r) => {
+              const svcName =
+                services.find((s) => s.id === r.serviceId)?.name ?? `Service #${r.serviceId}`;
+              return (
+                <li
+                  key={r.id}
+                  className="flex flex-wrap items-center justify-between gap-2 px-5 py-[10px]"
+                >
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-medium text-core-text">{svcName}</div>
+                    <div className="mt-[1px] text-[11px] text-core-text3">
+                      Requested {new Date(r.requestedAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  {r.status === 'PENDING' && <Badge tone="amber">Pending</Badge>}
+                  {r.status === 'APPROVED' && <Badge tone="green">Approved</Badge>}
+                  {r.status === 'REJECTED' && <Badge tone="rose">Rejected</Badge>}
+                  {r.status === 'CANCELLED' && <Badge tone="gray">Cancelled</Badge>}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       {grouped.map(([category, list]) => (
         <div key={category} className="mb-6">
           <h2
@@ -299,8 +338,11 @@ export default function AccessCatalogClient({
               </button>
             </div>
             <div className="modal-body">
-              <p className="mb-3 text-[12.5px] text-core-text2">
-                Tell the admin why you need access to {requestModal.name}. A brief note helps speed up approval.
+              <p className="mb-2 text-[12.5px] text-core-text2">
+                Tell the reviewer why you need access to {requestModal.name}. A brief note helps speed up approval.
+              </p>
+              <p className="mb-3 text-[11.5px] text-core-text3">
+                Your request is sent to admins, the service owner (if set), and your reporting manager. You'll be notified in‑app and by email when it's reviewed.
               </p>
               <label className="form-label">Reason (optional)</label>
               <textarea

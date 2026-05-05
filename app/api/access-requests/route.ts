@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
-import { createNotificationsForRole } from '@/lib/services/notificationService';
+import {
+  createNotification,
+  createNotificationsForRole,
+} from '@/lib/services/notificationService';
+import { sendEmail } from '@/lib/services/emailService';
 
 // GET — admin/HR view returns all requests; employees see only their own.
 // Filter by ?status=PENDING|APPROVED|REJECTED|CANCELLED.
@@ -83,7 +87,20 @@ export async function POST(request: NextRequest) {
   }
 
   // Block requests for services the employee already has active access to.
-  const service = await prisma.digitalService.findUnique({ where: { id: serviceId } });
+  const service = await prisma.digitalService.findUnique({
+    where: { id: serviceId },
+    include: {
+      owner: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          user: { select: { id: true, email: true } },
+        },
+      },
+    },
+  });
   if (!service) {
     return NextResponse.json({ error: 'Service not found' }, { status: 404 });
   }
@@ -97,31 +114,164 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const requesterEmployee = await prisma.employee.findUnique({
+    where: { id: user.employeeId },
+    select: {
+      firstName: true,
+      lastName: true,
+      empCode: true,
+      email: true,
+      designation: true,
+      department: { select: { name: true } },
+      reportingManager: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          user: { select: { id: true, email: true } },
+        },
+      },
+    },
+  });
+  if (!requesterEmployee) {
+    return NextResponse.json(
+      { error: 'Could not find your employee record.' },
+      { status: 400 },
+    );
+  }
+
   const created = await prisma.digitalAccessRequest.create({
     data: {
       employeeId: user.employeeId,
       serviceId,
       notes,
     },
-    include: {
-      employee: { select: { firstName: true, lastName: true, empCode: true } },
-      service: { select: { name: true } },
-    },
   });
 
-  // Fire admin notification so the queue doesn't sit unattended. The
-  // service-owner-specific path is left as a follow-up; for now any
-  // ADMIN can review.
+  // -- Recipients ---------------------------------------------------------
+  // Service owner > reporting manager > all admins. We collect each set
+  // separately so we can deduplicate before sending and so the email
+  // greeting can be tailored.
+  const adminUsers = await prisma.user.findMany({
+    where: { role: 'ADMIN', isActive: true },
+    select: { id: true, email: true },
+  });
+
+  const ownerUser = service.owner?.user ?? null;
+  const managerUser = requesterEmployee.reportingManager?.user ?? null;
+
+  const inAppRecipientIds = new Set<number>();
+  for (const u of adminUsers) inAppRecipientIds.add(u.id);
+  if (ownerUser?.id) inAppRecipientIds.add(ownerUser.id);
+  if (managerUser?.id) inAppRecipientIds.add(managerUser.id);
+
+  const emailRecipients = new Set<string>();
+  for (const u of adminUsers) if (u.email) emailRecipients.add(u.email);
+  if (ownerUser?.email) emailRecipients.add(ownerUser.email);
+  else if (service.owner?.email) emailRecipients.add(service.owner.email);
+  if (managerUser?.email) emailRecipients.add(managerUser.email);
+  else if (requesterEmployee.reportingManager?.email)
+    emailRecipients.add(requesterEmployee.reportingManager.email);
+
+  // -- In-app notifications ----------------------------------------------
   try {
-    await createNotificationsForRole('ADMIN', {
-      type: 'GENERAL',
-      title: 'New Digital Access Request',
-      message: `${created.employee.firstName} ${created.employee.lastName} (${created.employee.empCode}) requested access to ${created.service.name}.`,
-      link: '/access-requests',
-    });
+    const title = 'New Digital Access Request';
+    const message = `${requesterEmployee.firstName} ${requesterEmployee.lastName} (${requesterEmployee.empCode}) requested access to ${service.name}.`;
+    const link = '/access-requests';
+    if (inAppRecipientIds.size === 0) {
+      // Fallback: at least all admins
+      await createNotificationsForRole('ADMIN', {
+        type: 'GENERAL',
+        title,
+        message,
+        link,
+      });
+    } else {
+      await Promise.all(
+        Array.from(inAppRecipientIds).map((userId) =>
+          createNotification({
+            userId,
+            type: 'GENERAL',
+            title,
+            message,
+            link,
+          }),
+        ),
+      );
+    }
   } catch (err) {
-    console.warn('[access-requests/POST] notification fan-out failed:', err);
+    console.warn('[access-requests/POST] in-app fan-out failed:', err);
   }
 
-  return NextResponse.json(created, { status: 201 });
+  // -- Email --------------------------------------------------------------
+  // Best-effort. If SMTP is misconfigured we still log to the email log
+  // file via the stub transport — the request itself is unaffected.
+  if (emailRecipients.size > 0) {
+    try {
+      const requesterName = `${requesterEmployee.firstName} ${requesterEmployee.lastName}`;
+      const subject = `[Access Request] ${requesterName} wants ${service.name}`;
+      const reasonBlock = notes
+        ? `<p style="color:#5A6159;margin:8px 0 0;font-size:13px"><strong>Reason given:</strong><br>${escapeHtml(notes)}</p>`
+        : '';
+      const bodyHtml = `
+        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1F2320;font-size:14px;line-height:1.5;max-width:560px">
+          <p style="margin:0 0 12px"><strong>${escapeHtml(requesterName)}</strong> (${escapeHtml(requesterEmployee.empCode)}) has requested access to <strong>${escapeHtml(service.name)}</strong>.</p>
+          <table style="border-collapse:collapse;font-size:13px;margin:8px 0">
+            <tr><td style="padding:2px 12px 2px 0;color:#5A6159">Department</td><td>${escapeHtml(requesterEmployee.department?.name ?? '—')}</td></tr>
+            <tr><td style="padding:2px 12px 2px 0;color:#5A6159">Designation</td><td>${escapeHtml(requesterEmployee.designation ?? '—')}</td></tr>
+            <tr><td style="padding:2px 12px 2px 0;color:#5A6159">Service</td><td>${escapeHtml(service.name)}${service.defaultPlan ? ` · ${escapeHtml(service.defaultPlan)}` : ''}</td></tr>
+          </table>
+          ${reasonBlock}
+          <p style="margin:18px 0 0">
+            <a href="${escapeHtml(publicAppUrl(request))}/access-requests" style="background:#1F2320;color:#fff;padding:9px 16px;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px;display:inline-block">Review request</a>
+          </p>
+          <p style="color:#8B918A;font-size:11.5px;margin-top:24px">Sent by 99Core. You're getting this because you are an admin, the service owner, or the requester's reporting manager.</p>
+        </div>
+      `;
+      await sendEmail({
+        to: Array.from(emailRecipients),
+        subject,
+        bodyHtml,
+        templateKey: 'ACCESS_REQUEST_SUBMITTED',
+      });
+    } catch (err) {
+      console.warn('[access-requests/POST] email fan-out failed:', err);
+    }
+  }
+
+  return NextResponse.json(
+    {
+      ...created,
+      employee: {
+        firstName: requesterEmployee.firstName,
+        lastName: requesterEmployee.lastName,
+        empCode: requesterEmployee.empCode,
+      },
+      service: { name: service.name },
+    },
+    { status: 201 },
+  );
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function publicAppUrl(request: NextRequest): string {
+  // Same prefer-explicit-then-headers pattern the QR endpoint uses, so
+  // CTA buttons in emails always land on the public domain.
+  const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
+  if (fromEnv && !/localhost|127\.0\.0\.1/i.test(fromEnv)) return fromEnv;
+  const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+  const xfh = request.headers.get('x-forwarded-host');
+  if (xfh) return `${proto}://${xfh}`;
+  const host = request.headers.get('host');
+  if (host) return `${proto}://${host}`;
+  return request.nextUrl.origin;
 }

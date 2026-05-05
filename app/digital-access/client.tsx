@@ -41,8 +41,12 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkLoading, setBulkLoading] = useState<string | null>(null);
 
-  // Edit modal state
+  // Modal state. The modal opens in 'view' mode showing read-only fields
+  // (you wouldn't want a row click to drop you into edit mode by accident);
+  // an explicit pencil button flips to 'edit'. Closing the modal resets
+  // the mode back to 'view' for next time.
   const [editing, setEditing] = useState<AccessRecord | null>(null);
+  const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
   const [editForm, setEditForm] = useState({
     serviceName: '',
     accountId: '',
@@ -54,6 +58,7 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
 
   const openEdit = (r: AccessRecord) => {
     setEditing(r);
+    setModalMode('view');
     setEditForm({
       serviceName: r.serviceName,
       accountId: (r as any).accountId ?? r.accountEmail ?? '',
@@ -61,6 +66,12 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
       isActive: r.isActive,
     });
     setEditError('');
+  };
+
+  const closeModal = () => {
+    if (editSaving) return;
+    setEditing(null);
+    setModalMode('view');
   };
 
   const saveEdit = async () => {
@@ -77,7 +88,21 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Save failed');
       }
-      setEditing(null);
+      // Reflect the saved values in the local snapshot, switch back to
+      // view mode so the user sees what they just saved, and refresh
+      // the server-rendered table in the background.
+      setEditing((prev) =>
+        prev
+          ? {
+              ...prev,
+              serviceName: editForm.serviceName,
+              notes: editForm.notes,
+              isActive: editForm.isActive,
+              accountEmail: editForm.accountId,
+            }
+          : prev,
+      );
+      setModalMode('view');
       router.refresh();
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Save failed');
@@ -351,108 +376,206 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
         loading={bulkLoading}
       />
 
-      {/* Edit modal */}
+      {/* Detail modal — opens in view mode; pencil flips to edit. */}
       {editing && (
-        <div
-          className="modal-overlay"
-          onClick={() => !editSaving && setEditing(null)}
-        >
+        <div className="modal-overlay" onClick={closeModal}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Digital Access</h2>
-              <button
-                onClick={() => !editSaving && setEditing(null)}
-                aria-label="Close"
-                className="text-core-text3 transition hover:text-core-text"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7}>
-                  <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
+              <h2>{modalMode === 'view' ? 'Digital Access Details' : 'Edit Digital Access'}</h2>
+              <div className="flex items-center gap-2">
+                {modalMode === 'view' && (
+                  <button
+                    onClick={() => setModalMode('edit')}
+                    className="inline-flex items-center gap-[5px] rounded-lg border border-core-border bg-core-surface px-[10px] py-[5px] text-[12px] font-semibold text-core-text2 transition hover:bg-core-surface2 hover:text-core-text"
+                    title="Edit record"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Edit
+                  </button>
+                )}
+                <button
+                  onClick={closeModal}
+                  aria-label="Close"
+                  className="text-core-text3 transition hover:text-core-text"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7}>
+                    <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
             </div>
-            <div className="modal-body space-y-3">
-              {editError && (
-                <div className="rounded-lg bg-core-roseSoft p-3 text-[12.5px] text-core-roseFg">
-                  {editError}
+
+            {modalMode === 'view' ? (
+              <>
+                <div className="modal-body">
+                  {editing.employee && (
+                    <div className="mb-4 flex items-center gap-3 rounded-xl border border-core-border bg-core-surface2 p-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-core-text text-[12px] font-bold text-core-surface">
+                        {(editing.employee.firstName?.[0] ?? '') + (editing.employee.lastName?.[0] ?? '')}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-semibold text-core-text">
+                          {editing.employee.firstName} {editing.employee.lastName}
+                        </div>
+                        <div className="mt-[1px] text-[11.5px] text-core-text3">
+                          {editing.employee.employeeCode ?? ''}
+                          {editing.employee.department?.name ? ` · ${editing.employee.department.name}` : ''}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <DetailRow label="Service" value={editing.serviceName} />
+                  <DetailRow
+                    label="Account ID"
+                    value={(editing as any).accountId ?? editing.accountEmail ?? ''}
+                  />
+                  <DetailRow
+                    label="Status"
+                    value={editing.isActive ? 'Active' : 'Revoked'}
+                    tone={editing.isActive ? 'green' : 'rose'}
+                  />
+                  <DetailRow
+                    label="Granted"
+                    value={new Date(editing.grantedDate).toLocaleString()}
+                  />
+                  {editing.revokedDate && (
+                    <DetailRow
+                      label="Revoked"
+                      value={new Date(editing.revokedDate).toLocaleString()}
+                    />
+                  )}
+                  <DetailRow label="Notes" value={editing.notes ?? ''} multiline />
                 </div>
-              )}
-              {editing.employee && (
-                <p className="text-[12px] text-core-text3">
-                  Editing access for{' '}
-                  <span className="font-medium text-core-text">
-                    {editing.employee.firstName} {editing.employee.lastName}
-                  </span>
-                  .
-                </p>
-              )}
-              <div>
-                <label className="form-label">Service Name *</label>
-                <input
-                  type="text"
-                  value={editForm.serviceName}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, serviceName: e.target.value })
-                  }
-                  className="form-input"
-                  placeholder="Google Workspace, GitHub, Slack…"
-                />
-              </div>
-              <div>
-                <label className="form-label">Account ID</label>
-                <input
-                  type="text"
-                  value={editForm.accountId}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, accountId: e.target.value })
-                  }
-                  className="form-input"
-                  placeholder="email or username on the service"
-                />
-              </div>
-              <div>
-                <label className="form-label">Notes</label>
-                <textarea
-                  value={editForm.notes}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, notes: e.target.value })
-                  }
-                  rows={2}
-                  className="form-textarea"
-                  placeholder="License tier, billing notes, etc."
-                />
-              </div>
-              <label className="flex items-center gap-2 text-[12.5px] text-core-text2">
-                <input
-                  type="checkbox"
-                  checked={editForm.isActive}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, isActive: e.target.checked })
-                  }
-                  className="h-4 w-4"
-                  style={{ accentColor: '#1F2320' }}
-                />
-                Active (uncheck to revoke; re-check to restore a revoked record)
-              </label>
-            </div>
-            <div className="modal-footer">
-              <button
-                onClick={() => !editSaving && setEditing(null)}
-                className="btn btn-secondary"
-                disabled={editSaving}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveEdit}
-                disabled={editSaving || !editForm.serviceName.trim()}
-                className="btn btn-primary"
-              >
-                {editSaving ? 'Saving…' : 'Save Changes'}
-              </button>
-            </div>
+                <div className="modal-footer">
+                  <button onClick={closeModal} className="btn btn-secondary">
+                    Close
+                  </button>
+                  {editing.isActive && (
+                    <button
+                      onClick={() => {
+                        closeModal();
+                        // Defer slightly so the modal-close transition runs first.
+                        setTimeout(() => handleRevoke(editing.id), 0);
+                      }}
+                      className="btn btn-sm btn-outline-danger"
+                    >
+                      Revoke
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="modal-body space-y-3">
+                  {editError && (
+                    <div className="rounded-lg bg-core-roseSoft p-3 text-[12.5px] text-core-roseFg">
+                      {editError}
+                    </div>
+                  )}
+                  <div>
+                    <label className="form-label">Service Name *</label>
+                    <input
+                      type="text"
+                      value={editForm.serviceName}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, serviceName: e.target.value })
+                      }
+                      className="form-input"
+                      placeholder="Google Workspace, GitHub, Slack…"
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Account ID</label>
+                    <input
+                      type="text"
+                      value={editForm.accountId}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, accountId: e.target.value })
+                      }
+                      className="form-input"
+                      placeholder="email or username on the service"
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Notes</label>
+                    <textarea
+                      value={editForm.notes}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, notes: e.target.value })
+                      }
+                      rows={2}
+                      className="form-textarea"
+                      placeholder="License tier, billing notes, etc."
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-[12.5px] text-core-text2">
+                    <input
+                      type="checkbox"
+                      checked={editForm.isActive}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, isActive: e.target.checked })
+                      }
+                      className="h-4 w-4"
+                      style={{ accentColor: '#1F2320' }}
+                    />
+                    Active (uncheck to revoke; re-check to restore a revoked record)
+                  </label>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    onClick={() => setModalMode('view')}
+                    className="btn btn-secondary"
+                    disabled={editSaving}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveEdit}
+                    disabled={editSaving || !editForm.serviceName.trim()}
+                    className="btn btn-primary"
+                  >
+                    {editSaving ? 'Saving…' : 'Save Changes'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DetailRow — small read-only K/V used by the digital-access view modal.
+// Tiny here rather than in the design package because it doesn't appear
+// elsewhere yet.
+function DetailRow({
+  label,
+  value,
+  tone,
+  multiline,
+}: {
+  label: string;
+  value: string;
+  tone?: 'green' | 'rose';
+  multiline?: boolean;
+}) {
+  const toneClass =
+    tone === 'green'
+      ? 'text-core-greenFg'
+      : tone === 'rose'
+      ? 'text-core-roseFg'
+      : 'text-core-text';
+  return (
+    <div className={`flex ${multiline ? 'flex-col gap-1' : 'items-baseline justify-between gap-3'} border-b border-core-border last:border-0 py-[7px]`}>
+      <span className="text-[12px] text-core-text3">{label}</span>
+      <span className={`text-[12.5px] font-medium ${toneClass} ${multiline ? '' : 'text-right'}`}>
+        {value || <span className="text-core-text3">—</span>}
+      </span>
     </div>
   );
 }

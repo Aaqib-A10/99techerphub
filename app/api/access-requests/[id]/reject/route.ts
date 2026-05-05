@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
 import { createNotification } from '@/lib/services/notificationService';
+import { sendEmail } from '@/lib/services/emailService';
 
 // Reject an access request. The reviewNotes field is required so the
 // requester gets context — "no, you don't need this" without a reason
@@ -35,7 +36,13 @@ export async function POST(
     where: { id },
     include: {
       service: { select: { name: true } },
-      employee: { select: { user: { select: { id: true } } } },
+      employee: {
+        select: {
+          firstName: true,
+          email: true,
+          user: { select: { id: true, email: true } },
+        },
+      },
     },
   });
   if (!existing) {
@@ -72,5 +79,49 @@ export async function POST(
     console.warn('[access-requests/reject] notification failed:', err);
   }
 
+  const inboxAddress = existing.employee.user?.email ?? existing.employee.email;
+  if (inboxAddress) {
+    try {
+      await sendEmail({
+        to: inboxAddress,
+        subject: `Access request not approved: ${existing.service.name}`,
+        bodyHtml: `
+          <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1F2320;font-size:14px;line-height:1.5;max-width:560px">
+            <p style="margin:0 0 12px">Hi ${escapeHtml(existing.employee.firstName ?? '')},</p>
+            <p style="margin:0 0 12px">Your request for access to <strong>${escapeHtml(existing.service.name)}</strong> wasn't approved.</p>
+            <p style="color:#5A6159;margin:12px 0 0;font-size:13px"><strong>Reason:</strong><br>${escapeHtml(reviewNotes)}</p>
+            <p style="margin:18px 0 0">
+              <a href="${publicAppUrl(request)}/access-catalog" style="background:#1F2320;color:#fff;padding:9px 16px;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px;display:inline-block">View catalog</a>
+            </p>
+            <p style="color:#8B918A;font-size:11.5px;margin-top:24px">— 99Core</p>
+          </div>
+        `,
+        templateKey: 'ACCESS_REQUEST_REJECTED',
+      });
+    } catch (err) {
+      console.warn('[access-requests/reject] email failed:', err);
+    }
+  }
+
   return NextResponse.json(updated);
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function publicAppUrl(req: NextRequest): string {
+  const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
+  if (fromEnv && !/localhost|127\.0\.0\.1/i.test(fromEnv)) return fromEnv;
+  const proto = req.headers.get('x-forwarded-proto') ?? 'https';
+  const xfh = req.headers.get('x-forwarded-host');
+  if (xfh) return `${proto}://${xfh}`;
+  const host = req.headers.get('host');
+  if (host) return `${proto}://${host}`;
+  return req.nextUrl.origin;
 }

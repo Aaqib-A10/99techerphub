@@ -65,6 +65,17 @@ export default async function LedgerDashboard({
   if (hasDateFilter) expenseBase.createdAt = dateFilter;
 
   // -------- KPI DATA --------
+  // The "exited" rule mirrors what /employees uses: an employee counts
+  // as exited when they're inactive OR their lifecycleStage already
+  // says EXITED / EXIT_INITIATED, even if isActive is still true (e.g.
+  // exit kicked off but final-day not yet processed). Without this both
+  // surfaces would disagree on the same person.
+  const exitedClause: any = {
+    OR: [
+      { isActive: false },
+      { lifecycleStage: { in: ['EXITED', 'EXIT_INITIATED'] } },
+    ],
+  };
   const [
     totalEmployees,
     exitedEmployees,
@@ -79,7 +90,7 @@ export default async function LedgerDashboard({
     burnByCategory,
   ] = await Promise.all([
     prisma.employee.count({ where: employeeBase }),
-    prisma.employee.count({ where: { ...employeeBase, isActive: false } }),
+    prisma.employee.count({ where: { AND: [employeeBase, exitedClause] } }),
     prisma.asset.count({ where: assetBase }),
     prisma.asset.aggregate({ _sum: { purchasePrice: true }, where: assetBase }),
     prisma.expense.count({ where: { ...expenseBase, status: 'PENDING' } }),
@@ -221,10 +232,17 @@ export default async function LedgerDashboard({
       : companyRows.find((c) => c.id === companyId)?.name || 'All';
 
   // -------- KPI tile hrefs (preserve dashboard filter scope) --------
+  // We carry company + department + date range across the tile click
+  // so the destination page renders the SAME slice the dashboard tile
+  // counted. Forgetting any one of these is how the two surfaces drift
+  // out of sync — the user clicks "Exited: 12" and lands on a list
+  // that says 47.
   const employeeFilter = new URLSearchParams();
   if (selectedCompany !== 'all') employeeFilter.set('company', selectedCompany);
   if (selectedDepartment !== 'all')
     employeeFilter.set('department', selectedDepartment);
+  if (dateFrom) employeeFilter.set('from', dateFrom);
+  if (dateTo) employeeFilter.set('to', dateTo);
   const employeeFilterQs = employeeFilter.toString();
   const employeeHref = (base: string) => {
     if (!employeeFilterQs) return base;
@@ -233,6 +251,8 @@ export default async function LedgerDashboard({
 
   const assetFilter = new URLSearchParams();
   if (selectedCompany !== 'all') assetFilter.set('companyId', selectedCompany);
+  if (dateFrom) assetFilter.set('from', dateFrom);
+  if (dateTo) assetFilter.set('to', dateTo);
   const assetFilterQs = assetFilter.toString();
   const assetHref = (base: string) => {
     if (!assetFilterQs) return base;
