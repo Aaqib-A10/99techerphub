@@ -327,28 +327,20 @@ export default function DigitalAccessClient({ initialRecords, services }: Props)
                     )}
                   </td>
                   <td className="col-sticky-right" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center gap-2">
+                    {/* Row click opens the details modal which has its own
+                        Edit pencil — no inline Edit button needed. Revoke
+                        stays as a quick action for active records. */}
+                    {r.isActive ? (
                       <button
-                        onClick={() => openEdit(r)}
-                        className="inline-flex items-center gap-[5px] rounded-lg border border-core-border bg-core-surface px-[10px] py-[5px] text-[12px] font-semibold text-core-text2 transition hover:bg-core-surface2 hover:text-core-text"
-                        title="Edit record"
+                        onClick={() => handleRevoke(r.id)}
+                        disabled={revoking === r.id}
+                        className="btn btn-sm btn-outline-danger disabled:opacity-50"
                       >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                        Edit
+                        {revoking === r.id ? 'Revoking…' : 'Revoke'}
                       </button>
-                      {r.isActive && (
-                        <button
-                          onClick={() => handleRevoke(r.id)}
-                          disabled={revoking === r.id}
-                          className="btn btn-sm btn-outline-danger disabled:opacity-50"
-                        >
-                          {revoking === r.id ? 'Revoking…' : 'Revoke'}
-                        </button>
-                      )}
-                    </div>
+                    ) : (
+                      <span className="text-[12px] text-core-text3">—</span>
+                    )}
                   </td>
                 </tr>
               ))
