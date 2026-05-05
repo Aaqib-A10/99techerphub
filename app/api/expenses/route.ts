@@ -19,8 +19,16 @@ export async function GET(request: NextRequest) {
       const [categories, companies, employees, departments] = await Promise.all([
         prisma.expenseCategory.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
         prisma.company.findMany({ where: { id: { in: ctx.companyIds }, isActive: true }, orderBy: { name: 'asc' } }),
+        // The submittedBy picker should only list employees whose linked
+        // User has an admin/finance-side role — they're the people who
+        // actually post expenses on the company's behalf. A regular
+        // EMPLOYEE submits their own (forced server-side via the POST
+        // handler), so they don't need to appear in the picker.
         prisma.employee.findMany({
-          where: { isActive: true },
+          where: {
+            isActive: true,
+            user: { role: { in: ['ADMIN', 'ACCOUNTANT'] } },
+          },
           select: { id: true, firstName: true, lastName: true, empCode: true },
           orderBy: { firstName: 'asc' },
         }),
