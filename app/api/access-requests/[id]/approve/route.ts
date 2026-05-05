@@ -26,8 +26,22 @@ export async function POST(
   const body = await request.json().catch(() => ({}));
   const accountId: string | null =
     typeof body?.accountId === 'string' ? body.accountId.trim() || null : null;
-  const reviewNotes: string | null =
-    typeof body?.reviewNotes === 'string' ? body.reviewNotes.trim() || null : null;
+  // Two distinct fields now:
+  //   internalNotes   — admin-only context, stored on DigitalAccess.notes
+  //   credentialMessage — what the requester reads in the approval email,
+  //                        stored on DigitalAccessRequest.reviewNotes
+  // Old `reviewNotes` keys are still accepted as a fallback so older
+  // clients (or anyone calling the API directly) don't break.
+  const internalNotes: string | null =
+    typeof body?.internalNotes === 'string'
+      ? body.internalNotes.trim() || null
+      : typeof body?.reviewNotes === 'string'
+        ? body.reviewNotes.trim() || null
+        : null;
+  const credentialMessage: string | null =
+    typeof body?.credentialMessage === 'string'
+      ? body.credentialMessage.trim() || null
+      : null;
 
   const existing = await prisma.digitalAccessRequest.findUnique({
     where: { id },
@@ -63,7 +77,9 @@ export async function POST(
         status: 'APPROVED',
         reviewedAt: new Date(),
         reviewedById: user.id,
-        reviewNotes,
+        // The requester-facing message is what we keep on the request
+        // row so the audit trail shows what the employee was told.
+        reviewNotes: credentialMessage,
       },
     });
     const access = await tx.digitalAccess.create({
@@ -71,7 +87,8 @@ export async function POST(
         employeeId: existing.employeeId,
         serviceName: existing.service.name,
         accountId,
-        notes: reviewNotes,
+        // Admin-only context lives here — never shown to the requester.
+        notes: internalNotes,
       },
     });
     return { updated, access };
@@ -96,8 +113,11 @@ export async function POST(
   const inboxAddress = existing.employee.user?.email ?? existing.employee.email;
   if (inboxAddress) {
     try {
-      const reasonBlock = reviewNotes
-        ? `<p style="color:#5A6159;margin:12px 0 0;font-size:13px"><strong>Note from admin:</strong><br>${escapeHtml(reviewNotes)}</p>`
+      // Email body uses ONLY the credential-sharing message (what the
+      // admin chose to tell the requester). Internal notes never leak.
+      // newlines → <br> so the admin's bullet-style text formats nicely.
+      const credentialBlock = credentialMessage
+        ? `<p style="color:#5A6159;margin:12px 0 0;font-size:13px"><strong>How to get in:</strong><br>${escapeHtml(credentialMessage).replace(/\n/g, '<br>')}</p>`
         : '';
       const accountBlock = accountId
         ? `<p style="color:#5A6159;margin:12px 0 0;font-size:13px"><strong>Account ID:</strong> ${escapeHtml(accountId)}</p>`
@@ -110,7 +130,7 @@ export async function POST(
             <p style="margin:0 0 12px">Hi ${escapeHtml(existing.employee.firstName)},</p>
             <p style="margin:0 0 12px">Your request for access to <strong>${escapeHtml(existing.service.name)}</strong> has been approved.</p>
             ${accountBlock}
-            ${reasonBlock}
+            ${credentialBlock}
             <p style="margin:18px 0 0">
               <a href="${publicAppUrl(request)}/access-catalog" style="background:#1F2320;color:#fff;padding:9px 16px;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px;display:inline-block">View in catalog</a>
             </p>

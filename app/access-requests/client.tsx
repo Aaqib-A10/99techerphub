@@ -51,7 +51,13 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
   const [approveModal, setApproveModal] = useState<AccessRequest | null>(null);
   const [rejectModal, setRejectModal] = useState<AccessRequest | null>(null);
   const [accountId, setAccountId] = useState('');
-  const [reviewNotes, setReviewNotes] = useState('');
+  // Two distinct fields on approve. Reject still uses just one (the reason).
+  const [credentialMessage, setCredentialMessage] = useState('');
+  const [internalNotes, setInternalNotes] = useState('');
+  const [rejectNotes, setRejectNotes] = useState('');
+  // The three soft-reminder checkboxes — display-only, not persisted.
+  // They reset every time a new approve modal opens.
+  const [chk, setChk] = useState({ created: false, sent: false, verified: false });
 
   const counts = useMemo(() => {
     let pending = 0,
@@ -72,20 +78,26 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
     [initialRequests, tab],
   );
 
-  async function approve(req: AccessRequest, accountIdValue: string, notes: string) {
+  async function approve(req: AccessRequest) {
     setBusy(req.id);
     setError('');
     try {
       const res = await fetch(`/api/access-requests/${req.id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId: accountIdValue, reviewNotes: notes }),
+        body: JSON.stringify({
+          accountId,
+          credentialMessage,
+          internalNotes,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Approve failed');
       setApproveModal(null);
       setAccountId('');
-      setReviewNotes('');
+      setCredentialMessage('');
+      setInternalNotes('');
+      setChk({ created: false, sent: false, verified: false });
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Approve failed');
@@ -106,7 +118,7 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Reject failed');
       setRejectModal(null);
-      setReviewNotes('');
+      setRejectNotes('');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Reject failed');
@@ -253,7 +265,9 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
                               onClick={() => {
                                 setApproveModal(r);
                                 setAccountId(r.employee.email || '');
-                                setReviewNotes('');
+                                setCredentialMessage('');
+                                setInternalNotes('');
+                                setChk({ created: false, sent: false, verified: false });
                               }}
                               disabled={busy === r.id}
                               className="inline-flex items-center gap-[5px] rounded-lg border border-core-greenFg bg-core-greenSoft px-[10px] py-[5px] text-[12px] font-semibold text-core-greenFg transition hover:opacity-90 disabled:opacity-50"
@@ -263,7 +277,7 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
                             <button
                               onClick={() => {
                                 setRejectModal(r);
-                                setReviewNotes('');
+                                setRejectNotes('');
                               }}
                               disabled={busy === r.id}
                               className="inline-flex items-center gap-[5px] rounded-lg border border-core-roseFg bg-core-roseSoft px-[10px] py-[5px] text-[12px] font-semibold text-core-roseFg transition hover:opacity-90 disabled:opacity-50"
@@ -302,30 +316,78 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
                 ×
               </button>
             </div>
-            <div className="modal-body space-y-3">
+            <div className="modal-body space-y-4">
               <p className="text-[12.5px] text-core-text2">
-                Granting <strong>{approveModal.employee.firstName} {approveModal.employee.lastName}</strong> access to <strong>{approveModal.service.name}</strong>. Optionally record their account ID and any onboarding notes.
+                Granting <strong>{approveModal.employee.firstName} {approveModal.employee.lastName}</strong> access to <strong>{approveModal.service.name}</strong>.
               </p>
-              <div>
-                <label className="form-label">Account ID (optional)</label>
-                <input
-                  type="text"
-                  value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                  className="form-input"
-                  placeholder="email or username on the service"
-                />
-              </div>
-              <div>
-                <label className="form-label">Notes (optional)</label>
+
+              {/* Section 1 — admin-only audit trail. */}
+              <ModalSection title="Record in our system">
+                <div>
+                  <label className="form-label">Account ID</label>
+                  <input
+                    type="text"
+                    value={accountId}
+                    onChange={(e) => setAccountId(e.target.value)}
+                    className="form-input"
+                    placeholder="email or username on the service"
+                  />
+                  <p className="mt-[4px] text-[11px] text-core-text3">
+                    Their identifier on the service.
+                  </p>
+                </div>
+                <div className="mt-3">
+                  <label className="form-label">Internal notes</label>
+                  <textarea
+                    value={internalNotes}
+                    onChange={(e) => setInternalNotes(e.target.value)}
+                    rows={2}
+                    className="form-textarea"
+                    placeholder="License tier, billing notes, etc."
+                  />
+                  <p className="mt-[4px] text-[11px] text-core-text3">
+                    Stays in our records — not shown to the requester.
+                  </p>
+                </div>
+              </ModalSection>
+
+              {/* Section 2 — what the requester sees. */}
+              <ModalSection title="Tell the requester">
+                <label className="form-label">How they'll get their credentials</label>
                 <textarea
-                  value={reviewNotes}
-                  onChange={(e) => setReviewNotes(e.target.value)}
-                  rows={2}
+                  value={credentialMessage}
+                  onChange={(e) => setCredentialMessage(e.target.value)}
+                  rows={3}
                   className="form-textarea"
-                  placeholder="License tier, billing notes, etc."
+                  placeholder="e.g. Invite sent to your work email — check inbox + spam. Reset your password on first login."
                 />
-              </div>
+                <p className="mt-[4px] text-[11px] text-core-text3">
+                  This message goes into the approval email they receive.
+                </p>
+              </ModalSection>
+
+              {/* Section 3 — soft reminders, not enforced. */}
+              <ModalSection title="Before you approve">
+                <ChecklistItem
+                  checked={chk.created}
+                  onChange={(v) => setChk((p) => ({ ...p, created: v }))}
+                  label="I created their account in the actual service"
+                />
+                <ChecklistItem
+                  checked={chk.sent}
+                  onChange={(v) => setChk((p) => ({ ...p, sent: v }))}
+                  label="I sent or queued their credentials"
+                />
+                <ChecklistItem
+                  checked={chk.verified}
+                  onChange={(v) => setChk((p) => ({ ...p, verified: v }))}
+                  label="I confirmed the access works (or the requester will)"
+                />
+                <p className="mt-2 text-[11px] text-core-text3">
+                  Reminder only — not enforced. Approving without ticking these
+                  still grants the record on our side.
+                </p>
+              </ModalSection>
             </div>
             <div className="modal-footer">
               <button
@@ -336,7 +398,7 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
                 Cancel
               </button>
               <button
-                onClick={() => approve(approveModal, accountId, reviewNotes)}
+                onClick={() => approve(approveModal)}
                 disabled={busy === approveModal.id}
                 className="btn btn-primary"
               >
@@ -367,11 +429,11 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
               </p>
               <label className="form-label">Reason *</label>
               <textarea
-                value={reviewNotes}
-                onChange={(e) => setReviewNotes(e.target.value)}
+                value={rejectNotes}
+                onChange={(e) => setRejectNotes(e.target.value)}
                 rows={3}
                 className="form-textarea"
-                placeholder="e.g. This tool is engineering-only — please use Notion instead."
+                placeholder="e.g. This tool isn't right for your role — try the catalog for an alternative."
                 required
               />
             </div>
@@ -384,8 +446,8 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
                 Cancel
               </button>
               <button
-                onClick={() => reject(rejectModal, reviewNotes)}
-                disabled={busy === rejectModal.id || !reviewNotes.trim()}
+                onClick={() => reject(rejectModal, rejectNotes)}
+                disabled={busy === rejectModal.id || !rejectNotes.trim()}
                 className="btn btn-primary"
               >
                 {busy === rejectModal.id ? 'Rejecting…' : 'Reject Request'}
@@ -395,5 +457,45 @@ export default function AccessRequestsClient({ initialRequests }: Props) {
         </div>
       )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tiny helpers for the approve modal sections + checklist row. Inline rather
+// than living in /design because they're not used anywhere else yet.
+function ModalSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-core-border bg-core-surface2 p-3">
+      <div
+        className="mb-2 text-[10px] font-semibold uppercase text-core-text3"
+        style={{ letterSpacing: '0.09em' }}
+      >
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ChecklistItem({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  label: string;
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-2 py-[3px] text-[12.5px] text-core-text2">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-[3px] h-4 w-4 flex-shrink-0"
+        style={{ accentColor: '#1F2320' }}
+      />
+      <span className={checked ? 'text-core-text' : ''}>{label}</span>
+    </label>
   );
 }
