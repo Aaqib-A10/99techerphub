@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Badge } from '@/app/components/design';
 
 /**
@@ -22,20 +23,37 @@ interface Props {
   digitalAccess: DigitalAccessRow[];
   onGrantClick: () => void;
   onRevoke: (accessId: number) => void;
+  /** Admin/HR can grant access directly. Everyone else just sees the
+   *  catalog link, since they have to go through the request workflow. */
+  canGrant?: boolean;
 }
 
 export default function DigitalAccessTab({
   digitalAccess,
   onGrantClick,
   onRevoke,
+  canGrant = false,
 }: Props) {
   return (
     <div className="card">
       <div className="card-header flex items-center justify-between">
         <h3 className="section-heading">Digital Access &amp; Licenses</h3>
-        <button onClick={onGrantClick} className="btn btn-sm btn-primary">
-          Grant Access
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Catalog link is always visible — anyone (admin or employee
+              viewing themselves) can browse it. Direct Grant Access stays
+              admin/HR-only since it bypasses the approval flow. */}
+          <Link
+            href="/access-catalog"
+            className="text-[12px] font-semibold text-core-text2 transition hover:text-core-text"
+          >
+            Browse catalog →
+          </Link>
+          {canGrant && (
+            <button onClick={onGrantClick} className="btn btn-sm btn-primary">
+              Grant Access
+            </button>
+          )}
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-[12.5px]" style={{ borderCollapse: 'collapse' }}>

@@ -41,6 +41,9 @@ interface EmployeeDetailClientProps {
   /** Whether the signed-in viewer is allowed to navigate into other employee
    *  profiles (Reports To, Direct Reports list). EMPLOYEE = false. */
   canBrowseEmployees: boolean;
+  /** Whether the viewer can grant digital access on this employee's behalf —
+   *  ADMIN/HR only. Everyone else is routed to /access-catalog to request. */
+  canGrantAccess: boolean;
   rolesProps: {
     responsibilities: string | null;
     marketplaceIds: number[];
@@ -58,6 +61,7 @@ export default function EmployeeDetailClient({
   directReports = [],
   employeeCompanies = [],
   canBrowseEmployees,
+  canGrantAccess,
   rolesProps,
 }: EmployeeDetailClientProps) {
   const router = useRouter();
@@ -451,6 +455,7 @@ export default function EmployeeDetailClient({
           digitalAccess={employee.digitalAccess}
           onGrantClick={() => setShowAccessModal(true)}
           onRevoke={handleRevokeAccess}
+          canGrant={canGrantAccess}
         />
       )}
 

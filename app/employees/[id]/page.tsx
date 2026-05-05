@@ -58,6 +58,11 @@ export default async function EmployeeDetailPage({
   // can't click through into that person's full profile.
   const BROWSE_ROLES = new Set(['ADMIN', 'HR', 'MANAGER', 'FINANCE', 'ACCOUNTANT']);
   const canBrowseEmployees = !!sessionUser && BROWSE_ROLES.has(sessionUser.role);
+  // Granting access on behalf of an employee is an admin/HR action. Anyone
+  // else viewing the profile (including the employee themselves) should
+  // be routed to /access-catalog to request, not granted directly.
+  const canGrantAccess =
+    !!sessionUser && ['ADMIN', 'HR'].includes(sessionUser.role);
 
   // Page-level RBAC: a non-admin-class viewer may only see their own profile.
   // Without this, an EMPLOYEE could paste any /employees/N URL and read a
@@ -355,6 +360,7 @@ export default async function EmployeeDetailPage({
         directReports={directReports}
         employeeCompanies={employeeCompanies}
         canBrowseEmployees={canBrowseEmployees}
+        canGrantAccess={canGrantAccess}
         rolesProps={{
           responsibilities: employee.responsibilities,
           marketplaceIds: employee.marketplaces.map((em: any) => em.marketplaceId),
