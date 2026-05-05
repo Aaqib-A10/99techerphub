@@ -4,47 +4,52 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import DateFilter from '@/app/components/DateFilter';
 import { KpiTile, Card, Badge, Btn } from '@/app/components/design';
-import type { BadgeTone } from '@/app/components/design';
-
-const STATUS_TONE: Record<string, BadgeTone> = {
-  DRAFT: 'gray',
-  FINALIZED: 'amber',
-  PAID: 'green',
-};
 
 export default async function FinancePage() {
+  // Slimmed Finance overview — leads with the Master Ledger as the
+  // single source of truth. The Salary / Commission / Deduction /
+  // Payroll / Cost-Split routes still exist but are hidden from the
+  // sidebar for v1; their code is untouched and can be re-surfaced
+  // later by re-adding the children to Sidebar.tsx.
   const [
-    totalEmployees,
-    payrollRuns,
-    totalExpensesApproved,
-    recentSalaryChanges,
-    commissionCount,
-    deductionCount,
+    activeEmployees,
+    pendingExpenses,
+    approvedExpenseSum,
+    rejectedExpenseCount,
+    latestLedger,
+    recentLedgerEntries,
+    pendingBills,
+    pendingCheques,
   ] = await Promise.all([
     prisma.employee.count({ where: { isActive: true } }),
-    prisma.payrollRun.findMany({
-      include: { company: true, items: true },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-    }),
+    prisma.expense.count({ where: { status: 'PENDING' } }),
     prisma.expense.aggregate({
       where: { status: 'APPROVED' },
       _sum: { amount: true },
     }),
-    prisma.salaryHistory.findMany({
-      include: { employee: true },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
+    prisma.expense.count({ where: { status: 'REJECTED' } }),
+    // Most recent ledger row gives us the live balance.
+    prisma.ledgerEntry.findFirst({
+      orderBy: [{ transDate: 'desc' }, { id: 'desc' }],
+      select: { runningBal: true },
     }),
-    prisma.commission.count(),
-    prisma.deduction.count(),
+    // A short recent-activity strip on the overview.
+    prisma.ledgerEntry.findMany({
+      orderBy: [{ transDate: 'desc' }, { id: 'desc' }],
+      take: 6,
+      include: {
+        category: { select: { name: true } },
+      },
+    }),
+    prisma.bill.count({ where: { status: 'PENDING' } }),
+    prisma.cheque.count({ where: { status: 'PENDING' } }),
   ]);
 
-  const approvedExpenseAmount = Number(totalExpensesApproved._sum.amount || 0);
+  const balance = Number(latestLedger?.runningBal ?? 0);
+  const approvedAmt = Number(approvedExpenseSum._sum.amount || 0);
 
   return (
     <div>
-      {/* Page header */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <div
@@ -57,33 +62,53 @@ export default async function FinancePage() {
             className="text-[22px] font-semibold leading-tight text-core-text"
             style={{ letterSpacing: '-0.018em' }}
           >
-            Finance &amp; Payroll
+            Finance
           </h1>
           <p className="mt-[2px] text-[13px] text-core-text2">
-            Manage salaries, payroll runs, and financial reporting
+            Your master cash ledger, expense queue, and reports — at a glance.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Btn as="a" href="/finance/reports" tone="ghost">
             Monthly Reports
           </Btn>
-          <Btn as="a" href="/finance/payroll" tone="primary">
-            Payroll Runs
+          <Btn as="a" href="/finance/ledger" tone="primary">
+            Open Master Ledger
           </Btn>
         </div>
       </div>
 
-      {/* KPI strip */}
+      {/* KPI strip — five tiles that match the new slim Finance shape */}
       <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-        <KpiTile tone="blue" label="Active Employees" value={totalEmployees.toLocaleString()} />
-        <KpiTile tone="violet" label="Payroll Runs" value={payrollRuns.length} meta="Last 10 visible" />
         <KpiTile
-          tone="green"
-          label="Approved Expenses"
-          value={`PKR ${approvedExpenseAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          tone={balance >= 0 ? 'green' : 'rose'}
+          label="Current Balance"
+          value={`PKR ${balance.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          meta={balance < 0 ? 'Liquidity shortfall' : 'Live ledger'}
         />
-        <KpiTile tone="amber" label="Commissions" value={commissionCount.toLocaleString()} />
-        <KpiTile tone="rose" label="Deductions" value={deductionCount.toLocaleString()} />
+        <KpiTile
+          tone="blue"
+          label="Active Employees"
+          value={activeEmployees.toLocaleString()}
+        />
+        <KpiTile
+          tone="amber"
+          label="Pending Expenses"
+          value={pendingExpenses.toLocaleString()}
+          meta="Awaiting approval"
+        />
+        <KpiTile
+          tone="violet"
+          label="Approved Expenses"
+          value={`PKR ${approvedAmt.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          meta="All time"
+        />
+        <KpiTile
+          tone="rose"
+          label="Open Items"
+          value={(pendingBills + pendingCheques).toLocaleString()}
+          meta={`${pendingBills} bills · ${pendingCheques} cheques`}
+        />
       </div>
 
       {/* Date filter */}
@@ -91,13 +116,13 @@ export default async function FinancePage() {
         <DateFilter />
       </div>
 
-      {/* Quick actions */}
+      {/* Quick actions — only the four slim entries */}
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          { href: '/finance/payroll', title: 'Payroll Runs', sub: 'Process monthly payroll' },
-          { href: '/finance/salary', title: 'Salary Management', sub: 'Increments & adjustments' },
-          { href: '/finance/commissions', title: 'Commissions', sub: 'Bonuses & commissions' },
-          { href: '/finance/deductions', title: 'Deductions', sub: 'Tax, loans, advances' },
+          { href: '/finance/ledger?tab=billing', title: 'Add Bill', sub: 'Vendor invoice + scan' },
+          { href: '/finance/ledger?tab=cheques', title: 'Log Cheque', sub: 'Bank instrument tracker' },
+          { href: '/finance/ledger?tab=opex', title: 'Post OPEX', sub: 'Rental / maintenance / donation' },
+          { href: '/expenses', title: 'Expenses Queue', sub: 'Review pending submissions' },
         ].map((q) => (
           <Link
             key={q.href}
@@ -122,38 +147,52 @@ export default async function FinancePage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Payroll Runs */}
+        {/* Recent ledger activity */}
         <Card
-          title="Recent Payroll Runs"
+          title="Recent Ledger Activity"
           action={
             <Link
-              href="/finance/payroll"
+              href="/finance/ledger"
               className="text-[12px] font-semibold text-core-text2 hover:text-core-text"
             >
-              View All →
+              View ledger →
             </Link>
           }
         >
-          {payrollRuns.length === 0 ? (
-            <p className="py-8 text-center text-[13px] text-core-text3">No payroll runs yet</p>
+          {recentLedgerEntries.length === 0 ? (
+            <p className="py-8 text-center text-[13px] text-core-text3">
+              No ledger entries yet. Post your first bill, cheque, or OPEX from the
+              quick actions above.
+            </p>
           ) : (
             <div className="space-y-2">
-              {payrollRuns.slice(0, 5).map((pr) => (
+              {recentLedgerEntries.map((e) => (
                 <div
-                  key={pr.id}
+                  key={e.id}
                   className="flex items-center justify-between rounded-xl border border-core-border bg-core-surface2 p-[14px]"
                 >
                   <div className="min-w-0">
-                    <div className="font-semibold text-core-text">{pr.period}</div>
-                    <div className="mt-[2px] text-[11.5px] text-core-text3">
-                      {pr.company?.name || 'All Companies'} · {pr.items.length} employees
+                    <div className="font-mono text-[11px] text-core-text3">
+                      {e.serialNo}
+                    </div>
+                    <div className="mt-[1px] truncate font-semibold text-core-text">
+                      {e.transDetail}
+                    </div>
+                    <div className="mt-[2px] text-[11px] text-core-text3">
+                      {e.category.name} · {new Date(e.transDate).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="ml-3 flex flex-col items-end gap-1">
-                    <div className="font-mono text-[12.5px] font-semibold text-core-text">
-                      PKR {Number(pr.totalNet).toLocaleString()}
-                    </div>
-                    <Badge tone={STATUS_TONE[pr.status] ?? 'gray'}>{pr.status}</Badge>
+                    {Number(e.creditAmt) > 0 ? (
+                      <div className="font-mono text-[12.5px] font-semibold text-core-greenFg">
+                        + PKR {Number(e.creditAmt).toLocaleString()}
+                      </div>
+                    ) : (
+                      <div className="font-mono text-[12.5px] font-semibold text-core-roseFg">
+                        − PKR {Number(e.debitAmt).toLocaleString()}
+                      </div>
+                    )}
+                    <Badge tone="gray">{e.source}</Badge>
                   </div>
                 </div>
               ))}
@@ -161,50 +200,62 @@ export default async function FinancePage() {
           )}
         </Card>
 
-        {/* Recent Salary Changes */}
+        {/* Pending review queue */}
         <Card
-          title="Recent Salary Changes"
+          title="Awaiting Action"
           action={
             <Link
-              href="/finance/salary"
+              href="/expenses?status=PENDING"
               className="text-[12px] font-semibold text-core-text2 hover:text-core-text"
             >
-              Manage →
+              View expenses →
             </Link>
           }
         >
-          {recentSalaryChanges.length === 0 ? (
-            <p className="py-8 text-center text-[13px] text-core-text3">
-              No salary changes recorded
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {recentSalaryChanges.map((sh) => (
-                <div
-                  key={sh.id}
-                  className="flex items-center justify-between rounded-xl border border-core-border bg-core-surface2 p-[14px]"
-                >
-                  <div className="min-w-0">
-                    <div className="font-semibold text-core-text">
-                      {sh.employee.firstName} {sh.employee.lastName}
-                    </div>
-                    <div className="mt-[2px] text-[11.5px] text-core-text3">
-                      Effective: {new Date(sh.effectiveFrom).toLocaleDateString()}
-                      {sh.reason && ` — ${sh.reason}`}
-                    </div>
-                  </div>
-                  <div className="ml-3 flex flex-col items-end gap-1">
-                    <div className="font-mono text-[12.5px] font-semibold text-core-text">
-                      {sh.currency} {Number(sh.baseSalary).toLocaleString()}
-                    </div>
-                    {sh.incrementPct && (
-                      <Badge tone="green">+{Number(sh.incrementPct)}%</Badge>
-                    )}
-                  </div>
+          <div className="grid grid-cols-1 gap-3">
+            <Link
+              href="/expenses?status=PENDING"
+              className="flex items-center justify-between rounded-xl border border-core-border bg-core-surface2 p-[14px] transition hover:bg-core-surface"
+            >
+              <div>
+                <div className="font-semibold text-core-text">Expenses pending approval</div>
+                <div className="mt-[2px] text-[11.5px] text-core-text3">
+                  Review and approve submitted expenses
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+              <div className="font-mono text-[18px] font-semibold text-core-amberFg">
+                {pendingExpenses}
+              </div>
+            </Link>
+            <Link
+              href="/finance/ledger?tab=billing"
+              className="flex items-center justify-between rounded-xl border border-core-border bg-core-surface2 p-[14px] transition hover:bg-core-surface"
+            >
+              <div>
+                <div className="font-semibold text-core-text">Bills pending payment</div>
+                <div className="mt-[2px] text-[11.5px] text-core-text3">
+                  Mark paid to post the debit to the ledger
+                </div>
+              </div>
+              <div className="font-mono text-[18px] font-semibold text-core-amberFg">
+                {pendingBills}
+              </div>
+            </Link>
+            <Link
+              href="/finance/ledger?tab=cheques"
+              className="flex items-center justify-between rounded-xl border border-core-border bg-core-surface2 p-[14px] transition hover:bg-core-surface"
+            >
+              <div>
+                <div className="font-semibold text-core-text">Cheques pending clearance</div>
+                <div className="mt-[2px] text-[11.5px] text-core-text3">
+                  Mark cleared to commit to the ledger
+                </div>
+              </div>
+              <div className="font-mono text-[18px] font-semibold text-core-amberFg">
+                {pendingCheques}
+              </div>
+            </Link>
+          </div>
         </Card>
       </div>
     </div>

@@ -86,15 +86,15 @@ const NAV_SECTIONS: NavSection[] = [
         name: 'Finance',
         icon: 'card',
         requiredRoles: ['ADMIN', 'ACCOUNTANT', 'MANAGER'],
+        // Slimmed-down v1 of Finance. Salary / Commissions / Deductions /
+        // Cost Splits / Payroll routes still exist (code untouched at
+        // /finance/{salary,commissions,deductions,billing,payroll}) — they
+        // just don't show in the sidebar yet. Restore by re-adding the
+        // entries here when the company is ready to use them.
         children: [
           { name: 'Overview', href: '/finance' },
           { name: 'Master Ledger', href: '/finance/ledger' },
-          { name: 'Salary', href: '/finance/salary' },
-          { name: 'Commissions', href: '/finance/commissions' },
-          { name: 'Deductions', href: '/finance/deductions' },
-          { name: 'Cost Splits', href: '/finance/billing' },
           { name: 'Expenses', href: '/expenses' },
-          { name: 'Payroll', href: '/finance/payroll' },
           { name: 'Reports', href: '/finance/reports' },
         ],
       },
