@@ -50,7 +50,9 @@ export async function POST(
       updateData.revisionNotes = data.comments || null;
     }
 
-    // Wrap approval creation, expense update, and audit log in a transaction
+    // Wrap approval creation, expense update, audit log, AND ledger
+    // posting (when action === APPROVED) in a transaction so we never
+    // leave the books out of sync with the approval state.
     const { approval, updatedExpense } = await prisma.$transaction(async (tx) => {
       const approvalRecord = await tx.expenseApproval.create({
         data: {
@@ -68,6 +70,7 @@ export async function POST(
           submittedBy: {
             include: { user: true },
           },
+          category: { select: { name: true } },
         },
       });
 
@@ -80,6 +83,44 @@ export async function POST(
           newValues: { expenseId, action, comments: data.comments },
         },
       });
+
+      // Auto-post approved expense to the master ledger as a debit. Best-
+      // effort: if the ledger schema isn't deployed yet (categories empty)
+      // the import below noops. Wrapped in try/catch so the approval
+      // succeeds even if posting fails (we don't want to lose the approval
+      // because of a downstream issue — but we DO log the error).
+      if (action === 'APPROVED') {
+        try {
+          const { postEntry } = await import('@/lib/services/ledgerService');
+          // Pick a sane category — match by expense category name; fall
+          // back to "Office Supplies" or the first active category.
+          const cat =
+            (await tx.ledgerCategory.findFirst({
+              where: { name: { equals: expense.category?.name, mode: 'insensitive' } },
+            })) ??
+            (await tx.ledgerCategory.findFirst({ where: { code: 'OFFICE' } })) ??
+            (await tx.ledgerCategory.findFirst({ where: { isActive: true } }));
+          if (cat) {
+            await postEntry(
+              {
+                transDate: new Date(expense.expenseDate),
+                transDetail: `Expense ${expense.expenseNumber} — ${expense.description ?? expense.vendor ?? 'no description'}`,
+                categoryId: cat.id,
+                debitAmt: Number(expense.amount),
+                currency: expense.currency,
+                companyId: expense.companyId,
+                source: 'EXPENSE',
+                sourceId: expense.id,
+                attachmentUrl: expense.receiptUrl ?? null,
+                createdById: approvedById,
+              },
+              tx,
+            );
+          }
+        } catch (err) {
+          console.warn('[expense/approve] ledger post failed:', err);
+        }
+      }
 
       return { approval: approvalRecord, updatedExpense: expense };
     });

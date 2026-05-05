@@ -88,10 +88,11 @@ const NAV_SECTIONS: NavSection[] = [
         requiredRoles: ['ADMIN', 'ACCOUNTANT', 'MANAGER'],
         children: [
           { name: 'Overview', href: '/finance' },
+          { name: 'Master Ledger', href: '/finance/ledger' },
           { name: 'Salary', href: '/finance/salary' },
           { name: 'Commissions', href: '/finance/commissions' },
           { name: 'Deductions', href: '/finance/deductions' },
-          { name: 'Billing Splits', href: '/finance/billing' },
+          { name: 'Cost Splits', href: '/finance/billing' },
           { name: 'Expenses', href: '/expenses' },
           { name: 'Payroll', href: '/finance/payroll' },
           { name: 'Reports', href: '/finance/reports' },

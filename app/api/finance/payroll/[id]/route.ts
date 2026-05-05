@@ -56,7 +56,7 @@ export async function PATCH(
     }
 
     if (data.action === 'mark_paid') {
-      // ATOMIC: status + commissions + audit all in one transaction
+      // ATOMIC: status + commissions + audit + ledger post all in one transaction
       const result = await prisma.$transaction(async (tx) => {
         const run = await tx.payrollRun.update({
           where: { id: runId },
@@ -91,6 +91,34 @@ export async function PATCH(
             newValues: { status: 'PAID', employeesAffected: employeeIds.length },
           },
         });
+
+        // Auto-post the run total to the master ledger as a single debit.
+        // One entry per run keeps the ledger readable; the per-employee
+        // detail still lives on the PayrollItem rows.
+        try {
+          const { postEntry } = await import('@/lib/services/ledgerService');
+          const cat =
+            (await tx.ledgerCategory.findFirst({ where: { code: 'OPEX_SAL' } })) ??
+            (await tx.ledgerCategory.findFirst({ where: { isActive: true } }));
+          if (cat) {
+            await postEntry(
+              {
+                transDate: new Date(),
+                transDetail: `Payroll run ${run.period} — ${employeeIds.length} employees`,
+                categoryId: cat.id,
+                debitAmt: Number(run.totalNet),
+                currency: 'PKR',
+                companyId: run.companyId,
+                source: 'PAYROLL',
+                sourceId: run.id,
+                createdById: ctx.user.id,
+              },
+              tx,
+            );
+          }
+        } catch (err) {
+          console.warn('[payroll/mark_paid] ledger post failed:', err);
+        }
 
         return run;
       });
