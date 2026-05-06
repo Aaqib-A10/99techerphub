@@ -96,6 +96,8 @@ export default function AccessCatalogClient({
   function openModal(svc: Service) {
     setRequestModal(svc);
     setRequestNotes('');
+    setError('');
+    setSuccess('');
     const defaultId =
       svc.owner?.id ?? reportingManager?.id ?? employees[0]?.id ?? null;
     setSendToId(defaultId == null ? '' : defaultId);
@@ -404,6 +406,14 @@ export default function AccessCatalogClient({
               <p className="mb-3 text-[11.5px] text-core-text3">
                 The approver below gets notified in-app and by email — admins are CC'd for visibility.
               </p>
+
+              {/* Surface submit failures right above the picker so the
+                  user sees them without closing the modal. */}
+              {error && (
+                <div className="mb-3 rounded-lg bg-core-roseSoft p-3 text-[12.5px] text-core-roseFg">
+                  {error}
+                </div>
+              )}
 
               <label className="form-label">Send to (approver)</label>
               <select
