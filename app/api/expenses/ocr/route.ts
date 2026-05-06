@@ -8,7 +8,8 @@ import { getSessionUser } from '@/lib/auth';
  * vision API to extract structured fields that can pre-fill the expense form.
  *
  * Input (JSON):
- *   { receiptUrl: "/uploads/receipts/1234-abcd.jpg" }
+ *   { receiptUrl: "/api/files/receipts/1234-abcd.jpg" }
+ *   (legacy `/uploads/receipts/...` is also accepted so older rows keep working)
  *
  * Output:
  *   {
@@ -64,7 +65,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!receiptUrl.startsWith('/uploads/receipts/')) {
+    // Accept both new and legacy URL shapes. New uploads live under
+    // /api/files/receipts/...; pre-migration rows still carry the old
+    // /uploads/receipts/... prefix and are read from public/uploads/.
+    const NEW_PREFIX = '/api/files/receipts/';
+    const LEGACY_PREFIX = '/uploads/receipts/';
+
+    let absPath: string;
+    if (receiptUrl.startsWith(NEW_PREFIX)) {
+      const filename = receiptUrl.slice(NEW_PREFIX.length);
+      // Same-shape filename guard (no slashes / dots) — defense in depth
+      // against a row that somehow stored a traversal sequence.
+      if (!filename || filename.includes('/') || filename.includes('..')) {
+        return NextResponse.json(
+          { error: 'Invalid receipt URL' },
+          { status: 400 }
+        );
+      }
+      const uploadsRoot =
+        process.env.UPLOADS_DIR?.trim() || join(process.cwd(), 'uploads');
+      absPath = join(uploadsRoot, 'receipts', filename);
+    } else if (receiptUrl.startsWith(LEGACY_PREFIX)) {
+      const filename = receiptUrl.slice(LEGACY_PREFIX.length);
+      if (!filename || filename.includes('/') || filename.includes('..')) {
+        return NextResponse.json(
+          { error: 'Invalid receipt URL' },
+          { status: 400 }
+        );
+      }
+      absPath = join(process.cwd(), 'public', 'uploads', 'receipts', filename);
+    } else {
       return NextResponse.json(
         { error: 'Invalid receipt URL' },
         { status: 400 }
@@ -82,9 +112,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Read file from disk
-    const relPath = receiptUrl.replace(/^\//, '');
-    const absPath = join(process.cwd(), 'public', relPath);
     let fileBuffer: Buffer;
     try {
       fileBuffer = await readFile(absPath);

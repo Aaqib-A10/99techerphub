@@ -42,3 +42,8 @@ Thumbs.db
 
 # Master employee data — PII (CNIC, bank, addresses). Don't commit.
 scripts/Active_employees.xlsx
+
+# Runtime uploads (receipts, bill scans, etc) served via /api/files.
+# Lives outside public/ so deploys can't wipe it; survives `git reset --hard`
+# because it's untracked.
+/uploads/
