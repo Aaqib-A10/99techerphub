@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, KpiTile, Badge } from '@/app/components/design';
+import EmployeePicker from '@/app/components/EmployeePicker';
 
 interface ApproverEmployee {
   id: number;
@@ -432,38 +433,30 @@ export default function AccessCatalogClient({
               )}
 
               <label className="form-label">Send to (approver)</label>
-              <select
-                className="form-select"
-                value={sendToId}
-                onChange={(e) =>
-                  setSendToId(e.target.value === '' ? '' : Number(e.target.value))
-                }
-              >
-                {approverOptions.length === 0 && (
-                  <option value="">No eligible approvers — admins will review</option>
-                )}
-                {approverOptions.map((a) => {
-                  const isOwner = requestModal.owner?.id === a.id;
-                  const isManager = reportingManager?.id === a.id;
-                  // Service owner and manager get explicit role tags so
-                  // they stand out as the suggested defaults; everyone
-                  // else shows their designation as a hint.
-                  const tag = isOwner
-                    ? 'Service owner'
-                    : isManager
-                      ? 'Your manager'
-                      : (a.designation ?? 'Employee');
-                  return (
-                    <option key={a.id} value={a.id}>
-                      {a.firstName} {a.lastName} ({a.empCode}) — {tag}
-                    </option>
-                  );
-                })}
-              </select>
+              <EmployeePicker
+                employees={approverOptions}
+                value={sendToId === '' ? null : sendToId}
+                onChange={(id) => setSendToId(id ?? '')}
+                placeholder="Search by name, code, email…"
+                showInactive={false}
+              />
               <p className="mt-1 text-[11px] text-core-text3">
-                {requestModal.owner
-                  ? `Defaults to the service owner. Pick a different reviewer if they're unavailable.`
-                  : `Pick whoever should review this. No service owner is set yet, so the request goes to whoever you choose.`}
+                {(() => {
+                  // Surface what role the current pick has so the user
+                  // knows whether the picker auto-suggested a sensible
+                  // default (service owner / their manager) or they're
+                  // venturing into a free-text choice.
+                  if (sendToId === '') {
+                    return requestModal.owner
+                      ? `Defaults to the service owner. Type to pick someone else.`
+                      : `No service owner set — type to pick whoever should review this.`;
+                  }
+                  if (requestModal.owner?.id === sendToId)
+                    return `Sending to the service owner.`;
+                  if (reportingManager?.id === sendToId)
+                    return `Sending to your reporting manager.`;
+                  return `Sending to a non-default reviewer. Admins will be CC'd for visibility.`;
+                })()}
               </p>
 
               <label className="form-label mt-4">Reason (optional)</label>
