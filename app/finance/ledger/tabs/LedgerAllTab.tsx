@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Card, Badge, Tag } from '@/app/components/design';
+import AttachmentInput, {
+  AttachmentValue,
+} from '../components/AttachmentInput';
 
 interface Category {
   id: number;
@@ -70,6 +73,72 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
   const [reverseModal, setReverseModal] = useState<LedgerEntry | null>(null);
   const [reverseReason, setReverseReason] = useState('');
   const [reverseSubmitting, setReverseSubmitting] = useState(false);
+
+  // Manual-entry modal state. Lets ADMIN/ACCOUNTANT post a one-off
+  // correction that doesn't fit Bill / Cheque / OPEX. Same image
+  // hard-stop applies to cash-out entries.
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualSubmitting, setManualSubmitting] = useState(false);
+  const [manualError, setManualError] = useState('');
+  const [manual, setManual] = useState({
+    transDate: new Date().toISOString().slice(0, 10),
+    transDetail: '',
+    categoryId: '',
+    direction: 'debit' as 'debit' | 'credit',
+    amount: '',
+  });
+  const [manualAttachment, setManualAttachment] = useState<AttachmentValue | null>(null);
+
+  const resetManual = () => {
+    setManual({
+      transDate: new Date().toISOString().slice(0, 10),
+      transDetail: '',
+      categoryId: '',
+      direction: 'debit',
+      amount: '',
+    });
+    setManualAttachment(null);
+    setManualError('');
+  };
+
+  async function submitManual(e: React.FormEvent) {
+    e.preventDefault();
+    const amt = parseFloat(manual.amount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+      setManualError('Amount must be > 0.');
+      return;
+    }
+    if (manual.direction === 'debit' && !manualAttachment) {
+      setManualError('Cash-out entries require an attachment.');
+      return;
+    }
+    setManualSubmitting(true);
+    setManualError('');
+    try {
+      const res = await fetch('/api/finance/ledger/manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transDate: new Date(manual.transDate).toISOString(),
+          transDetail: manual.transDetail,
+          categoryId: parseInt(manual.categoryId),
+          creditAmt: manual.direction === 'credit' ? amt : 0,
+          debitAmt: manual.direction === 'debit' ? amt : 0,
+          attachmentUrl: manualAttachment?.url ?? null,
+          attachmentMeta: manualAttachment?.meta ?? null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to post entry');
+      setManualOpen(false);
+      resetManual();
+      fetchEntries();
+    } catch (err) {
+      setManualError(err instanceof Error ? err.message : 'Failed to post entry');
+    } finally {
+      setManualSubmitting(false);
+    }
+  }
 
   const fetchEntries = async () => {
     setLoading(true);
@@ -200,6 +269,15 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
           <option value="OPENING">Opening</option>
         </select>
         <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => {
+              resetManual();
+              setManualOpen(true);
+            }}
+            className="btn btn-sm btn-primary"
+          >
+            + Manual Entry
+          </button>
           <button
             onClick={exportCsv}
             disabled={entries.length === 0}
@@ -366,6 +444,152 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
                 {reverseSubmitting ? 'Posting…' : 'Post Contra Entry'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Entry modal — for one-off corrections that don't fit
+          Bill / Cheque / OPEX. Cash-out entries still need an attachment. */}
+      {manualOpen && (
+        <div
+          className="modal-overlay"
+          onClick={() => !manualSubmitting && setManualOpen(false)}
+        >
+          <div
+            className="modal max-w-[640px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2>Manual Ledger Entry</h2>
+              <button
+                onClick={() => !manualSubmitting && setManualOpen(false)}
+                className="text-core-text3 hover:text-core-text"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={submitManual}>
+              <div className="modal-body space-y-3">
+                <p className="text-[12px] text-core-text3">
+                  Use this for one-off corrections that don't have a Bill,
+                  Cheque, or OPEX record behind them. Cash-out entries
+                  require an attachment.
+                </p>
+                {manualError && (
+                  <div className="rounded-lg bg-core-roseSoft p-3 text-[12.5px] text-core-roseFg">
+                    {manualError}
+                  </div>
+                )}
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="form-label">Date *</label>
+                    <input
+                      type="date"
+                      className="form-input"
+                      value={manual.transDate}
+                      onChange={(e) =>
+                        setManual({ ...manual, transDate: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Direction *</label>
+                    <select
+                      className="form-select"
+                      value={manual.direction}
+                      onChange={(e) =>
+                        setManual({
+                          ...manual,
+                          direction: e.target.value as 'debit' | 'credit',
+                        })
+                      }
+                    >
+                      <option value="debit">Debit (cash out)</option>
+                      <option value="credit">Credit (cash in)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Amount (PKR) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      className="form-input"
+                      value={manual.amount}
+                      onChange={(e) =>
+                        setManual({ ...manual, amount: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="form-label">Category *</label>
+                    <select
+                      className="form-select"
+                      value={manual.categoryId}
+                      onChange={(e) =>
+                        setManual({ ...manual, categoryId: e.target.value })
+                      }
+                      required
+                    >
+                      <option value="">Select…</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="form-label">Description *</label>
+                  <textarea
+                    className="form-textarea"
+                    rows={2}
+                    value={manual.transDetail}
+                    onChange={(e) =>
+                      setManual({ ...manual, transDetail: e.target.value })
+                    }
+                    required
+                    placeholder="What this entry covers"
+                  />
+                </div>
+                <AttachmentInput
+                  value={manualAttachment}
+                  onChange={setManualAttachment}
+                  required={manual.direction === 'debit'}
+                  label={
+                    manual.direction === 'debit'
+                      ? 'Attachment (required for cash out)'
+                      : 'Attachment (optional for cash in)'
+                  }
+                />
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  onClick={() => !manualSubmitting && setManualOpen(false)}
+                  className="btn btn-secondary"
+                  disabled={manualSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={
+                    manualSubmitting ||
+                    !manual.transDetail.trim() ||
+                    !manual.amount ||
+                    !manual.categoryId
+                  }
+                >
+                  {manualSubmitting ? 'Posting…' : 'Post Entry'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

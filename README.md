@@ -32,11 +32,33 @@ When prompted, you can create the database or it will be created automatically.
 
 ### 4. Seed the Database
 
-This will populate the database with sample data (companies, departments, locations, categories, employees, and assets):
+The base seed (`npm run prisma:seed`) populates companies, departments,
+locations, employees, and assets. After that, run the **module seeds**
+to populate dropdown content used by the app:
 
 ```bash
-npm run prisma:seed
+node prisma/seed-all.js
 ```
+
+That wraps three idempotent seeds in the correct order:
+
+1. `seed-expense-categories.js` — 15 expense categories used by `/expenses/new`
+2. `seed-ledger.js` — 15 ledger Account Heads + the verified PKR 103,057 opening balance (creates `SN-000001`)
+3. `seed-digital-services.js` — 10 default services in `/access-catalog`
+
+Each child seed upserts by code/name so re-running is safe.
+
+**Production deploy with schema changes**:
+
+```bash
+ssh erp@50.190.164.37 'cd /home/erp/99tech-erp && git pull && \
+  npx prisma generate && npx prisma db push --accept-data-loss && \
+  node prisma/seed-all.js && pm2 restart 99tech-erp'
+```
+
+The auto-deploy workflow on `main` pushes code but does NOT run
+`prisma db push` or seeds — schema changes must be applied manually
+via the SSH chain above.
 
 ### 5. Start the Development Server
 
