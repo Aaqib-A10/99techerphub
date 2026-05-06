@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
+import MonthlyReportExportButton from './export-button';
 
 interface ReportSummary {
   totalExpenseAmount: number;
@@ -350,15 +351,21 @@ export default function MonthlyReportsPage() {
                     </div>
                   </div>
 
-                  {/* Toggle Summary */}
-                  <button
-                    onClick={() =>
-                      setExpandedReport(isExpanded ? null : report.id)
-                    }
-                    className="text-sm text-core-text2 hover:underline font-medium"
-                  >
-                    {isExpanded ? '▼ Hide Summary' : '▶ View Summary'}
-                  </button>
+                  {/* Toggle Summary + Export */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <button
+                      onClick={() =>
+                        setExpandedReport(isExpanded ? null : report.id)
+                      }
+                      className="text-sm text-core-text2 hover:underline font-medium"
+                    >
+                      {isExpanded ? '▼ Hide Summary' : '▶ View Summary'}
+                    </button>
+                    <MonthlyReportExportButton
+                      reportId={report.id}
+                      period={report.period}
+                    />
+                  </div>
 
                   {/* Summary Details */}
                   {isExpanded && (
