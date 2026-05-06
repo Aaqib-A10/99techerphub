@@ -50,10 +50,28 @@ export default async function LedgerDashboard({
   }
   const hasDateFilter = dateFrom || dateTo;
 
-  const employeeBase: any = {};
-  if (companyId != null) employeeBase.companyId = companyId;
-  if (departmentId != null) employeeBase.departmentId = departmentId;
-  if (hasDateFilter) employeeBase.dateOfJoining = dateFilter;
+  // Employees can be linked to a company two ways: as their primary
+  // (Employee.companyId) or via the EmployeeCompany pivot — staff who
+  // bill to multiple companies. The /employees page checks both, so
+  // the dashboard has to as well or the same filter chip produces
+  // different counts on each surface (29 vs 34 was the symptom).
+  const employeeWhereParts: any[] = [];
+  if (companyId != null) {
+    employeeWhereParts.push({
+      OR: [
+        { companyId },
+        { employeeCompanies: { some: { companyId } } },
+      ],
+    });
+  }
+  if (departmentId != null) employeeWhereParts.push({ departmentId });
+  if (hasDateFilter) employeeWhereParts.push({ dateOfJoining: dateFilter });
+  const employeeBase: any =
+    employeeWhereParts.length === 0
+      ? {}
+      : employeeWhereParts.length === 1
+        ? employeeWhereParts[0]
+        : { AND: employeeWhereParts };
 
   const assetBase: any = { isRetired: false };
   if (companyId != null) assetBase.companyId = companyId;
