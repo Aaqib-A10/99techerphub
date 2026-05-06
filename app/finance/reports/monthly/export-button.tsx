@@ -13,42 +13,48 @@ export default function MonthlyReportExportButton({
 }: MonthlyReportExportButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleExport = async (format: 'csv' | 'html') => {
+  // CSV stays a download — accountants paste it into Excel.
+  const handleCsvExport = async () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `/api/export/monthly-report?reportId=${reportId}&format=${format}`
+        `/api/export/monthly-report?reportId=${reportId}&format=csv`,
       );
-
-      if (!response.ok) {
-        throw new Error('Export failed');
-      }
-
+      if (!response.ok) throw new Error('Export failed');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `monthly-report-${period}.${format === 'csv' ? 'csv' : 'html'}`;
-
+      link.download = `monthly-report-${period}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Export error:', error);
-      alert(`Failed to export report as ${format.toUpperCase()}. Please try again.`);
+      alert('Failed to export report as CSV. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // PDF flow: open the HTML report in a new tab with autoprint=1; the
+  // page calls window.print() on load, the browser's Print dialog
+  // pops up, user picks "Save as PDF" as the destination. No
+  // server-side PDF library needed and the result respects the @media
+  // print CSS the report ships with.
+  const handlePdfExport = () => {
+    const url = `/api/export/monthly-report?reportId=${reportId}&format=html&autoprint=1`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="flex gap-2">
       <button
-        onClick={() => handleExport('csv')}
+        onClick={handleCsvExport}
         disabled={isLoading}
         className="btn btn-secondary text-sm inline-flex items-center gap-2"
-        title="Export report to CSV"
+        title="Download a CSV of the summary"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -61,20 +67,19 @@ export default function MonthlyReportExportButton({
         CSV
       </button>
       <button
-        onClick={() => handleExport('html')}
-        disabled={isLoading}
+        onClick={handlePdfExport}
         className="btn btn-secondary text-sm inline-flex items-center gap-2"
-        title="Export report to HTML (for printing/PDF)"
+        title="Open the printable report — pick Save as PDF in the print dialog"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M13 10V3L4 14h7v7l9-11h-7z"
+            d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M9 14h6 M9 18h6"
           />
         </svg>
-        Print
+        PDF
       </button>
     </div>
   );

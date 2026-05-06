@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
             }
           </style>
         </head>
-        <body>
+        <body onload="if (window.location.search.indexOf('autoprint=1') !== -1) { setTimeout(function() { window.print(); }, 200); }">
           <div class="container">
             <h1>Monthly Report</h1>
             <div class="meta">
