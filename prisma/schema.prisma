@@ -310,6 +310,10 @@ model Employee {
   employeeCompanies    EmployeeCompany[]
   ownedServices        DigitalService[]      @relation("DigitalServiceOwner")
   accessRequests       DigitalAccessRequest[]
+  // Requests where this employee was explicitly named as the approver
+  // (the "Send to" picker on the access modal). Distinct from
+  // accessRequests, which are requests *they* filed.
+  routedAccessRequests DigitalAccessRequest[] @relation("DigitalAccessRequestSendTo")
 
   @@map("employees")
 }
@@ -579,6 +583,11 @@ model DigitalAccessRequest {
   id           Int                 @id @default(autoincrement())
   employeeId   Int
   serviceId    Int
+  // Optional explicit approver chosen by the requester at submit time.
+  // Lets a user direct the request to (e.g.) a team lead or the design
+  // owner instead of the default admin/service-owner fan-out. Null =
+  // no explicit pick, fall back to the standard fan-out.
+  sendToEmployeeId Int?
   status       AccessRequestStatus @default(PENDING)
   notes        String? // employee's reason for requesting
   reviewNotes  String? // admin's response on approve/reject
@@ -589,12 +598,14 @@ model DigitalAccessRequest {
   updatedAt    DateTime            @updatedAt
 
   employee Employee       @relation(fields: [employeeId], references: [id])
+  sendTo   Employee?      @relation("DigitalAccessRequestSendTo", fields: [sendToEmployeeId], references: [id])
   service  DigitalService @relation(fields: [serviceId], references: [id])
   reviewer User?          @relation(fields: [reviewedById], references: [id])
 
   @@index([employeeId])
   @@index([serviceId])
   @@index([status])
+  @@index([sendToEmployeeId])
   @@map("digital_access_requests")
 }
 

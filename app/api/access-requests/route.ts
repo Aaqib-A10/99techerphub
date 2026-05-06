@@ -45,6 +45,15 @@ export async function GET(request: NextRequest) {
         select: { id: true, name: true, category: true, defaultPlan: true },
       },
       reviewer: { select: { id: true, email: true } },
+      sendTo: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          empCode: true,
+          designation: true,
+        },
+      },
     },
   });
 
@@ -70,6 +79,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'serviceId is required' }, { status: 400 });
   }
   const notes: string | null = typeof body?.notes === 'string' ? body.notes.trim() || null : null;
+  // Optional explicit approver from the modal's "Send to" picker.
+  // Null = use the standard fan-out (admins + service owner + manager).
+  const sendToEmployeeId =
+    body?.sendToEmployeeId == null
+      ? null
+      : Number.isFinite(parseInt(body.sendToEmployeeId))
+        ? parseInt(body.sendToEmployeeId)
+        : null;
 
   // Block duplicate pending requests against the same service.
   const existing = await prisma.digitalAccessRequest.findFirst({
@@ -141,11 +158,36 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // If the requester picked an explicit approver, look them up so we
+  // can include them in notifications. Soft-validate — if the picked
+  // employee no longer exists or has no user account, fall back to
+  // standard fan-out rather than 4xx'ing the requester.
+  let sendToEmployee: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    user: { id: number; email: string } | null;
+  } | null = null;
+  if (sendToEmployeeId != null && sendToEmployeeId !== user.employeeId) {
+    sendToEmployee = await prisma.employee.findUnique({
+      where: { id: sendToEmployeeId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        user: { select: { id: true, email: true } },
+      },
+    });
+  }
+
   const created = await prisma.digitalAccessRequest.create({
     data: {
       employeeId: user.employeeId,
       serviceId,
       notes,
+      sendToEmployeeId: sendToEmployee?.id ?? null,
     },
   });
 
@@ -160,13 +202,20 @@ export async function POST(request: NextRequest) {
 
   const ownerUser = service.owner?.user ?? null;
   const managerUser = requesterEmployee.reportingManager?.user ?? null;
+  const sendToUser = sendToEmployee?.user ?? null;
 
   const inAppRecipientIds = new Set<number>();
+  // The picked approver always takes the primary slot. Admins remain
+  // CC'd for oversight — they were getting the original fan-out and
+  // removing them would silently break audit visibility.
+  if (sendToUser?.id) inAppRecipientIds.add(sendToUser.id);
   for (const u of adminUsers) inAppRecipientIds.add(u.id);
   if (ownerUser?.id) inAppRecipientIds.add(ownerUser.id);
   if (managerUser?.id) inAppRecipientIds.add(managerUser.id);
 
   const emailRecipients = new Set<string>();
+  if (sendToUser?.email) emailRecipients.add(sendToUser.email);
+  else if (sendToEmployee?.email) emailRecipients.add(sendToEmployee.email);
   for (const u of adminUsers) if (u.email) emailRecipients.add(u.email);
   if (ownerUser?.email) emailRecipients.add(ownerUser.email);
   else if (service.owner?.email) emailRecipients.add(service.owner.email);

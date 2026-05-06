@@ -4,12 +4,21 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, KpiTile, Badge } from '@/app/components/design';
 
+interface ApproverEmployee {
+  id: number;
+  firstName: string;
+  lastName: string;
+  empCode: string;
+  designation: string | null;
+}
+
 interface Service {
   id: number;
   name: string;
   description: string | null;
   category: string | null;
   defaultPlan: string | null;
+  owner?: ApproverEmployee | null;
 }
 
 interface MyAccess {
@@ -29,6 +38,10 @@ interface Props {
   myAccess: MyAccess[];
   myRequests: MyRequest[];
   hasEmployeeRecord: boolean;
+  /** All ADMIN-role employees, populates the picker fallback list. */
+  adminEmployees: ApproverEmployee[];
+  /** The requester's reporting manager — surfaces in the picker. */
+  reportingManager: ApproverEmployee | null;
 }
 
 type ServiceStatus =
@@ -42,6 +55,8 @@ export default function AccessCatalogClient({
   myAccess,
   myRequests,
   hasEmployeeRecord,
+  adminEmployees,
+  reportingManager,
 }: Props) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState<number | null>(null);
@@ -49,6 +64,39 @@ export default function AccessCatalogClient({
   const [success, setSuccess] = useState('');
   const [requestModal, setRequestModal] = useState<Service | null>(null);
   const [requestNotes, setRequestNotes] = useState('');
+  const [sendToId, setSendToId] = useState<number | ''>('');
+
+  // Build the picker list for the open modal: service owner first
+  // (default selection), then the requester's manager, then admins.
+  // Dedupe by employee id so an admin who's also the service owner
+  // appears once.
+  const approverOptions = useMemo<ApproverEmployee[]>(() => {
+    if (!requestModal) return [];
+    const seen = new Set<number>();
+    const out: ApproverEmployee[] = [];
+    const push = (e: ApproverEmployee | null | undefined) => {
+      if (!e) return;
+      if (seen.has(e.id)) return;
+      seen.add(e.id);
+      out.push(e);
+    };
+    push(requestModal.owner ?? null);
+    push(reportingManager);
+    for (const a of adminEmployees) push(a);
+    return out;
+  }, [requestModal, reportingManager, adminEmployees]);
+
+  // Open the modal with a sensible default approver: service owner if
+  // set, otherwise the user's manager, otherwise the first admin in
+  // the list. Empty string means "use the standard fan-out" (admins +
+  // service owner + manager) — same as before this picker existed.
+  function openModal(svc: Service) {
+    setRequestModal(svc);
+    setRequestNotes('');
+    const defaultId =
+      svc.owner?.id ?? reportingManager?.id ?? adminEmployees[0]?.id ?? null;
+    setSendToId(defaultId == null ? '' : defaultId);
+  }
 
   const accessByName = useMemo(() => {
     const m = new Map<string, MyAccess>();
@@ -109,7 +157,11 @@ export default function AccessCatalogClient({
     return Array.from(m.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [services]);
 
-  async function handleRequest(serviceId: number, notes: string) {
+  async function handleRequest(
+    serviceId: number,
+    notes: string,
+    sendToEmployeeId: number | null,
+  ) {
     setSubmitting(serviceId);
     setError('');
     setSuccess('');
@@ -117,13 +169,21 @@ export default function AccessCatalogClient({
       const res = await fetch('/api/access-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId, notes }),
+        body: JSON.stringify({ serviceId, notes, sendToEmployeeId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Failed to submit request');
-      setSuccess('Request submitted — admins will review shortly.');
+      const sentToName = approverOptions.find(
+        (a) => a.id === sendToEmployeeId,
+      );
+      setSuccess(
+        sentToName
+          ? `Request submitted — ${sentToName.firstName} ${sentToName.lastName} will review shortly.`
+          : 'Request submitted — admins will review shortly.',
+      );
       setRequestModal(null);
       setRequestNotes('');
+      setSendToId('');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submit failed');
@@ -303,10 +363,7 @@ export default function AccessCatalogClient({
                     )}
                     {(status.kind === 'available' || status.kind === 'rejected') && (
                       <button
-                        onClick={() => {
-                          setRequestModal(svc);
-                          setRequestNotes('');
-                        }}
+                        onClick={() => openModal(svc)}
                         disabled={!hasEmployeeRecord}
                         className="inline-flex items-center gap-[5px] rounded-lg border border-core-text bg-core-text px-[13px] py-2 text-[12.5px] font-semibold text-core-surface transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                       >
@@ -342,9 +399,42 @@ export default function AccessCatalogClient({
                 Tell the reviewer why you need access to {requestModal.name}. A brief note helps speed up approval.
               </p>
               <p className="mb-3 text-[11.5px] text-core-text3">
-                Your request is sent to admins, the service owner (if set), and your reporting manager. You'll be notified in‑app and by email when it's reviewed.
+                The approver below gets notified in-app and by email — admins are CC'd for visibility.
               </p>
-              <label className="form-label">Reason (optional)</label>
+
+              <label className="form-label">Send to (approver)</label>
+              <select
+                className="form-select"
+                value={sendToId}
+                onChange={(e) =>
+                  setSendToId(e.target.value === '' ? '' : Number(e.target.value))
+                }
+              >
+                {approverOptions.length === 0 && (
+                  <option value="">No eligible approvers — admins will review</option>
+                )}
+                {approverOptions.map((a) => {
+                  const isOwner = requestModal.owner?.id === a.id;
+                  const isManager = reportingManager?.id === a.id;
+                  const tag = isOwner
+                    ? 'Service owner'
+                    : isManager
+                      ? 'Your manager'
+                      : 'Admin';
+                  return (
+                    <option key={a.id} value={a.id}>
+                      {a.firstName} {a.lastName} ({a.empCode}) — {tag}
+                    </option>
+                  );
+                })}
+              </select>
+              <p className="mt-1 text-[11px] text-core-text3">
+                {requestModal.owner
+                  ? `Defaults to the service owner. Pick a different reviewer if they're unavailable.`
+                  : `Pick whoever should review this. No service owner is set yet, so the request goes to whoever you choose.`}
+              </p>
+
+              <label className="form-label mt-4">Reason (optional)</label>
               <textarea
                 value={requestNotes}
                 onChange={(e) => setRequestNotes(e.target.value)}
@@ -362,7 +452,13 @@ export default function AccessCatalogClient({
                 Cancel
               </button>
               <button
-                onClick={() => handleRequest(requestModal.id, requestNotes)}
+                onClick={() =>
+                  handleRequest(
+                    requestModal.id,
+                    requestNotes,
+                    sendToId === '' ? null : sendToId,
+                  )
+                }
                 disabled={!!submitting}
                 className="btn btn-primary"
               >
