@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { KpiTile } from '@/app/components/design';
 import Link from 'next/link';
 import PageHero from '@/app/components/PageHero';
+import MonthlyReportExportButton from './monthly/export-button';
 
 export default function MonthlyReportsPage() {
   const [reports, setReports] = useState<any[]>([]);
@@ -187,13 +188,19 @@ export default function MonthlyReportsPage() {
                     </div>
                   </div>
 
-                  {/* Toggle Summary */}
-                  <button
-                    onClick={() => setExpandedReport(isExpanded ? null : report.id)}
-                    className="mt-3 text-sm text-core-text2 hover:underline"
-                  >
-                    {isExpanded ? 'Hide Summary' : 'View Summary'}
-                  </button>
+                  {/* Toggle Summary + Export */}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <button
+                      onClick={() => setExpandedReport(isExpanded ? null : report.id)}
+                      className="text-sm text-core-text2 hover:underline"
+                    >
+                      {isExpanded ? 'Hide Summary' : 'View Summary'}
+                    </button>
+                    <MonthlyReportExportButton
+                      reportId={report.id}
+                      period={report.period}
+                    />
+                  </div>
 
                   {isExpanded && (
                     <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
