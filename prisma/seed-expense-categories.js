@@ -36,6 +36,11 @@ const CATEGORIES = [
   { code: 'REFUND',    name: 'Refunds and Reversals',                      description: 'Refunded amounts and reversals' },
   { code: 'CASH_INJ',  name: 'Cash Injection / Capital In',                description: 'Owner / investor capital injection' },
   { code: 'REVENUE',   name: 'Sales / Revenue',                            description: 'Operating revenue' },
+  // OTHER is the catch-all when a user can't find a fitting category.
+  // The form prompts for a free-text custom note that gets prepended
+  // to the description so reports still group under "Other" while the
+  // context isn't lost.
+  { code: 'OTHER',     name: 'Other',                                      description: "Catch-all for entries that don't fit a standard category" },
 ];
 
 async function main() {

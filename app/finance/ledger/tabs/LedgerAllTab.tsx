@@ -5,12 +5,13 @@ import { Card, Badge, Tag } from '@/app/components/design';
 import AttachmentInput, {
   AttachmentValue,
 } from '../components/AttachmentInput';
+import CategoryPicker, { combineDescription } from '../components/CategoryPicker';
 
 interface Category {
   id: number;
   code: string;
   name: string;
-  type: string;
+  type?: string;
 }
 
 interface LedgerEntry {
@@ -87,6 +88,8 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
     direction: 'debit' as 'debit' | 'credit',
     amount: '',
   });
+  const [manualCustomNote, setManualCustomNote] = useState('');
+  const [localCategories, setLocalCategories] = useState<Category[]>(categories);
   const [manualAttachment, setManualAttachment] = useState<AttachmentValue | null>(null);
 
   const resetManual = () => {
@@ -97,6 +100,7 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
       direction: 'debit',
       amount: '',
     });
+    setManualCustomNote('');
     setManualAttachment(null);
     setManualError('');
   };
@@ -112,6 +116,13 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
       setManualError('Cash-out entries require an attachment.');
       return;
     }
+    const selected = localCategories.find(
+      (c) => c.id === parseInt(manual.categoryId),
+    );
+    if (selected?.code === 'OTHER' && !manualCustomNote.trim()) {
+      setManualError('Tell us what this is for when picking "Other".');
+      return;
+    }
     setManualSubmitting(true);
     setManualError('');
     try {
@@ -120,7 +131,11 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transDate: new Date(manual.transDate).toISOString(),
-          transDetail: manual.transDetail,
+          transDetail: combineDescription(
+            selected?.code,
+            manual.transDetail,
+            manualCustomNote,
+          ),
           categoryId: parseInt(manual.categoryId),
           creditAmt: manual.direction === 'credit' ? amt : 0,
           debitAmt: manual.direction === 'debit' ? amt : 0,
@@ -525,22 +540,23 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
                     />
                   </div>
                   <div>
-                    <label className="form-label">Category *</label>
-                    <select
-                      className="form-select"
-                      value={manual.categoryId}
-                      onChange={(e) =>
-                        setManual({ ...manual, categoryId: e.target.value })
+                    <CategoryPicker
+                      categories={localCategories}
+                      value={manual.categoryId ? parseInt(manual.categoryId) : null}
+                      onChange={(id) =>
+                        setManual({ ...manual, categoryId: String(id) })
+                      }
+                      customNote={manualCustomNote}
+                      onCustomNoteChange={setManualCustomNote}
+                      mode="smart"
+                      createEndpoint="/api/finance/ledger/categories"
+                      onCategoryCreated={(c) =>
+                        setLocalCategories((prev) =>
+                          prev.find((p) => p.id === c.id) ? prev : [...prev, c],
+                        )
                       }
                       required
-                    >
-                      <option value="">Select…</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
                 </div>
                 <div>

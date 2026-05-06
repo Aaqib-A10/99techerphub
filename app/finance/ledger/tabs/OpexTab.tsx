@@ -5,12 +5,13 @@ import { Card, Badge, Tag } from '@/app/components/design';
 import AttachmentInput, {
   AttachmentValue,
 } from '../components/AttachmentInput';
+import CategoryPicker, { combineDescription } from '../components/CategoryPicker';
 
 interface Category {
   id: number;
   code: string;
   name: string;
-  type: string;
+  type?: string;
 }
 
 interface OpexEntry {
@@ -51,6 +52,8 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
     description: '',
     paidAt: new Date().toISOString().slice(0, 10),
   });
+  const [customNote, setCustomNote] = useState('');
+  const [localCategories, setLocalCategories] = useState(categories);
   const [attachment, setAttachment] = useState<AttachmentValue | null>(null);
 
   const fetchEntries = async () => {
@@ -77,6 +80,11 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
       setError('A receipt/voucher is required.');
       return;
     }
+    const selected = localCategories.find((c) => c.id === parseInt(form.categoryId));
+    if (selected?.code === 'OTHER' && !customNote.trim()) {
+      setError('Tell us what this is for when picking "Other".');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
@@ -88,6 +96,7 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
           amount: parseFloat(form.amount),
           categoryId: parseInt(form.categoryId),
           paidAt: new Date(form.paidAt).toISOString(),
+          description: combineDescription(selected?.code, form.description, customNote),
           attachmentUrl: attachment.url,
           attachmentMeta: attachment.meta,
         }),
@@ -114,6 +123,7 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
       description: '',
       paidAt: new Date().toISOString().slice(0, 10),
     });
+    setCustomNote('');
     setAttachment(null);
   }
 
@@ -198,18 +208,22 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
                 />
               </div>
               <div>
-                <label className="form-label">Category (Account Head) *</label>
-                <select
-                  className="form-select"
-                  value={form.categoryId}
-                  onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                <CategoryPicker
+                  categories={localCategories}
+                  value={form.categoryId ? parseInt(form.categoryId) : null}
+                  onChange={(id) => setForm({ ...form, categoryId: String(id) })}
+                  customNote={customNote}
+                  onCustomNoteChange={setCustomNote}
+                  mode="smart"
+                  createEndpoint="/api/finance/ledger/categories"
+                  onCategoryCreated={(c) =>
+                    setLocalCategories((prev) =>
+                      prev.find((p) => p.id === c.id) ? prev : [...prev, c],
+                    )
+                  }
                   required
-                >
-                  <option value="">Select…</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                  label="Category (Account Head)"
+                />
               </div>
               <div className="md:col-span-2">
                 <label className="form-label">Description</label>

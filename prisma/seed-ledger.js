@@ -33,6 +33,11 @@ const CATEGORIES = [
   { code: 'CASH_INJ', name: 'Cash Injection / Capital In', type: 'income' },
   { code: 'REVENUE', name: 'Sales / Revenue', type: 'income' },
   { code: 'REFUND', name: 'Refunds and Reversals', type: 'either' },
+  // OTHER is intentionally the LAST seeded category. The picker pins
+  // it at the bottom regardless of sort order, but a high sortOrder
+  // also lets the inline "+ Create category" affordance slot new
+  // user-created categories above it (sortOrder = lastSeed + n).
+  { code: 'OTHER', name: 'Other', type: 'either' },
 ];
 
 const OPENING_BALANCE_PKR = 103057;
@@ -41,14 +46,18 @@ async function main() {
   console.log(`Upserting ${CATEGORIES.length} ledger categories…`);
   for (let i = 0; i < CATEGORIES.length; i++) {
     const c = CATEGORIES[i];
+    // OTHER pinned at sortOrder=999 so user-created categories from the
+    // inline "+ Create" affordance slot between the last seeded entry
+    // and OTHER (auto-assigned to lastSeed+1, lastSeed+2, …).
+    const sortOrder = c.code === 'OTHER' ? 999 : i;
     await prisma.ledgerCategory.upsert({
       where: { code: c.code },
-      update: { name: c.name, type: c.type, sortOrder: i },
+      update: { name: c.name, type: c.type, sortOrder },
       create: {
         code: c.code,
         name: c.name,
         type: c.type,
-        sortOrder: i,
+        sortOrder,
       },
     });
     console.log(`  ✓ ${c.code.padEnd(12)} ${c.name}`);

@@ -3,6 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHero from '@/app/components/PageHero';
+import CategoryPicker, {
+  combineDescription,
+} from '@/app/finance/ledger/components/CategoryPicker';
 
 export default function NewExpensePage() {
   const router = useRouter();
@@ -18,6 +21,7 @@ export default function NewExpensePage() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [customNote, setCustomNote] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
@@ -336,12 +340,25 @@ export default function NewExpensePage() {
     setLoading(true);
     setError('');
 
+    const selected = categories.find(
+      (c) => c.id === parseInt(formData.categoryId),
+    );
+    if (selected?.code === 'OTHER' && !customNote.trim()) {
+      setError('Tell us what this is for when picking "Other".');
+      setLoading(false);
+      return;
+    }
     try {
       const response = await fetch('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          description: combineDescription(
+            selected?.code,
+            formData.description,
+            customNote,
+          ),
           receiptUrl: receiptUrl || null,
         }),
       });
@@ -382,13 +399,18 @@ export default function NewExpensePage() {
           <div className="card-body">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="form-label">Category *</label>
-                <select name="categoryId" value={formData.categoryId} onChange={handleChange} required className="form-select">
-                  <option value="">Select Category</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <CategoryPicker
+                  categories={categories}
+                  value={formData.categoryId ? parseInt(formData.categoryId) : null}
+                  onChange={(id) =>
+                    setFormData((p: any) => ({ ...p, categoryId: String(id) }))
+                  }
+                  customNote={customNote}
+                  onCustomNoteChange={setCustomNote}
+                  mode="simple"
+                  required
+                  label="Category"
+                />
               </div>
               <div>
                 <label className="form-label">Company *</label>

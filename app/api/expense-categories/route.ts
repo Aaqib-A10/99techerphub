@@ -32,8 +32,11 @@ export async function POST(request: NextRequest) {
     if (!currentUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (currentUser.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Admins + Accountants can both create new expense categories so
+    // the inline "+ Create category" affordance on the expense form
+    // works for finance staff without bouncing them to admin settings.
+    if (!['ADMIN', 'ACCOUNTANT'].includes(currentUser.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const data = await request.json();
