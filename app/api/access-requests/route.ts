@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
 // employeeId to the caller's session so a malicious payload can't pin
 // the request on someone else.
 export async function POST(request: NextRequest) {
+  try {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   if (!user.employeeId) {
@@ -301,6 +302,24 @@ export async function POST(request: NextRequest) {
     },
     { status: 201 },
   );
+  } catch (err: any) {
+    // Without this catch a Prisma / runtime error returns an empty body
+    // and the modal shows "Unexpected end of JSON input" instead of the
+    // real cause. Surface a useful message instead.
+    console.error('[access-requests/POST]', err);
+    const msg = err?.message ?? 'Unexpected error';
+    // Hint for the most common deploy-step gotcha — missing column from
+    // the latest schema push.
+    const hint = /Unknown\s+arg|column .* does not exist|sendToEmployeeId/i.test(
+      String(msg),
+    )
+      ? ' (Run `npx prisma db push && pm2 restart 99tech-erp` on the server.)'
+      : '';
+    return NextResponse.json(
+      { error: `Submit failed: ${msg}${hint}` },
+      { status: 500 },
+    );
+  }
 }
 
 function escapeHtml(s: string): string {

@@ -176,8 +176,24 @@ export default function AccessCatalogClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ serviceId, notes, sendToEmployeeId }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Failed to submit request');
+      // Read as text first so a 500 with an empty / non-JSON body
+      // doesn't blow up here as "Unexpected end of JSON input" — we'd
+      // rather surface the HTTP status to the user.
+      const raw = await res.text();
+      let data: any = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          data = { error: raw.slice(0, 200) };
+        }
+      }
+      if (!res.ok) {
+        throw new Error(
+          data?.error ||
+            `Submit failed (HTTP ${res.status}). The server didn't return a message.`,
+        );
+      }
       const sentToName = approverOptions.find(
         (a) => a.id === sendToEmployeeId,
       );
