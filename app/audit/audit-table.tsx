@@ -200,7 +200,11 @@ export default function AuditTable({
             </thead>
             <tbody>
               {logs.map((log) => (
-                <tr key={log.id}>
+                <tr
+                  key={log.id}
+                  onClick={() => router.push(`/audit/${log.id}`)}
+                  className="cursor-pointer transition-colors hover:bg-core-surface2"
+                >
                   <td className="text-sm whitespace-nowrap">
                     {formatDate(log.createdAt)}
                   </td>
@@ -231,7 +235,7 @@ export default function AuditTable({
                   <td className="text-sm">
                     {getUserDisplayName(log.changedBy)}
                   </td>
-                  <td className="flex gap-2">
+                  <td className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() =>
                         setExpandedId(

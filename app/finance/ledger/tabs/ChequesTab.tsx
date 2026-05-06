@@ -5,6 +5,11 @@ import { Card, Badge, Tag } from '@/app/components/design';
 import AttachmentInput, {
   AttachmentValue,
 } from '../components/AttachmentInput';
+import LedgerDetailModal, {
+  ActionDef,
+  BadgeDef,
+  DetailRowDef,
+} from '../components/LedgerDetailModal';
 
 interface Cheque {
   id: number;
@@ -45,6 +50,7 @@ export default function ChequesTab() {
     description: '',
   });
   const [attachment, setAttachment] = useState<AttachmentValue | null>(null);
+  const [detail, setDetail] = useState<Cheque | null>(null);
 
   const fetchCheques = async () => {
     setLoading(true);
@@ -285,8 +291,9 @@ export default function ChequesTab() {
                   return (
                     <tr
                       key={c.id}
+                      onClick={() => setDetail(c)}
                       style={{ borderBottom: isLast ? 'none' : '1px solid #E5E8DD' }}
-                      className="hover:bg-core-surface2"
+                      className="cursor-pointer transition-colors hover:bg-core-surface2"
                     >
                       <td className="px-[12px] py-[8px]">
                         <div className="text-core-text">{c.bankName}</div>
@@ -308,15 +315,18 @@ export default function ChequesTab() {
                       <td className="px-[12px] py-[8px]">
                         {c.ledgerEntry ? <Tag>{c.ledgerEntry.serialNo}</Tag> : <span className="text-core-text3">—</span>}
                       </td>
-                      <td className="whitespace-nowrap px-[12px] py-[8px]">
+                      <td
+                        className="whitespace-nowrap px-[12px] py-[8px]"
+                        onClick={(ev) => ev.stopPropagation()}
+                      >
                         <div className="flex items-center gap-2">
                           {c.attachmentUrl && (
-                            <a
-                              href={c.attachmentUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[12px] font-semibold text-core-text2 hover:text-core-text"
-                            >View</a>
+                            <span
+                              title="Attachment available"
+                              className="text-core-text3"
+                            >
+                              📎
+                            </span>
                           )}
                           {c.status === 'PENDING' && (
                             <button
@@ -336,6 +346,83 @@ export default function ChequesTab() {
           </table>
         </div>
       </Card>
+
+      <LedgerDetailModal
+        open={Boolean(detail)}
+        onClose={() => setDetail(null)}
+        title={detail ? `Cheque ${detail.instrumentNo}` : ''}
+        subtitle={detail ? detail.bankName : undefined}
+        badges={
+          detail
+            ? ([
+                {
+                  label: detail.direction,
+                  tone: detail.direction === 'RECEIVED' ? 'green' : 'rose',
+                },
+                { label: detail.status, tone: STATUS_TONE[detail.status] },
+              ] as BadgeDef[])
+            : []
+        }
+        rows={
+          detail
+            ? ([
+                { label: 'Bank', value: detail.bankName },
+                { label: 'Cheque No', value: detail.instrumentNo, mono: true },
+                {
+                  label: detail.direction === 'RECEIVED' ? 'From' : 'To',
+                  value: detail.partyName,
+                },
+                {
+                  label: 'Cheque Date',
+                  value: new Date(detail.chequeDate).toLocaleDateString(),
+                },
+                {
+                  label: 'Amount',
+                  value: `PKR ${Number(detail.amount).toLocaleString()}`,
+                  mono: true,
+                  tone:
+                    detail.direction === 'RECEIVED'
+                      ? ('green' as const)
+                      : ('rose' as const),
+                },
+                {
+                  label: 'Cleared On',
+                  value: detail.clearedAt
+                    ? new Date(detail.clearedAt).toLocaleDateString()
+                    : '—',
+                },
+                {
+                  label: 'Ledger Serial',
+                  value: detail.ledgerEntry?.serialNo ?? '—',
+                  mono: Boolean(detail.ledgerEntry),
+                },
+                {
+                  label: 'Description',
+                  value: detail.description ?? '',
+                  multiline: true,
+                },
+              ] as DetailRowDef[])
+            : []
+        }
+        attachment={
+          detail?.attachmentUrl ? { url: detail.attachmentUrl } : null
+        }
+        actions={
+          detail && detail.status === 'PENDING'
+            ? ([
+                {
+                  label: 'Mark Cleared',
+                  variant: 'primary' as const,
+                  onClick: () => {
+                    const id = detail.id;
+                    setDetail(null);
+                    clearCheque(id);
+                  },
+                },
+              ] as ActionDef[])
+            : undefined
+        }
+      />
     </div>
   );
 }

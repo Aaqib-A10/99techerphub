@@ -166,7 +166,8 @@ export default function OfferLetterTable({ offerLetters }: { offerLetters: Offer
                 return (
                   <tr
                     key={letter.id}
-                    className="transition-colors hover:bg-core-surface2"
+                    onClick={() => router.push(`/offer-letters/${letter.id}`)}
+                    className="cursor-pointer transition-colors hover:bg-core-surface2"
                     style={{
                       borderBottom: isLast ? 'none' : '1px solid #E5E8DD',
                       ...(isSelected ? { backgroundColor: 'rgba(143, 191, 63, 0.06)' } : {}),
@@ -202,7 +203,10 @@ export default function OfferLetterTable({ offerLetters }: { offerLetters: Offer
                     <td className="whitespace-nowrap px-[14px] py-3 text-core-text2 tabular-nums">
                       {new Date(letter.offerDate).toLocaleDateString()}
                     </td>
-                    <td className="whitespace-nowrap px-[14px] py-3">
+                    <td
+                      className="whitespace-nowrap px-[14px] py-3"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Btn as="a" href={`/offer-letters/${letter.id}`} tone="ghost">
                         View
                       </Btn>

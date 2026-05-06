@@ -6,6 +6,11 @@ import AttachmentInput, {
   AttachmentValue,
 } from '../components/AttachmentInput';
 import CategoryPicker, { combineDescription } from '../components/CategoryPicker';
+import LedgerDetailModal, {
+  ActionDef,
+  BadgeDef,
+  DetailRowDef,
+} from '../components/LedgerDetailModal';
 
 interface Category {
   id: number;
@@ -56,6 +61,7 @@ export default function BillingTab({ categories }: { categories: Category[] }) {
   const [customNote, setCustomNote] = useState('');
   const [localCategories, setLocalCategories] = useState(categories);
   const [attachment, setAttachment] = useState<AttachmentValue | null>(null);
+  const [detail, setDetail] = useState<Bill | null>(null);
 
   const fetchBills = async () => {
     setLoading(true);
@@ -321,8 +327,9 @@ export default function BillingTab({ categories }: { categories: Category[] }) {
                   return (
                     <tr
                       key={b.id}
+                      onClick={() => setDetail(b)}
                       style={{ borderBottom: isLast ? 'none' : '1px solid #E5E8DD' }}
-                      className="hover:bg-core-surface2"
+                      className="cursor-pointer transition-colors hover:bg-core-surface2"
                     >
                       <td className="px-[12px] py-[8px] font-mono text-[11.5px]">{b.billNumber}</td>
                       <td className="px-[12px] py-[8px] text-core-text">
@@ -345,17 +352,18 @@ export default function BillingTab({ categories }: { categories: Category[] }) {
                       <td className="px-[12px] py-[8px]">
                         {b.ledgerEntry ? <Tag>{b.ledgerEntry.serialNo}</Tag> : <span className="text-core-text3">—</span>}
                       </td>
-                      <td className="whitespace-nowrap px-[12px] py-[8px]">
+                      <td
+                        className="whitespace-nowrap px-[12px] py-[8px]"
+                        onClick={(ev) => ev.stopPropagation()}
+                      >
                         <div className="flex items-center gap-2">
                           {b.attachmentUrl && (
-                            <a
-                              href={b.attachmentUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[12px] font-semibold text-core-text2 hover:text-core-text"
+                            <span
+                              title="Attachment available"
+                              className="text-core-text3"
                             >
-                              View
-                            </a>
+                              📎
+                            </span>
                           )}
                           {b.status === 'PENDING' && (
                             <button
@@ -375,6 +383,80 @@ export default function BillingTab({ categories }: { categories: Category[] }) {
           </table>
         </div>
       </Card>
+
+      {/* Detail modal — read-only view of a bill. The "Mark Paid"
+          action surfaces here as well as on the inline button. */}
+      <LedgerDetailModal
+        open={Boolean(detail)}
+        onClose={() => setDetail(null)}
+        title={detail ? `Bill ${detail.billNumber}` : ''}
+        subtitle={detail ? detail.vendorName : undefined}
+        badges={
+          detail
+            ? ([
+                { label: detail.status, tone: STATUS_TONE[detail.status] },
+              ] as BadgeDef[])
+            : []
+        }
+        rows={
+          detail
+            ? ([
+                { label: 'Bill #', value: detail.billNumber, mono: true },
+                { label: 'Vendor', value: detail.vendorName },
+                {
+                  label: 'Amount',
+                  value: `PKR ${Number(detail.amount).toLocaleString()}`,
+                  mono: true,
+                },
+                {
+                  label: 'Bill Date',
+                  value: new Date(detail.billDate).toLocaleDateString(),
+                },
+                {
+                  label: 'Due Date',
+                  value: detail.dueDate
+                    ? new Date(detail.dueDate).toLocaleDateString()
+                    : '—',
+                },
+                { label: 'Category', value: detail.category.name },
+                {
+                  label: 'Paid On',
+                  value: detail.paidAt
+                    ? new Date(detail.paidAt).toLocaleDateString()
+                    : '—',
+                },
+                {
+                  label: 'Ledger Serial',
+                  value: detail.ledgerEntry?.serialNo ?? '—',
+                  mono: Boolean(detail.ledgerEntry),
+                },
+                {
+                  label: 'Description',
+                  value: detail.description ?? '',
+                  multiline: true,
+                },
+              ] as DetailRowDef[])
+            : []
+        }
+        attachment={
+          detail?.attachmentUrl ? { url: detail.attachmentUrl } : null
+        }
+        actions={
+          detail && detail.status === 'PENDING'
+            ? ([
+                {
+                  label: 'Mark Paid',
+                  variant: 'primary' as const,
+                  onClick: () => {
+                    const id = detail.id;
+                    setDetail(null);
+                    payBill(id);
+                  },
+                },
+              ] as ActionDef[])
+            : undefined
+        }
+      />
     </div>
   );
 }

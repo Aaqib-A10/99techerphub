@@ -6,6 +6,10 @@ import AttachmentInput, {
   AttachmentValue,
 } from '../components/AttachmentInput';
 import CategoryPicker, { combineDescription } from '../components/CategoryPicker';
+import LedgerDetailModal, {
+  BadgeDef,
+  DetailRowDef,
+} from '../components/LedgerDetailModal';
 
 interface Category {
   id: number;
@@ -55,6 +59,7 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
   const [customNote, setCustomNote] = useState('');
   const [localCategories, setLocalCategories] = useState(categories);
   const [attachment, setAttachment] = useState<AttachmentValue | null>(null);
+  const [detail, setDetail] = useState<OpexEntry | null>(null);
 
   const fetchEntries = async () => {
     setLoading(true);
@@ -297,8 +302,9 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
                   return (
                     <tr
                       key={e.id}
+                      onClick={() => setDetail(e)}
                       style={{ borderBottom: isLast ? 'none' : '1px solid #E5E8DD' }}
-                      className="hover:bg-core-surface2"
+                      className="cursor-pointer transition-colors hover:bg-core-surface2"
                     >
                       <td className="px-[12px] py-[8px]"><Badge tone={TYPE_TONE[e.type]}>{e.type}</Badge></td>
                       <td className="px-[12px] py-[8px] text-core-text">
@@ -318,12 +324,12 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
                       </td>
                       <td className="whitespace-nowrap px-[12px] py-[8px]">
                         {e.attachmentUrl && (
-                          <a
-                            href={e.attachmentUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[12px] font-semibold text-core-text2 hover:text-core-text"
-                          >View</a>
+                          <span
+                            title="Attachment available"
+                            className="text-core-text3"
+                          >
+                            📎
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -334,6 +340,51 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
           </table>
         </div>
       </Card>
+
+      <LedgerDetailModal
+        open={Boolean(detail)}
+        onClose={() => setDetail(null)}
+        title={detail ? `OPEX — ${detail.recipient}` : ''}
+        subtitle={detail ? detail.category.name : undefined}
+        badges={
+          detail
+            ? ([{ label: detail.type, tone: TYPE_TONE[detail.type] }] as BadgeDef[])
+            : []
+        }
+        rows={
+          detail
+            ? ([
+                { label: 'Type', value: detail.type },
+                { label: 'Recipient', value: detail.recipient },
+                { label: 'Period', value: detail.period ?? '—' },
+                {
+                  label: 'Amount',
+                  value: `PKR ${Number(detail.amount).toLocaleString()}`,
+                  mono: true,
+                  tone: 'rose' as const,
+                },
+                { label: 'Category', value: detail.category.name },
+                {
+                  label: 'Paid On',
+                  value: new Date(detail.paidAt).toLocaleDateString(),
+                },
+                {
+                  label: 'Ledger Serial',
+                  value: detail.ledgerEntry?.serialNo ?? '—',
+                  mono: Boolean(detail.ledgerEntry),
+                },
+                {
+                  label: 'Description',
+                  value: detail.description ?? '',
+                  multiline: true,
+                },
+              ] as DetailRowDef[])
+            : []
+        }
+        attachment={
+          detail?.attachmentUrl ? { url: detail.attachmentUrl } : null
+        }
+      />
     </div>
   );
 }

@@ -159,6 +159,8 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
               paginatedExpenses.map((exp) => (
                 <tr
                   key={exp.id}
+                  onClick={() => router.push(`/expenses/${exp.id}`)}
+                  className="cursor-pointer transition-colors hover:bg-core-surface2"
                   style={selectedIds.has(exp.id) ? { backgroundColor: 'rgba(20, 184, 166, 0.06)' } : undefined}
                 >
                   <td onClick={(e) => e.stopPropagation()} style={{ width: 40 }}>
@@ -186,7 +188,10 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
                       {exp.status.replace(/_/g, ' ')}
                     </span>
                   </td>
-                  <td className="col-sticky-right">
+                  <td
+                    className="col-sticky-right"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <ExpenseRowActions
                       expenseId={exp.id}
                       expenseNumber={exp.expenseNumber}

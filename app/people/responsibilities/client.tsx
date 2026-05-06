@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, Avi, Tag } from '@/app/components/design';
 
 interface Row {
@@ -28,6 +28,7 @@ export default function ResponsibilitiesClient({
   marketplaces,
   departments,
 }: Props) {
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [deptId, setDeptId] = useState<number | 'all'>('all');
   const [mpId, setMpId] = useState<number | 'all'>('all');
@@ -133,14 +134,12 @@ export default function ResponsibilitiesClient({
                 return (
                   <tr
                     key={r.id}
-                    className="transition-colors hover:bg-core-surface2"
+                    onClick={() => router.push(`/employees/${r.id}`)}
+                    className="cursor-pointer transition-colors hover:bg-core-surface2"
                     style={{ borderBottom: isLast ? 'none' : '1px solid #E5E8DD' }}
                   >
                     <td className="px-[14px] py-[10px] align-top">
-                      <Link
-                        href={`/employees/${r.id}`}
-                        className="flex items-center gap-[10px]"
-                      >
+                      <div className="flex items-center gap-[10px]">
                         <Avi
                           seed={r.empCode}
                           initials={initials(r.name)}
@@ -155,7 +154,7 @@ export default function ResponsibilitiesClient({
                             {r.empCode}
                           </div>
                         </span>
-                      </Link>
+                      </div>
                     </td>
                     <td className="px-[14px] py-[10px] align-top text-core-text2">
                       {r.departmentName ?? <span className="text-core-text3">—</span>}

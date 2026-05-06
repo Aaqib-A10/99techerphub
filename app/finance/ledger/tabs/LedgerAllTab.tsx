@@ -6,6 +6,11 @@ import AttachmentInput, {
   AttachmentValue,
 } from '../components/AttachmentInput';
 import CategoryPicker, { combineDescription } from '../components/CategoryPicker';
+import LedgerDetailModal, {
+  ActionDef,
+  BadgeDef,
+  DetailRowDef,
+} from '../components/LedgerDetailModal';
 
 interface Category {
   id: number;
@@ -74,6 +79,7 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
   const [reverseModal, setReverseModal] = useState<LedgerEntry | null>(null);
   const [reverseReason, setReverseReason] = useState('');
   const [reverseSubmitting, setReverseSubmitting] = useState(false);
+  const [detail, setDetail] = useState<LedgerEntry | null>(null);
 
   // Manual-entry modal state. Lets ADMIN/ACCOUNTANT post a one-off
   // correction that doesn't fit Bill / Cheque / OPEX. Same image
@@ -346,8 +352,9 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
                   return (
                     <tr
                       key={e.id}
+                      onClick={() => setDetail(e)}
                       style={{ borderBottom: isLast ? 'none' : '1px solid #E5E8DD' }}
-                      className={`hover:bg-core-surface2 ${e.isReversed ? 'opacity-60' : ''}`}
+                      className={`cursor-pointer transition-colors hover:bg-core-surface2 ${e.isReversed ? 'opacity-60' : ''}`}
                     >
                       <td className="whitespace-nowrap px-[12px] py-[8px]"><Tag>{e.serialNo}</Tag></td>
                       <td className="whitespace-nowrap px-[12px] py-[8px] tabular-nums text-core-text2">
@@ -357,15 +364,12 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
                         <div className="flex items-center gap-2">
                           {e.transDetail}
                           {e.attachmentUrl && (
-                            <a
-                              href={e.attachmentUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Attachment"
-                              className="text-core-text3 hover:text-core-text"
+                            <span
+                              title="Attachment available"
+                              className="text-core-text3"
                             >
                               📎
-                            </a>
+                            </span>
                           )}
                           {e.reviewFlag && (
                             <span title="Flagged for review">⚠️</span>
@@ -391,7 +395,10 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
                       >
                         {Number(e.runningBal).toLocaleString()}
                       </td>
-                      <td className="whitespace-nowrap px-[12px] py-[8px] text-right">
+                      <td
+                        className="whitespace-nowrap px-[12px] py-[8px] text-right"
+                        onClick={(ev) => ev.stopPropagation()}
+                      >
                         {!e.isReversed && !e.reversesEntryId && (
                           <button
                             onClick={() => {
@@ -412,6 +419,97 @@ export default function LedgerAllTab({ categories }: { categories: Category[] })
           </table>
         </div>
       </Card>
+
+      {/* Detail modal — opens when a row is clicked. Read-only; the
+          Reverse action surfaces here and on the inline button. */}
+      <LedgerDetailModal
+        open={Boolean(detail)}
+        onClose={() => setDetail(null)}
+        title={detail ? `Ledger Entry ${detail.serialNo}` : ''}
+        subtitle={
+          detail
+            ? `${new Date(detail.transDate).toLocaleDateString()} · ${detail.category.name}`
+            : undefined
+        }
+        badges={
+          detail
+            ? ([
+                { label: detail.source, tone: SOURCE_TONE[detail.source] ?? 'gray' },
+                detail.isReversed
+                  ? { label: 'Reversed', tone: 'rose' as const }
+                  : null,
+                detail.reversesEntryId
+                  ? { label: 'Contra', tone: 'amber' as const }
+                  : null,
+                detail.reviewFlag
+                  ? { label: 'Flagged', tone: 'amber' as const }
+                  : null,
+              ].filter(Boolean) as BadgeDef[])
+            : []
+        }
+        rows={
+          detail
+            ? ([
+                { label: 'Serial', value: detail.serialNo, mono: true },
+                { label: 'Date', value: new Date(detail.transDate).toLocaleDateString() },
+                { label: 'Description', value: detail.transDetail, multiline: true },
+                { label: 'Category', value: detail.category.name },
+                {
+                  label: 'Credit',
+                  value:
+                    Number(detail.creditAmt) > 0
+                      ? `PKR ${Number(detail.creditAmt).toLocaleString()}`
+                      : '—',
+                  tone: Number(detail.creditAmt) > 0 ? 'green' : undefined,
+                  mono: true,
+                },
+                {
+                  label: 'Debit',
+                  value:
+                    Number(detail.debitAmt) > 0
+                      ? `PKR ${Number(detail.debitAmt).toLocaleString()}`
+                      : '—',
+                  tone: Number(detail.debitAmt) > 0 ? 'rose' : undefined,
+                  mono: true,
+                },
+                {
+                  label: 'Running Balance',
+                  value: `PKR ${Number(detail.runningBal).toLocaleString()}`,
+                  tone:
+                    Number(detail.runningBal) < 0 ? ('rose' as const) : undefined,
+                  mono: true,
+                },
+                {
+                  label: 'Source',
+                  value: detail.sourceId
+                    ? `${detail.source} #${detail.sourceId}`
+                    : detail.source,
+                },
+              ] as DetailRowDef[])
+            : []
+        }
+        attachment={
+          detail?.attachmentUrl
+            ? { url: detail.attachmentUrl }
+            : null
+        }
+        actions={
+          detail && !detail.isReversed && !detail.reversesEntryId
+            ? ([
+                {
+                  label: 'Reverse',
+                  variant: 'danger' as const,
+                  onClick: () => {
+                    const target = detail;
+                    setDetail(null);
+                    setReverseReason('');
+                    setReverseModal(target);
+                  },
+                },
+              ] as ActionDef[])
+            : undefined
+        }
+      />
 
       {/* Reverse modal */}
       {reverseModal && (

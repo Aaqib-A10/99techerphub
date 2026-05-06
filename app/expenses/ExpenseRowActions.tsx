@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -45,12 +44,6 @@ export default function ExpenseRowActions({
 
   return (
     <div className="flex items-center gap-2">
-      <Link
-        href={`/expenses/${expenseId}`}
-        className="btn btn-sm btn-outline"
-      >
-        View
-      </Link>
       <button
         onClick={handleDelete}
         disabled={isDeleting}
