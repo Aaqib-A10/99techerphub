@@ -133,7 +133,10 @@ export default function BulkActionBar({
   onAction,
   loading,
 }: BulkActionBarProps) {
-  if (selectedCount === 0) return null;
+  // Single-row actions live inline on each row (Delete, Revoke, View
+  // Details, etc) — the bar is reserved for genuine BULK work to avoid
+  // duplicating affordances. Hidden until 2+ rows are selected.
+  if (selectedCount < 2) return null;
 
   const handleAction = (action: BulkAction) => {
     if (action.confirm) {
