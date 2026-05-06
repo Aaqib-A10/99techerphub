@@ -38,9 +38,12 @@ interface Props {
   myAccess: MyAccess[];
   myRequests: MyRequest[];
   hasEmployeeRecord: boolean;
-  /** All ADMIN-role employees, populates the picker fallback list. */
-  adminEmployees: ApproverEmployee[];
-  /** The requester's reporting manager — surfaces in the picker. */
+  /** All active employees (excluding the requester). Service owner and
+   *  reporting manager get role tags; everyone else shows their
+   *  designation. The picker is wide because in a small org any senior
+   *  staffer might be the de-facto gatekeeper. */
+  employees: ApproverEmployee[];
+  /** The requester's reporting manager — labelled in the picker. */
   reportingManager: ApproverEmployee | null;
 }
 
@@ -55,7 +58,7 @@ export default function AccessCatalogClient({
   myAccess,
   myRequests,
   hasEmployeeRecord,
-  adminEmployees,
+  employees,
   reportingManager,
 }: Props) {
   const router = useRouter();
@@ -67,9 +70,9 @@ export default function AccessCatalogClient({
   const [sendToId, setSendToId] = useState<number | ''>('');
 
   // Build the picker list for the open modal: service owner first
-  // (default selection), then the requester's manager, then admins.
-  // Dedupe by employee id so an admin who's also the service owner
-  // appears once.
+  // (default selection), then the requester's manager, then everyone
+  // else alphabetical. Dedupe by employee id so the manager doesn't
+  // appear twice when they're also the service owner.
   const approverOptions = useMemo<ApproverEmployee[]>(() => {
     if (!requestModal) return [];
     const seen = new Set<number>();
@@ -82,9 +85,9 @@ export default function AccessCatalogClient({
     };
     push(requestModal.owner ?? null);
     push(reportingManager);
-    for (const a of adminEmployees) push(a);
+    for (const e of employees) push(e);
     return out;
-  }, [requestModal, reportingManager, adminEmployees]);
+  }, [requestModal, reportingManager, employees]);
 
   // Open the modal with a sensible default approver: service owner if
   // set, otherwise the user's manager, otherwise the first admin in
@@ -94,7 +97,7 @@ export default function AccessCatalogClient({
     setRequestModal(svc);
     setRequestNotes('');
     const defaultId =
-      svc.owner?.id ?? reportingManager?.id ?? adminEmployees[0]?.id ?? null;
+      svc.owner?.id ?? reportingManager?.id ?? employees[0]?.id ?? null;
     setSendToId(defaultId == null ? '' : defaultId);
   }
 
@@ -416,11 +419,14 @@ export default function AccessCatalogClient({
                 {approverOptions.map((a) => {
                   const isOwner = requestModal.owner?.id === a.id;
                   const isManager = reportingManager?.id === a.id;
+                  // Service owner and manager get explicit role tags so
+                  // they stand out as the suggested defaults; everyone
+                  // else shows their designation as a hint.
                   const tag = isOwner
                     ? 'Service owner'
                     : isManager
                       ? 'Your manager'
-                      : 'Admin';
+                      : (a.designation ?? 'Employee');
                   return (
                     <option key={a.id} value={a.id}>
                       {a.firstName} {a.lastName} ({a.empCode}) — {tag}

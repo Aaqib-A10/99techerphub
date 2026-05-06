@@ -71,14 +71,16 @@ export default async function AccessCatalogPage() {
     reportingManager = employeeRow?.reportingManager ?? null;
   }
 
-  // Eligible approvers — anyone who realistically reviews access
-  // requests. Used to populate the "Send to" picker. Order:
-  // service-owner (handled per-service in the client), then reporting
-  // manager, then admins. We dedupe by employee id in the client.
-  const adminEmployees = await prisma.employee.findMany({
+  // The picker shows every active employee — small-org reality is that
+  // roles are fluid (a senior dev might own AWS without being ADMIN).
+  // The actual approve/reject endpoint still enforces real permissions
+  // server-side, so a wide picker is safe; it's a routing hint, not a
+  // grant of authority. Excludes the requester so users can't pick
+  // themselves.
+  const employees = await prisma.employee.findMany({
     where: {
       isActive: true,
-      user: { role: 'ADMIN', isActive: true },
+      ...(user.employeeId ? { id: { not: user.employeeId } } : {}),
     },
     select: {
       id: true,
@@ -96,7 +98,7 @@ export default async function AccessCatalogPage() {
       myAccess={myAccess}
       myRequests={JSON.parse(JSON.stringify(myRequests))}
       hasEmployeeRecord={!!user.employeeId}
-      adminEmployees={adminEmployees}
+      employees={employees}
       reportingManager={reportingManager}
     />
   );
