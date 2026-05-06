@@ -91,13 +91,38 @@ export default async function AssetsPage({
   const page = Math.max(1, parseInt((searchParams.page as string) || '1') || 1);
 
   // --------------------------------------------------------------
-  // 2. Build server-side Prisma where clause
+  // 2. Build server-side Prisma where clauses
+  //
+  // `scopedWhere` carries only the "scope" filters — company,
+  // location, category, type, employee, search, specs. These narrow
+  // the KPI tile counts so the tiles reflect the user's current view
+  // (clicking SJ Computers shouldn't leave the strip showing org-wide
+  // totals — that was the user-reported bug).
+  //
+  // `where` is the full filter the table uses: scope plus the
+  // status selectors (assignment / condition / overdue) that the KPI
+  // tiles themselves toggle. Keeping those out of scopedWhere is
+  // what makes "Total / Assigned / Available / In Repair / Retired"
+  // add up consistently within the same scope, regardless of which
+  // tile is currently active.
   // --------------------------------------------------------------
-  const where: any = {};
-  if (companyId) where.companyId = companyId;
-  if (locationId) where.locationId = locationId;
-  if (categoryId) where.categoryId = categoryId;
-  if (assetType) where.category = { assetType };
+  const scopedWhere: any = {};
+  if (companyId) scopedWhere.companyId = companyId;
+  if (locationId) scopedWhere.locationId = locationId;
+  if (categoryId) scopedWhere.categoryId = categoryId;
+  if (assetType) scopedWhere.category = { assetType };
+  if (q) {
+    scopedWhere.OR = [
+      { assetTag: { contains: q, mode: 'insensitive' } },
+      { serialNumber: { contains: q, mode: 'insensitive' } },
+      { model: { contains: q, mode: 'insensitive' } },
+      { manufacturer: { contains: q, mode: 'insensitive' } },
+      { assignedToName: { contains: q, mode: 'insensitive' } },
+      { notes: { contains: q, mode: 'insensitive' } },
+    ];
+  }
+
+  const where: any = { ...scopedWhere };
   if (condition) where.condition = condition;
   // Assignment status — "assigned" = has at least one open assignment
   // (returnedDate = null). "unassigned" = no open assignment.
@@ -144,16 +169,8 @@ export default async function AssetsPage({
       },
     });
   }
-  if (q) {
-    where.OR = [
-      { assetTag: { contains: q, mode: 'insensitive' } },
-      { serialNumber: { contains: q, mode: 'insensitive' } },
-      { model: { contains: q, mode: 'insensitive' } },
-      { manufacturer: { contains: q, mode: 'insensitive' } },
-      { assignedToName: { contains: q, mode: 'insensitive' } },
-      { notes: { contains: q, mode: 'insensitive' } },
-    ];
-  }
+  // q (search) is already on scopedWhere → flows into `where` via the
+  // earlier spread, so no duplicate handling needed here.
 
   // --------------------------------------------------------------
   // 3. Spec filters are JSON-based and must run in JS. We therefore
@@ -163,9 +180,9 @@ export default async function AssetsPage({
   // --------------------------------------------------------------
   const hasSpecFilter = !!(ramFilter || storageFilter || cpuFilter || gpuFilter);
 
-  // Inventory-wide KPI counts (independent of the user's current filter
-  // selection — these reflect the full asset pool so the row stays stable
-  // as filters change).
+  // KPI status clauses — composed with scopedWhere so the strip
+  // reflects the current scope (company / location / category /
+  // search) rather than the org-wide pool.
   const ASSIGNED_LEGACY_OR_OPEN: any = {
     OR: [
       { assignments: { some: { returnedDate: null } } },
@@ -216,12 +233,19 @@ export default async function AssetsPage({
       select: { id: true, firstName: true, lastName: true, empCode: true },
       orderBy: { firstName: 'asc' }
     }),
-    prisma.asset.count(),
-    prisma.asset.count({ where: ASSIGNED_LEGACY_OR_OPEN }),
-    prisma.asset.count({ where: UNASSIGNED_AND_NOT_TIED_UP }),
-    prisma.asset.count({ where: { condition: 'IN_REPAIR' } }),
-    prisma.asset.count({ where: { condition: 'RETIRED' } }),
-    prisma.asset.aggregate({ _sum: { purchasePrice: true } }),
+    prisma.asset.count({ where: scopedWhere }),
+    prisma.asset.count({ where: { AND: [scopedWhere, ASSIGNED_LEGACY_OR_OPEN] } }),
+    prisma.asset.count({ where: { AND: [scopedWhere, UNASSIGNED_AND_NOT_TIED_UP] } }),
+    prisma.asset.count({
+      where: { AND: [scopedWhere, { condition: 'IN_REPAIR' }] },
+    }),
+    prisma.asset.count({
+      where: { AND: [scopedWhere, { condition: 'RETIRED' }] },
+    }),
+    prisma.asset.aggregate({
+      _sum: { purchasePrice: true },
+      where: scopedWhere,
+    }),
   ]);
 
   const totalValue = Number(valueAgg._sum.purchasePrice ?? 0);
@@ -321,6 +345,31 @@ export default async function AssetsPage({
     maximumFractionDigits: 0,
   });
 
+  // Build a /assets URL that preserves the current scope filters and
+  // overrides only the status selectors a KPI tile owns. `assignment`
+  // and `condition` are mutually exclusive on the tile click — tapping
+  // "In Repair" should clear any active assignment filter and vice
+  // versa, otherwise the new tile's count won't match the table.
+  function kpiHref(overrides: {
+    assignment?: 'assigned' | 'unassigned' | null;
+    condition?: string | null;
+  }) {
+    const params = new URLSearchParams();
+    if (companyId) params.set('companyId', String(companyId));
+    if (locationId) params.set('locationId', String(locationId));
+    if (categoryId) params.set('categoryId', String(categoryId));
+    if (assetType) params.set('assetType', assetType);
+    if (q) params.set('q', q);
+    if (ramFilter) params.set('ram', ramFilter);
+    if (storageFilter) params.set('storage', storageFilter);
+    if (cpuFilter) params.set('cpu', cpuFilter);
+    if (gpuFilter) params.set('gpu', gpuFilter);
+    if (overrides.assignment) params.set('assignment', overrides.assignment);
+    if (overrides.condition) params.set('condition', overrides.condition);
+    const qs = params.toString();
+    return qs ? `/assets?${qs}` : '/assets';
+  }
+
   return (
     <div>
       {/* Page header — design system aesthetic */}
@@ -379,13 +428,43 @@ export default async function AssetsPage({
         </div>
       </div>
 
-      {/* KPI strip — 5 tinted Apple Wallet tiles */}
+      {/* KPI strip — clickable tiles. Each tile carries the current
+          scope filters (company/location/category/search) and toggles
+          the assignment/condition selector to its own slice, so the
+          user can pivot the table view by tapping a tile. */}
       <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-        <KpiTile tone="blue" label="Total Assets" value={totalAssetCount.toLocaleString()} meta={`${valueLabel} value`} />
-        <KpiTile tone="green" label="Assigned" value={assignedCount.toLocaleString()} meta={`${utilization}% utilization`} />
-        <KpiTile tone="violet" label="Available" value={availableCount.toLocaleString()} />
-        <KpiTile tone="amber" label="In Repair" value={inRepairCount.toLocaleString()} />
-        <KpiTile tone="rose" label="Retired" value={retiredCount.toLocaleString()} />
+        <KpiTile
+          tone="blue"
+          label="Total Assets"
+          value={totalAssetCount.toLocaleString()}
+          meta={`${valueLabel} value`}
+          href={kpiHref({})}
+        />
+        <KpiTile
+          tone="green"
+          label="Assigned"
+          value={assignedCount.toLocaleString()}
+          meta={`${utilization}% utilization`}
+          href={kpiHref({ assignment: 'assigned' })}
+        />
+        <KpiTile
+          tone="violet"
+          label="Available"
+          value={availableCount.toLocaleString()}
+          href={kpiHref({ assignment: 'unassigned' })}
+        />
+        <KpiTile
+          tone="amber"
+          label="In Repair"
+          value={inRepairCount.toLocaleString()}
+          href={kpiHref({ condition: 'IN_REPAIR' })}
+        />
+        <KpiTile
+          tone="rose"
+          label="Retired"
+          value={retiredCount.toLocaleString()}
+          href={kpiHref({ condition: 'RETIRED' })}
+        />
       </div>
 
       {/* Compact toolbar — chip filters live inside AssetFilters; date + export sit on the right */}
