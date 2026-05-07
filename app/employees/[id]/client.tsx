@@ -8,6 +8,7 @@ import OnboardingChecklistPanel from './OnboardingChecklistPanel';
 import EmployeePicker from '@/app/components/EmployeePicker';
 import RolesEditor from './RolesEditor';
 import AssetsTab from './tabs/AssetsTab';
+import CompensationTab from './tabs/CompensationTab';
 import DigitalAccessTab from './tabs/DigitalAccessTab';
 import EmploymentTab from './tabs/EmploymentTab';
 import FinanceTab from './tabs/FinanceTab';
@@ -331,6 +332,7 @@ export default function EmployeeDetailClient({
     { id: 'onboarding', label: 'Onboarding' },
     { id: 'assets', label: 'Assets' },
     { id: 'digital', label: 'Digital Access' },
+    { id: 'compensation', label: 'Compensation' },
     { id: 'finance', label: 'Finance' },
     { id: 'documents', label: 'Documents' },
     { id: 'timeline', label: 'Timeline' },
@@ -457,6 +459,14 @@ export default function EmployeeDetailClient({
           onRevoke={handleRevokeAccess}
           canGrant={canGrantAccess}
         />
+      )}
+
+      {/* Compensation Tab — pure HR record-keeping (salary history,
+          raises, bonuses, commissions, deductions). Self-fetches from
+          /api/compensation/employee/[id]; permissions are enforced
+          server-side, the tab just renders what the API returned. */}
+      {activeTab === 'compensation' && (
+        <CompensationTab employeeId={employee.id} />
       )}
 
       {/* Finance Tab */}
