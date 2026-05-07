@@ -19,6 +19,7 @@ import { getSessionUser, COMPENSATION_VIEW_ROLES } from '@/lib/auth';
  * HR + Admin + Accountant only. Other roles get 403.
  */
 export async function GET(_request: NextRequest) {
+  try {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   if (!COMPENSATION_VIEW_ROLES.includes(user.role as any)) {
@@ -107,4 +108,22 @@ export async function GET(_request: NextRequest) {
   });
 
   return NextResponse.json(rows);
+  } catch (err: any) {
+    // Without this catch a Prisma / runtime error becomes an empty
+    // 500 and the client surfaces "Unexpected end of JSON input"
+    // instead of the real cause. The most common one is the prod DB
+    // missing a column from the latest schema push, so we add a hint.
+    console.error('[compensation/register]', err);
+    const msg = err?.message ?? 'Unexpected error';
+    const hint =
+      /Unknown\s+arg|column .* does not exist|Bonus|relation .* does not exist/i.test(
+        String(msg),
+      )
+        ? ' (Run `npx prisma db push && pm2 restart 99tech-erp` on the server.)'
+        : '';
+    return NextResponse.json(
+      { error: `Failed to load compensation register: ${msg}${hint}` },
+      { status: 500 },
+    );
+  }
 }

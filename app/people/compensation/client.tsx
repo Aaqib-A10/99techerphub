@@ -55,9 +55,25 @@ export default function CompensationRegisterClient({
     (async () => {
       try {
         const res = await fetch('/api/compensation/register');
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || 'Failed to load');
-        if (!cancelled) setRows(data);
+        // Read as text first so a 500 with an empty body doesn't
+        // surface as "Unexpected end of JSON input" — we'd rather
+        // show the HTTP status to the user.
+        const raw = await res.text();
+        let data: any = [];
+        if (raw) {
+          try {
+            data = JSON.parse(raw);
+          } catch {
+            data = { error: raw.slice(0, 200) };
+          }
+        }
+        if (!res.ok) {
+          throw new Error(
+            (data?.error as string) ||
+              `Failed to load (HTTP ${res.status}). The server didn't return a message.`,
+          );
+        }
+        if (!cancelled) setRows(Array.isArray(data) ? data : []);
       } catch (err) {
         if (!cancelled)
           setError(err instanceof Error ? err.message : 'Failed to load');
