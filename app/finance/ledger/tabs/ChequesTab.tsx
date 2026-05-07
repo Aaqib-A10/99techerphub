@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, Badge, Tag } from '@/app/components/design';
 import AttachmentInput, {
   AttachmentValue,
@@ -10,6 +10,15 @@ import LedgerDetailModal, {
   BadgeDef,
   DetailRowDef,
 } from '../components/LedgerDetailModal';
+import ReportToolbar from '@/app/components/ReportToolbar';
+import {
+  ColumnDef,
+  downloadCsv,
+  formatPeriod,
+  inDateRange,
+  openPrintReport,
+  thisMonthRange,
+} from '@/lib/reportExport';
 
 interface Cheque {
   id: number;
@@ -51,6 +60,73 @@ export default function ChequesTab() {
   });
   const [attachment, setAttachment] = useState<AttachmentValue | null>(null);
   const [detail, setDetail] = useState<Cheque | null>(null);
+  const [{ from: defaultFrom, to: defaultTo }] = useState(thisMonthRange);
+  const [dateFrom, setDateFrom] = useState(defaultFrom);
+  const [dateTo, setDateTo] = useState(defaultTo);
+
+  // Period filter uses chequeDate — the date written on the cheque,
+  // not the cleared date. Registers care about the "as-of" instrument.
+  const filteredCheques = useMemo(
+    () => cheques.filter((c) => inDateRange(c.chequeDate, dateFrom, dateTo)),
+    [cheques, dateFrom, dateTo],
+  );
+
+  const exportColumns: ColumnDef<Cheque>[] = [
+    { header: 'Bank', value: (c) => c.bankName },
+    { header: 'Cheque No', value: (c) => c.instrumentNo },
+    { header: 'Direction', value: (c) => c.direction },
+    { header: 'Party (From / To)', value: (c) => c.partyName },
+    {
+      header: 'Date',
+      value: (c) => new Date(c.chequeDate).toLocaleDateString(),
+    },
+    {
+      header: 'Amount (PKR)',
+      value: (c) => Number(c.amount).toLocaleString(),
+      align: 'right',
+    },
+    { header: 'Status', value: (c) => c.status },
+    {
+      header: 'Cleared On',
+      value: (c) => (c.clearedAt ? new Date(c.clearedAt).toLocaleDateString() : ''),
+    },
+    { header: 'Ledger SN', value: (c) => c.ledgerEntry?.serialNo ?? '' },
+    { header: 'Description', value: (c) => c.description ?? '' },
+  ];
+
+  const exportTotals = () => {
+    const received = filteredCheques
+      .filter((c) => c.direction === 'RECEIVED')
+      .reduce((a, c) => a + Number(c.amount || 0), 0);
+    const issued = filteredCheques
+      .filter((c) => c.direction === 'ISSUED')
+      .reduce((a, c) => a + Number(c.amount || 0), 0);
+    const cleared = filteredCheques
+      .filter((c) => c.status === 'CLEARED')
+      .reduce((a, c) => a + Number(c.amount || 0), 0);
+    return [
+      { label: 'Received', value: `PKR ${received.toLocaleString()}` },
+      { label: 'Issued', value: `PKR ${issued.toLocaleString()}` },
+      { label: 'Cleared (any direction)', value: `PKR ${cleared.toLocaleString()}` },
+    ];
+  };
+
+  const periodLabel = formatPeriod(dateFrom, dateTo);
+  const periodSlug = (dateFrom || 'all') + '_to_' + (dateTo || 'now');
+
+  const handleExportCsv = () => {
+    downloadCsv(`cheques_${periodSlug}.csv`, filteredCheques, exportColumns);
+  };
+
+  const handleExportPdf = () => {
+    openPrintReport({
+      title: 'Cheques Register',
+      period: periodLabel,
+      rows: filteredCheques,
+      columns: exportColumns,
+      totals: exportTotals(),
+    });
+  };
 
   const fetchCheques = async () => {
     setLoading(true);
@@ -129,7 +205,19 @@ export default function ChequesTab() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-end">
+      <ReportToolbar
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        onReset={() => {
+          setDateFrom('');
+          setDateTo('');
+        }}
+        onExportCsv={handleExportCsv}
+        onExportPdf={handleExportPdf}
+        busy={loading}
+      >
         <button
           onClick={() => {
             setShowForm(!showForm);
@@ -139,7 +227,7 @@ export default function ChequesTab() {
         >
           {showForm ? 'Cancel' : 'New Cheque'}
         </button>
-      </div>
+      </ReportToolbar>
 
       {error && (
         <div className="mb-4 rounded-lg bg-core-roseSoft p-3 text-[12.5px] text-core-roseFg">
@@ -255,7 +343,7 @@ export default function ChequesTab() {
 
       <Card
         title="Cheques"
-        subtitle={`${cheques.length} ${cheques.length === 1 ? 'record' : 'records'}`}
+        subtitle={`${filteredCheques.length} of ${cheques.length} ${cheques.length === 1 ? 'record' : 'records'}${periodLabel ? ` · ${periodLabel}` : ''}`}
         padded={false}
         className={showForm ? 'mt-6' : ''}
       >
@@ -281,13 +369,17 @@ export default function ChequesTab() {
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-core-text3">Loading…</td>
                 </tr>
-              ) : cheques.length === 0 ? (
+              ) : filteredCheques.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-core-text3">No cheques yet.</td>
+                  <td colSpan={8} className="py-12 text-center text-core-text3">
+                    {cheques.length === 0
+                      ? 'No cheques yet.'
+                      : 'No cheques in this period.'}
+                  </td>
                 </tr>
               ) : (
-                cheques.map((c, i) => {
-                  const isLast = i === cheques.length - 1;
+                filteredCheques.map((c, i) => {
+                  const isLast = i === filteredCheques.length - 1;
                   return (
                     <tr
                       key={c.id}

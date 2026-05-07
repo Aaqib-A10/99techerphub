@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, Badge, Tag } from '@/app/components/design';
 import AttachmentInput, {
   AttachmentValue,
@@ -11,6 +11,15 @@ import LedgerDetailModal, {
   BadgeDef,
   DetailRowDef,
 } from '../components/LedgerDetailModal';
+import ReportToolbar from '@/app/components/ReportToolbar';
+import {
+  ColumnDef,
+  downloadCsv,
+  formatPeriod,
+  inDateRange,
+  openPrintReport,
+  thisMonthRange,
+} from '@/lib/reportExport';
 
 interface Category {
   id: number;
@@ -62,6 +71,79 @@ export default function BillingTab({ categories }: { categories: Category[] }) {
   const [localCategories, setLocalCategories] = useState(categories);
   const [attachment, setAttachment] = useState<AttachmentValue | null>(null);
   const [detail, setDetail] = useState<Bill | null>(null);
+  // Period filter — defaults to the current calendar month so the
+  // common case ("show me this month's bills") is one click.
+  const [{ from: defaultFrom, to: defaultTo }] = useState(thisMonthRange);
+  const [dateFrom, setDateFrom] = useState(defaultFrom);
+  const [dateTo, setDateTo] = useState(defaultTo);
+
+  // Apply the period filter on top of the fetched rows. Bill date
+  // (the date on the invoice) is what registers care about — paidAt
+  // is downstream.
+  const filteredBills = useMemo(
+    () => bills.filter((b) => inDateRange(b.billDate, dateFrom, dateTo)),
+    [bills, dateFrom, dateTo],
+  );
+
+  // Column definition shared by both CSV and PDF outputs so the
+  // header row, ordering, and formatting can never drift.
+  const exportColumns: ColumnDef<Bill>[] = [
+    { header: 'Bill #', value: (b) => b.billNumber },
+    { header: 'Vendor', value: (b) => b.vendorName },
+    {
+      header: 'Bill Date',
+      value: (b) => new Date(b.billDate).toLocaleDateString(),
+    },
+    {
+      header: 'Due Date',
+      value: (b) => (b.dueDate ? new Date(b.dueDate).toLocaleDateString() : ''),
+    },
+    { header: 'Category', value: (b) => b.category.name },
+    {
+      header: 'Amount (PKR)',
+      value: (b) => Number(b.amount).toLocaleString(),
+      align: 'right',
+    },
+    { header: 'Status', value: (b) => b.status },
+    {
+      header: 'Paid On',
+      value: (b) => (b.paidAt ? new Date(b.paidAt).toLocaleDateString() : ''),
+    },
+    { header: 'Ledger SN', value: (b) => b.ledgerEntry?.serialNo ?? '' },
+    { header: 'Description', value: (b) => b.description ?? '' },
+  ];
+
+  const exportTotals = () => {
+    const sum = filteredBills.reduce((a, b) => a + Number(b.amount || 0), 0);
+    const paid = filteredBills
+      .filter((b) => b.status === 'PAID')
+      .reduce((a, b) => a + Number(b.amount || 0), 0);
+    const pending = filteredBills
+      .filter((b) => b.status === 'PENDING')
+      .reduce((a, b) => a + Number(b.amount || 0), 0);
+    return [
+      { label: 'Total billed', value: `PKR ${sum.toLocaleString()}` },
+      { label: 'Paid', value: `PKR ${paid.toLocaleString()}` },
+      { label: 'Pending', value: `PKR ${pending.toLocaleString()}` },
+    ];
+  };
+
+  const periodLabel = formatPeriod(dateFrom, dateTo);
+  const periodSlug = (dateFrom || 'all') + '_to_' + (dateTo || 'now');
+
+  const handleExportCsv = () => {
+    downloadCsv(`bills_${periodSlug}.csv`, filteredBills, exportColumns);
+  };
+
+  const handleExportPdf = () => {
+    openPrintReport({
+      title: 'Bills Register',
+      period: periodLabel,
+      rows: filteredBills,
+      columns: exportColumns,
+      totals: exportTotals(),
+    });
+  };
 
   const fetchBills = async () => {
     setLoading(true);
@@ -150,7 +232,19 @@ export default function BillingTab({ categories }: { categories: Category[] }) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-end">
+      <ReportToolbar
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        onReset={() => {
+          setDateFrom('');
+          setDateTo('');
+        }}
+        onExportCsv={handleExportCsv}
+        onExportPdf={handleExportPdf}
+        busy={loading}
+      >
         <button
           onClick={() => {
             setShowForm(!showForm);
@@ -160,7 +254,7 @@ export default function BillingTab({ categories }: { categories: Category[] }) {
         >
           {showForm ? 'Cancel' : 'New Bill'}
         </button>
-      </div>
+      </ReportToolbar>
 
       {error && (
         <div className="mb-4 rounded-lg bg-core-roseSoft p-3 text-[12.5px] text-core-roseFg">
@@ -291,7 +385,7 @@ export default function BillingTab({ categories }: { categories: Category[] }) {
 
       <Card
         title="Bills"
-        subtitle={`${bills.length} ${bills.length === 1 ? 'record' : 'records'}`}
+        subtitle={`${filteredBills.length} of ${bills.length} ${bills.length === 1 ? 'record' : 'records'}${periodLabel ? ` · ${periodLabel}` : ''}`}
         padded={false}
         className={showForm ? 'mt-6' : ''}
       >
@@ -317,13 +411,17 @@ export default function BillingTab({ categories }: { categories: Category[] }) {
                 <tr>
                   <td colSpan={9} className="py-8 text-center text-core-text3">Loading…</td>
                 </tr>
-              ) : bills.length === 0 ? (
+              ) : filteredBills.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-core-text3">No bills yet.</td>
+                  <td colSpan={9} className="py-12 text-center text-core-text3">
+                    {bills.length === 0
+                      ? 'No bills yet.'
+                      : 'No bills in this period.'}
+                  </td>
                 </tr>
               ) : (
-                bills.map((b, i) => {
-                  const isLast = i === bills.length - 1;
+                filteredBills.map((b, i) => {
+                  const isLast = i === filteredBills.length - 1;
                   return (
                     <tr
                       key={b.id}

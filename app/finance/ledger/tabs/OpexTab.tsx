@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, Badge, Tag } from '@/app/components/design';
 import AttachmentInput, {
   AttachmentValue,
@@ -10,6 +10,15 @@ import LedgerDetailModal, {
   BadgeDef,
   DetailRowDef,
 } from '../components/LedgerDetailModal';
+import ReportToolbar from '@/app/components/ReportToolbar';
+import {
+  ColumnDef,
+  downloadCsv,
+  formatPeriod,
+  inDateRange,
+  openPrintReport,
+  thisMonthRange,
+} from '@/lib/reportExport';
 
 interface Category {
   id: number;
@@ -60,6 +69,69 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
   const [localCategories, setLocalCategories] = useState(categories);
   const [attachment, setAttachment] = useState<AttachmentValue | null>(null);
   const [detail, setDetail] = useState<OpexEntry | null>(null);
+  const [{ from: defaultFrom, to: defaultTo }] = useState(thisMonthRange);
+  const [dateFrom, setDateFrom] = useState(defaultFrom);
+  const [dateTo, setDateTo] = useState(defaultTo);
+
+  // Period filter on paidAt — when the OPEX disbursement actually
+  // went out, which is what shows up on the cash side.
+  const filteredEntries = useMemo(
+    () => entries.filter((e) => inDateRange(e.paidAt, dateFrom, dateTo)),
+    [entries, dateFrom, dateTo],
+  );
+
+  const exportColumns: ColumnDef<OpexEntry>[] = [
+    { header: 'Type', value: (e) => e.type },
+    { header: 'Recipient', value: (e) => e.recipient },
+    { header: 'Period', value: (e) => e.period ?? '' },
+    {
+      header: 'Amount (PKR)',
+      value: (e) => Number(e.amount).toLocaleString(),
+      align: 'right',
+    },
+    { header: 'Category', value: (e) => e.category.name },
+    {
+      header: 'Paid On',
+      value: (e) => new Date(e.paidAt).toLocaleDateString(),
+    },
+    { header: 'Ledger SN', value: (e) => e.ledgerEntry?.serialNo ?? '' },
+    { header: 'Description', value: (e) => e.description ?? '' },
+  ];
+
+  const exportTotals = () => {
+    const sum = filteredEntries.reduce(
+      (a, e) => a + Number(e.amount || 0),
+      0,
+    );
+    const byType = new Map<string, number>();
+    for (const e of filteredEntries) {
+      byType.set(e.type, (byType.get(e.type) ?? 0) + Number(e.amount || 0));
+    }
+    const lines: { label: string; value: string }[] = [
+      { label: 'Total OPEX', value: `PKR ${sum.toLocaleString()}` },
+    ];
+    for (const [type, amt] of byType) {
+      lines.push({ label: type, value: `PKR ${amt.toLocaleString()}` });
+    }
+    return lines;
+  };
+
+  const periodLabel = formatPeriod(dateFrom, dateTo);
+  const periodSlug = (dateFrom || 'all') + '_to_' + (dateTo || 'now');
+
+  const handleExportCsv = () => {
+    downloadCsv(`opex_${periodSlug}.csv`, filteredEntries, exportColumns);
+  };
+
+  const handleExportPdf = () => {
+    openPrintReport({
+      title: 'OPEX Register',
+      period: periodLabel,
+      rows: filteredEntries,
+      columns: exportColumns,
+      totals: exportTotals(),
+    });
+  };
 
   const fetchEntries = async () => {
     setLoading(true);
@@ -134,7 +206,19 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-end">
+      <ReportToolbar
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        onReset={() => {
+          setDateFrom('');
+          setDateTo('');
+        }}
+        onExportCsv={handleExportCsv}
+        onExportPdf={handleExportPdf}
+        busy={loading}
+      >
         <button
           onClick={() => {
             setShowForm(!showForm);
@@ -144,7 +228,7 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
         >
           {showForm ? 'Cancel' : 'New OPEX Entry'}
         </button>
-      </div>
+      </ReportToolbar>
 
       {error && (
         <div className="mb-4 rounded-lg bg-core-roseSoft p-3 text-[12.5px] text-core-roseFg">
@@ -272,7 +356,7 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
 
       <Card
         title="OPEX Entries"
-        subtitle={`${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`}
+        subtitle={`${filteredEntries.length} of ${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}${periodLabel ? ` · ${periodLabel}` : ''}`}
         padded={false}
         className={showForm ? 'mt-6' : ''}
       >
@@ -294,11 +378,17 @@ export default function OpexTab({ categories }: { categories: Category[] }) {
             <tbody>
               {loading ? (
                 <tr><td colSpan={8} className="py-8 text-center text-core-text3">Loading…</td></tr>
-              ) : entries.length === 0 ? (
-                <tr><td colSpan={8} className="py-12 text-center text-core-text3">No OPEX entries yet.</td></tr>
+              ) : filteredEntries.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center text-core-text3">
+                    {entries.length === 0
+                      ? 'No OPEX entries yet.'
+                      : 'No OPEX entries in this period.'}
+                  </td>
+                </tr>
               ) : (
-                entries.map((e, i) => {
-                  const isLast = i === entries.length - 1;
+                filteredEntries.map((e, i) => {
+                  const isLast = i === filteredEntries.length - 1;
                   return (
                     <tr
                       key={e.id}

@@ -6,6 +6,15 @@ import ExpenseRowActions from './ExpenseRowActions';
 import TablePagination from '@/app/components/TablePagination';
 import BulkActionBar from '@/app/components/BulkActionBar';
 import { runBulk, summarizeBulk } from '@/app/components/bulkRunner';
+import ReportToolbar from '@/app/components/ReportToolbar';
+import {
+  ColumnDef,
+  downloadCsv,
+  formatPeriod,
+  inDateRange,
+  openPrintReport,
+  thisMonthRange,
+} from '@/lib/reportExport';
 
 interface Expense {
   id: number;
@@ -34,11 +43,82 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
   const [itemsPerPage, setItemsPerPage] = useState(25);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkLoading, setBulkLoading] = useState<string | null>(null);
+  // Period filter — defaults to this month so the export buttons hit
+  // the right slice without extra clicks.
+  const [{ from: defaultFrom, to: defaultTo }] = useState(thisMonthRange);
+  const [dateFrom, setDateFrom] = useState(defaultFrom);
+  const [dateTo, setDateTo] = useState(defaultTo);
+
+  // The date filter narrows the existing dataset; pagination then runs
+  // off the filtered view so page-counts and bulk-selects stay
+  // consistent with what's on screen.
+  const filteredExpenses = useMemo(
+    () => expenses.filter((e) => inDateRange(e.expenseDate, dateFrom, dateTo)),
+    [expenses, dateFrom, dateTo],
+  );
 
   const paginatedExpenses = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return expenses.slice(start, start + itemsPerPage);
-  }, [expenses, currentPage, itemsPerPage]);
+    return filteredExpenses.slice(start, start + itemsPerPage);
+  }, [filteredExpenses, currentPage, itemsPerPage]);
+
+  const exportColumns: ColumnDef<Expense>[] = [
+    { header: 'Expense #', value: (e) => e.expenseNumber },
+    {
+      header: 'Date',
+      value: (e) => new Date(e.expenseDate).toLocaleDateString(),
+    },
+    { header: 'Category', value: (e) => e.category.name },
+    { header: 'Company', value: (e) => e.company.name },
+    { header: 'Department', value: (e) => e.department?.name ?? '' },
+    {
+      header: 'Submitted By',
+      value: (e) => `${e.submittedBy.firstName} ${e.submittedBy.lastName}`,
+    },
+    { header: 'Currency', value: (e) => e.currency },
+    {
+      header: 'Amount',
+      value: (e) => Number(e.amount).toLocaleString(),
+      align: 'right',
+    },
+    { header: 'Status', value: (e) => e.status.replace(/_/g, ' ') },
+  ];
+
+  const exportTotals = () => {
+    const sum = filteredExpenses.reduce((a, e) => a + Number(e.amount || 0), 0);
+    const approved = filteredExpenses
+      .filter((e) => e.status === 'APPROVED')
+      .reduce((a, e) => a + Number(e.amount || 0), 0);
+    const pending = filteredExpenses
+      .filter((e) => e.status === 'PENDING')
+      .reduce((a, e) => a + Number(e.amount || 0), 0);
+    const rejected = filteredExpenses
+      .filter((e) => e.status === 'REJECTED')
+      .reduce((a, e) => a + Number(e.amount || 0), 0);
+    return [
+      { label: 'Total submitted', value: `PKR ${sum.toLocaleString()}` },
+      { label: 'Approved', value: `PKR ${approved.toLocaleString()}` },
+      { label: 'Pending', value: `PKR ${pending.toLocaleString()}` },
+      { label: 'Rejected', value: `PKR ${rejected.toLocaleString()}` },
+    ];
+  };
+
+  const periodLabel = formatPeriod(dateFrom, dateTo);
+  const periodSlug = (dateFrom || 'all') + '_to_' + (dateTo || 'now');
+
+  const handleExportCsv = () => {
+    downloadCsv(`expenses_${periodSlug}.csv`, filteredExpenses, exportColumns);
+  };
+
+  const handleExportPdf = () => {
+    openPrintReport({
+      title: 'Expense Register',
+      period: periodLabel,
+      rows: filteredExpenses,
+      columns: exportColumns,
+      totals: exportTotals(),
+    });
+  };
 
   // Bulk selection helpers
   const toggleSelect = (id: number) => {
@@ -64,7 +144,8 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
     });
   };
   const selectAllFiltered = () => {
-    setSelectedIds(new Set(expenses.map((e) => e.id)));
+    // "All" within the period filter, not the underlying dataset.
+    setSelectedIds(new Set(filteredExpenses.map((e) => e.id)));
   };
 
   const handleBulkAction = async (actionKey: string) => {
@@ -125,6 +206,25 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
 
   return (
     <>
+      <ReportToolbar
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={(v) => {
+          setDateFrom(v);
+          setCurrentPage(1);
+        }}
+        onDateToChange={(v) => {
+          setDateTo(v);
+          setCurrentPage(1);
+        }}
+        onReset={() => {
+          setDateFrom('');
+          setDateTo('');
+          setCurrentPage(1);
+        }}
+        onExportCsv={handleExportCsv}
+        onExportPdf={handleExportPdf}
+      />
       <div className="table-wrapper">
         <table className="table">
           <thead>
@@ -205,17 +305,20 @@ export default function ExpenseTable({ expenses }: { expenses: Expense[] }) {
       </div>
       <TablePagination
         currentPage={currentPage}
-        totalItems={expenses.length}
+        totalItems={filteredExpenses.length}
         itemsPerPage={itemsPerPage}
         onPageChange={setCurrentPage}
         onItemsPerPageChange={setItemsPerPage}
       />
 
-      {/* Bulk Action Bar */}
+      {/* Bulk Action Bar — counts reflect the period filter so "Select
+          all" doesn't grab rows the user can't see. */}
       <BulkActionBar
         selectedCount={selectedIds.size}
-        totalCount={expenses.length}
-        allSelected={selectedIds.size === expenses.length}
+        totalCount={filteredExpenses.length}
+        allSelected={
+          selectedIds.size > 0 && selectedIds.size === filteredExpenses.length
+        }
         onSelectAll={selectAllFiltered}
         onDeselectAll={() => setSelectedIds(new Set())}
         actions={bulkActions}
