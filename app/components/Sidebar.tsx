@@ -61,6 +61,15 @@ const NAV_SECTIONS: NavSection[] = [
         children: [
           { name: 'All Employees', href: '/employees' },
           { name: 'Roles & Responsibilities', href: '/people/responsibilities' },
+          // Compensation lives under Employees (not Finance) because it's
+          // pure HR record-keeping with no ledger/expense integration.
+          // Accountants need read access for exports — gating handled
+          // server-side in the route, not here.
+          {
+            name: 'Compensation',
+            href: '/people/compensation',
+            requiredRoles: ['ADMIN', 'HR', 'ACCOUNTANT'],
+          },
           { name: 'Onboarding', href: '/onboarding-admin' },
           { name: 'Offer Letters', href: '/offer-letters' },
         ],

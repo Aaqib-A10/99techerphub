@@ -171,6 +171,11 @@ export const HR_ROLES: UserRole[] = ['ADMIN', 'HR'];
 export const FINANCE_ROLES: UserRole[] = ['ADMIN', 'ACCOUNTANT'];
 export const ASSET_ROLES: UserRole[] = ['ADMIN', 'HR', 'MANAGER', 'ACCOUNTANT'];
 export const BROWSE_ROLES: UserRole[] = ['ADMIN', 'HR', 'MANAGER', 'ACCOUNTANT'];
+// Compensation: HR/Admin can edit; Accountants can read-only for
+// register exports; managers/employees handled by per-route logic
+// (manager sees direct reports, employee sees self).
+export const COMPENSATION_EDIT_ROLES: UserRole[] = ['ADMIN', 'HR'];
+export const COMPENSATION_VIEW_ROLES: UserRole[] = ['ADMIN', 'HR', 'ACCOUNTANT'];
 
 /**
  * Page/layout-friendly variant of requireRole — redirects instead of throwing.
