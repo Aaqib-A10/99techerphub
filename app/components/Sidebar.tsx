@@ -70,6 +70,11 @@ const NAV_SECTIONS: NavSection[] = [
             href: '/people/compensation',
             requiredRoles: ['ADMIN', 'HR', 'ACCOUNTANT'],
           },
+          {
+            name: 'Cost by Company',
+            href: '/people/compensation/cost-by-company',
+            requiredRoles: ['ADMIN', 'HR', 'ACCOUNTANT'],
+          },
           { name: 'Onboarding', href: '/onboarding-admin' },
           { name: 'Offer Letters', href: '/offer-letters' },
         ],
