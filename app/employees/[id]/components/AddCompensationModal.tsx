@@ -3,17 +3,21 @@
 import { useState } from 'react';
 
 /**
- * Single shared modal for the four "Add X" buttons on the
- * Compensation tab. The form shape switches based on `type`:
+ * Single shared modal for the four "Add X" / "Edit X" entry points
+ * on the Compensation tab. The form shape switches based on `type`:
  *
- *   salary      — base salary (sets new BASE; previous one auto-end-dates)
+ *   salary      — base salary (creating sets a new BASE; previous one
+ *                 auto-end-dates. editing patches the row directly —
+ *                 use carefully on the active row, since editing a
+ *                 raise's amount in place erases the audit trail of
+ *                 the original number)
  *   bonus       — one-time bonus
  *   commission  — period-scoped commission
  *   deduction   — period-scoped deduction (TAX/LOAN/ADVANCE/INSURANCE/OTHER)
  *
- * Each form posts to /api/compensation/<type>. Errors come back
- * as JSON {error}; we surface them inline in the modal body so the
- * user doesn't have to close it to read them.
+ * Pass `editing` to switch the modal into edit mode; the form
+ * prefills from the existing row and the submit goes PATCH instead of
+ * POST. Otherwise it's the original create flow.
  */
 
 export type CompType = 'salary' | 'bonus' | 'commission' | 'deduction';
@@ -21,42 +25,129 @@ export type CompType = 'salary' | 'bonus' | 'commission' | 'deduction';
 interface Props {
   employeeId: number;
   type: CompType;
+  /**
+   * Existing row to edit. When omitted the modal is in create mode.
+   * The shape varies per type — we read whichever fields the current
+   * type cares about and ignore the rest.
+   */
+  editing?: { id: number; data: any } | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const TITLES: Record<CompType, string> = {
+const CREATE_TITLES: Record<CompType, string> = {
   salary: 'Set New Salary',
   bonus: 'Add Bonus',
   commission: 'Add Commission',
   deduction: 'Add Deduction',
 };
 
+const EDIT_TITLES: Record<CompType, string> = {
+  salary: 'Edit Salary Entry',
+  bonus: 'Edit Bonus',
+  commission: 'Edit Commission',
+  deduction: 'Edit Deduction',
+};
+
 const DEDUCTION_TYPES = ['TAX', 'LOAN', 'ADVANCE', 'INSURANCE', 'OTHER'];
+
+// Pull a YYYY-MM-DD slice safely off either an ISO string or Date.
+function toDateInput(v: any): string {
+  if (!v) return '';
+  const d = typeof v === 'string' ? new Date(v) : (v as Date);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toISOString().slice(0, 10);
+}
 
 export default function AddCompensationModal({
   employeeId,
   type,
+  editing,
   onClose,
   onSuccess,
 }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const currentPeriod = today.slice(0, 7); // YYYY-MM
+  const isEdit = !!editing;
 
-  // Single form state covers all four shapes; only the relevant
-  // fields are read on submit per type.
-  const [form, setForm] = useState({
-    amount: '',
-    currency: 'PKR' as 'PKR' | 'USD',
-    effectiveFrom: today,
-    awardedDate: today,
-    reason: '',
-    description: '',
-    period: currentPeriod,
-    isPaid: false,
-    deductionType: 'OTHER',
-    notes: '',
-  });
+  // Initial form values — empty for create, prefilled from the
+  // existing row when editing. The mapping is per-type because
+  // salary stores the amount as `baseSalary` while everything else
+  // uses `amount`.
+  const initial = (() => {
+    if (!editing) {
+      return {
+        amount: '',
+        currency: 'PKR' as 'PKR' | 'USD',
+        effectiveFrom: today,
+        awardedDate: today,
+        reason: '',
+        description: '',
+        period: currentPeriod,
+        isPaid: false,
+        deductionType: 'OTHER',
+        notes: '',
+      };
+    }
+    const d = editing.data;
+    if (type === 'salary') {
+      return {
+        amount: String(d.baseSalary ?? ''),
+        currency: (d.currency === 'USD' ? 'USD' : 'PKR') as 'PKR' | 'USD',
+        effectiveFrom: toDateInput(d.effectiveFrom) || today,
+        awardedDate: today,
+        reason: d.reason ?? '',
+        description: '',
+        period: currentPeriod,
+        isPaid: false,
+        deductionType: 'OTHER',
+        notes: '',
+      };
+    }
+    if (type === 'bonus') {
+      return {
+        amount: String(d.amount ?? ''),
+        currency: (d.currency === 'USD' ? 'USD' : 'PKR') as 'PKR' | 'USD',
+        effectiveFrom: today,
+        awardedDate: toDateInput(d.awardedDate) || today,
+        reason: d.reason ?? '',
+        description: '',
+        period: d.period ?? '',
+        isPaid: !!d.isPaid,
+        deductionType: 'OTHER',
+        notes: d.notes ?? '',
+      };
+    }
+    if (type === 'commission') {
+      return {
+        amount: String(d.amount ?? ''),
+        currency: (d.currency === 'USD' ? 'USD' : 'PKR') as 'PKR' | 'USD',
+        effectiveFrom: today,
+        awardedDate: today,
+        reason: '',
+        description: d.description ?? '',
+        period: d.period ?? currentPeriod,
+        isPaid: !!d.isPaid,
+        deductionType: 'OTHER',
+        notes: '',
+      };
+    }
+    // deduction
+    return {
+      amount: String(d.amount ?? ''),
+      currency: (d.currency === 'USD' ? 'USD' : 'PKR') as 'PKR' | 'USD',
+      effectiveFrom: today,
+      awardedDate: today,
+      reason: '',
+      description: d.description ?? '',
+      period: d.period ?? currentPeriod,
+      isPaid: false,
+      deductionType: d.deductionType ?? 'OTHER',
+      notes: '',
+    };
+  })();
+
+  const [form, setForm] = useState(initial);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -97,9 +188,20 @@ export default function AddCompensationModal({
       body.period = form.period;
     }
 
+    // Edit mode patches the existing row; create posts a new one.
+    // Both endpoints accept the same body shape per type, so the only
+    // difference is method + URL.
+    const url = isEdit
+      ? `/api/compensation/${type}/${editing!.id}`
+      : `/api/compensation/${type}`;
+    const method = isEdit ? 'PATCH' : 'POST';
+    // employeeId is locked at creation time and not editable; strip
+    // it from PATCH bodies.
+    if (isEdit) delete body.employeeId;
+
     try {
-      const res = await fetch(`/api/compensation/${type}`, {
-        method: 'POST',
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
@@ -128,7 +230,7 @@ export default function AddCompensationModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header">
-          <h2>{TITLES[type]}</h2>
+          <h2>{(isEdit ? EDIT_TITLES : CREATE_TITLES)[type]}</h2>
           <button
             onClick={() => !submitting && onClose()}
             aria-label="Close"

@@ -98,6 +98,14 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [addType, setAddType] = useState<CompType | null>(null);
+  // Editing target — the modal flips into edit mode when set.
+  // Reuses the same component as the Add modal; the type discriminator
+  // tells it which form shape to render and which endpoint to PATCH.
+  const [editing, setEditing] = useState<{
+    type: CompType;
+    id: number;
+    data: any;
+  } | null>(null);
 
   const fetchBundle = async () => {
     setLoading(true);
@@ -121,6 +129,7 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
 
   const onAdded = () => {
     setAddType(null);
+    setEditing(null);
     fetchBundle();
   };
 
@@ -272,12 +281,22 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
                     </div>
                   </div>
                   {canEdit && (
-                    <button
-                      onClick={() => handleDelete('salary', s.id)}
-                      className="text-[11.5px] text-core-text3 hover:text-core-roseFg"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex items-center gap-3 text-[11.5px]">
+                      <button
+                        onClick={() =>
+                          setEditing({ type: 'salary', id: s.id, data: s })
+                        }
+                        className="text-core-text2 hover:text-core-text"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete('salary', s.id)}
+                        className="text-core-text3 hover:text-core-roseFg"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   )}
                 </div>
               );
@@ -325,12 +344,22 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
                   </div>
                 </div>
                 {canEdit && (
-                  <button
-                    onClick={() => handleDelete('bonus', b.id)}
-                    className="text-[11.5px] text-core-text3 hover:text-core-roseFg"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex items-center gap-3 text-[11.5px]">
+                    <button
+                      onClick={() =>
+                        setEditing({ type: 'bonus', id: b.id, data: b })
+                      }
+                      className="text-core-text2 hover:text-core-text"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete('bonus', b.id)}
+                      className="text-core-text3 hover:text-core-roseFg"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -376,12 +405,22 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
                   </div>
                 </div>
                 {canEdit && (
-                  <button
-                    onClick={() => handleDelete('commission', c.id)}
-                    className="text-[11.5px] text-core-text3 hover:text-core-roseFg"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex items-center gap-3 text-[11.5px]">
+                    <button
+                      onClick={() =>
+                        setEditing({ type: 'commission', id: c.id, data: c })
+                      }
+                      className="text-core-text2 hover:text-core-text"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete('commission', c.id)}
+                      className="text-core-text3 hover:text-core-roseFg"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -423,12 +462,22 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
                   </div>
                 </div>
                 {canEdit && (
-                  <button
-                    onClick={() => handleDelete('deduction', d.id)}
-                    className="text-[11.5px] text-core-text3 hover:text-core-roseFg"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex items-center gap-3 text-[11.5px]">
+                    <button
+                      onClick={() =>
+                        setEditing({ type: 'deduction', id: d.id, data: d })
+                      }
+                      className="text-core-text2 hover:text-core-text"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete('deduction', d.id)}
+                      className="text-core-text3 hover:text-core-roseFg"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -441,6 +490,15 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
           employeeId={employeeId}
           type={addType}
           onClose={() => setAddType(null)}
+          onSuccess={onAdded}
+        />
+      )}
+      {editing && (
+        <AddCompensationModal
+          employeeId={employeeId}
+          type={editing.type}
+          editing={{ id: editing.id, data: editing.data }}
+          onClose={() => setEditing(null)}
           onSuccess={onAdded}
         />
       )}
