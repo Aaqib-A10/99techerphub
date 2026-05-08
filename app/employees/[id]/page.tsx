@@ -28,6 +28,7 @@ export default async function EmployeeDetailPage({
       documents: { orderBy: { uploadedAt: 'desc' } },
       digitalAccess: { orderBy: { grantedDate: 'desc' } },
       salaryHistory: { orderBy: { effectiveFrom: 'desc' } },
+      bonuses: { orderBy: { awardedDate: 'desc' } },
       commissions: { orderBy: { createdAt: 'desc' } },
       deductions: { orderBy: { createdAt: 'desc' } },
       billingSplits: {
@@ -183,6 +184,45 @@ export default async function EmployeeDetailPage({
     (d: any) => d.isActive,
   ).length;
 
+  // Compensation header stats — visible to ADMIN/HR/ACCOUNTANT, the
+  // employee themselves, or a MANAGER for their direct report. Other
+  // BROWSE_ROLES (e.g. a non-managing peer admin) shouldn't see comp
+  // floating in the header. Mirrors the same gating the
+  // /api/compensation/employee/[id] endpoint uses.
+  let showCompStats = false;
+  if (sessionUser) {
+    if (['ADMIN', 'HR', 'ACCOUNTANT'].includes(sessionUser.role)) {
+      showCompStats = true;
+    } else if (sessionUser.employeeId === employeeId) {
+      showCompStats = true;
+    } else if (
+      sessionUser.role === 'MANAGER' &&
+      employee.reportingManagerId &&
+      sessionUser.employeeId === employee.reportingManagerId
+    ) {
+      showCompStats = true;
+    }
+  }
+
+  const yearStart = new Date(new Date().getFullYear(), 0, 1);
+  // salaryHistory is already in `employee` (orderBy desc), so picking
+  // active/previous is a no-DB-roundtrip operation.
+  const activeSalary = employee.salaryHistory.find(
+    (s: any) => s.effectiveTo == null,
+  );
+  const previousSalary = employee.salaryHistory.find(
+    (s: any) =>
+      s.effectiveTo != null && (activeSalary ? s.id !== activeSalary.id : true),
+  );
+  let ytdBonusPkr = 0;
+  let ytdBonusUsd = 0;
+  for (const b of employee.bonuses ?? []) {
+    if (new Date(b.awardedDate) < yearStart) continue;
+    const n = Number(b.amount) || 0;
+    if (b.currency === 'USD') ytdBonusUsd += n;
+    else ytdBonusPkr += n;
+  }
+
   return (
     <div>
       {/* Page hero — light, matches the rest of the ERP */}
@@ -277,8 +317,14 @@ export default async function EmployeeDetailPage({
         </div>
       </div>
 
-      {/* KPI strip — same stat-card pattern as /expenses and /employees */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+      {/* KPI strip — same stat-card pattern as /expenses and /employees.
+          When comp is visible the strip grows to 8 tiles, so we shift
+          to lg:grid-cols-4 to lay out cleanly as 4+4 instead of 5+3. */}
+      <div
+        className={`grid grid-cols-2 md:grid-cols-3 ${
+          showCompStats ? 'lg:grid-cols-4' : 'lg:grid-cols-5'
+        } gap-4 mb-6`}
+      >
         <div className="stat-card">
           <div className="stat-label">Tenure</div>
           <div className="stat-value">{tenureLabel}</div>
@@ -349,6 +395,68 @@ export default async function EmployeeDetailPage({
           <div className="stat-value">{activeDigitalAccess}</div>
           <div className="text-[11px] text-core-text3 mt-1">Active services</div>
         </div>
+
+        {/* Compensation tiles — gated to HR/Admin/Accountant + self
+            + manager-of-self. Click any tile to drop into the
+            Compensation tab for the full history. */}
+        {showCompStats && (
+          <>
+            <a
+              href="#compensation"
+              className="stat-card block hover:shadow-md transition cursor-pointer"
+              title="Open Compensation tab"
+            >
+              <div className="stat-label">Current Salary</div>
+              <div className="stat-value text-[1.05rem] truncate">
+                {activeSalary
+                  ? `${activeSalary.currency} ${Number(activeSalary.baseSalary).toLocaleString()}`
+                  : '—'}
+              </div>
+              <div className="text-[11px] text-core-text3 mt-1">
+                {activeSalary
+                  ? `since ${new Date(activeSalary.effectiveFrom).toLocaleDateString()}`
+                  : 'Not on file'}
+              </div>
+            </a>
+            <a
+              href="#compensation"
+              className="stat-card block hover:shadow-md transition cursor-pointer"
+              title="Open Compensation tab"
+            >
+              <div className="stat-label">Last Raise</div>
+              <div className="stat-value text-[1.05rem] truncate">
+                {activeSalary && previousSalary && activeSalary.incrementPct != null
+                  ? `${Number(activeSalary.incrementPct) >= 0 ? '+' : ''}${Number(activeSalary.incrementPct).toFixed(1)}%`
+                  : '—'}
+              </div>
+              <div className="text-[11px] text-core-text3 mt-1">
+                {activeSalary && previousSalary
+                  ? new Date(activeSalary.effectiveFrom).toLocaleDateString()
+                  : 'No raise history'}
+              </div>
+            </a>
+            <a
+              href="#compensation"
+              className="stat-card block hover:shadow-md transition cursor-pointer"
+              title="Open Compensation tab"
+            >
+              <div className="stat-label">YTD Bonus</div>
+              <div className="stat-value text-[1.05rem] truncate">
+                {ytdBonusPkr || ytdBonusUsd
+                  ? [
+                      ytdBonusPkr ? `PKR ${ytdBonusPkr.toLocaleString()}` : null,
+                      ytdBonusUsd ? `USD ${ytdBonusUsd.toLocaleString()}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')
+                  : '—'}
+              </div>
+              <div className="text-[11px] text-core-text3 mt-1">
+                Calendar year
+              </div>
+            </a>
+          </>
+        )}
       </div>
 
       <EmployeeDetailClient

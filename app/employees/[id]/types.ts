@@ -20,6 +20,7 @@ export const employeeDetailInclude = {
   documents: true,
   digitalAccess: true,
   salaryHistory: true,
+  bonuses: true,
   commissions: true,
   deductions: true,
   billingSplits: {

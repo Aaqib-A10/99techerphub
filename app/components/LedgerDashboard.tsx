@@ -6,6 +6,7 @@ import {
   Avi,
   Glyph,
 } from './design';
+import ExpenseTrendCard from './ExpenseTrendCard';
 
 // ============================================================================
 // 99 Hub ERP — Dashboard (Phase 2 design system)
@@ -502,6 +503,13 @@ export default async function LedgerDashboard({
             </div>
           </Card>
         </div>
+      </div>
+
+      {/* Expense trend — monthly approved-expense bars per currency.
+          PKR + USD shown as separate series so the user can see each
+          currency's pattern without the chart trying to add them. */}
+      <div className="mt-4">
+        <ExpenseTrendCard />
       </div>
     </div>
   );

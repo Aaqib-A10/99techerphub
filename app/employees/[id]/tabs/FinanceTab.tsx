@@ -199,15 +199,16 @@ export default function FinanceTab(props: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Commissions */}
+        {/* Commissions — read-only summary. Add/edit lives on the
+            Compensation tab of this same employee. */}
         <div className="card">
           <div className="card-header flex justify-between items-center">
             <h3 className="section-heading">Commissions</h3>
             <a
-              href={`/finance/commissions?employeeId=${employee.id}`}
+              href="#compensation"
               className="text-xs text-core-blueFg hover:underline"
             >
-              Manage
+              Manage in Compensation →
             </a>
           </div>
           <div className="card-body">
@@ -243,15 +244,15 @@ export default function FinanceTab(props: Props) {
           </div>
         </div>
 
-        {/* Deductions */}
+        {/* Deductions — same pattern as Commissions; managed under Compensation. */}
         <div className="card">
           <div className="card-header flex justify-between items-center">
             <h3 className="section-heading">Deductions</h3>
             <a
-              href={`/finance/deductions?employeeId=${employee.id}`}
+              href="#compensation"
               className="text-xs text-core-blueFg hover:underline"
             >
-              Manage
+              Manage in Compensation →
             </a>
           </div>
           <div className="card-body">
@@ -284,16 +285,12 @@ export default function FinanceTab(props: Props) {
         </div>
       </div>
 
-      {/* Billing Splits */}
+      {/* Billing Splits — read-only display. The dedicated Cost
+          Splits page was removed; this section stays as a snapshot
+          of any historical splits stored on the employee. */}
       <div className="card mt-6">
-        <div className="card-header flex justify-between items-center">
+        <div className="card-header">
           <h3 className="section-heading">Billing Splits</h3>
-          <a
-            href={`/finance/billing?employeeId=${employee.id}`}
-            className="text-xs text-core-blueFg hover:underline"
-          >
-            Manage
-          </a>
         </div>
         <div className="card-body">
           {(!employee.billingSplits || employee.billingSplits.length === 0) ? (

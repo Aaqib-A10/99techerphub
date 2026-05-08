@@ -355,7 +355,7 @@ export default async function DashboardContent({
           accent="bg-core-violetSoft text-core-violetFg"
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KpiTile label="Monthly Payroll" value={fmtMoney(payrollEstimate)} sub={`${activeIds.length} active employees`} color="violet" href="/finance/payroll" />
+          <KpiTile label="Monthly Payroll" value={fmtMoney(payrollEstimate)} sub={`${activeIds.length} active employees`} color="violet" href="/people/compensation" />
           <KpiTile label={`MTD Spend`} value={fmtMoney(Number(financeMtdSpendAgg._sum.amount) || 0)} sub="Approved + pending" color="blue" href="/expenses" />
           <KpiTile label="Pending Reimbursements" value={fmtMoney(Number(financePendingReimAgg._sum.amount) || 0)} sub="Awaiting approval" color="amber" href="/expenses?status=PENDING" />
           <KpiTile label="Approved (period)" value={fmtMoney(Number(financeApprovedMtdAgg._sum.amount) || 0)} sub="Cleared spend" color="emerald" href="/expenses?status=APPROVED" />
