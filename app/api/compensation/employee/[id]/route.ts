@@ -51,6 +51,7 @@ export async function GET(
     bonuses,
     commissions,
     deductions,
+    billingSplits,
   ] = await Promise.all([
     prisma.employee.findUnique({
       where: { id: employeeId },
@@ -78,6 +79,16 @@ export async function GET(
     prisma.deduction.findMany({
       where: { employeeId },
       orderBy: { createdAt: 'desc' },
+    }),
+    // Active billing splits — for the banner on the Compensation tab.
+    // Read-only here; full CRUD lives on the Finance tab.
+    prisma.billingSplit.findMany({
+      where: {
+        employeeId,
+        OR: [{ effectiveTo: null }, { effectiveTo: { gt: new Date() } }],
+      },
+      include: { company: { select: { id: true, name: true, code: true } } },
+      orderBy: { percentage: 'desc' },
     }),
   ]);
 
@@ -134,6 +145,7 @@ export async function GET(
     bonuses,
     commissions,
     deductions,
+    billingSplits,
     canEdit: ['ADMIN', 'HR'].includes(user.role),
   });
 }

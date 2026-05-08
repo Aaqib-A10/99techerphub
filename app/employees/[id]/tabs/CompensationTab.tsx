@@ -62,6 +62,14 @@ interface DeductionRow {
   createdAt: string;
 }
 
+interface BillingSplitMini {
+  id: number;
+  companyId: number;
+  percentage: string | number;
+  effectiveTo: string | null;
+  company: { id: number; name: string; code: string } | null;
+}
+
 interface Bundle {
   employee: {
     id: number;
@@ -90,6 +98,7 @@ interface Bundle {
   bonuses: BonusRow[];
   commissions: CommissionRow[];
   deductions: DeductionRow[];
+  billingSplits: BillingSplitMini[];
   canEdit: boolean;
 }
 
@@ -232,6 +241,36 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
           />
         </div>
       </Card>
+
+      {/* Billing splits banner — informational, points HR at the
+          Finance tab where splits are actually managed. The
+          Compensation tab stays focused on pay-record concerns. */}
+      {data.billingSplits && data.billingSplits.length > 0 && (
+        <div className="rounded-lg border border-core-border bg-core-blueSoft/50 px-4 py-3 text-[12.5px] text-core-text2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <span className="font-semibold text-core-text">
+                Cost is split across:{' '}
+              </span>
+              {data.billingSplits.map((s, i) => (
+                <span key={s.id}>
+                  {i > 0 && ' · '}
+                  <span className="font-medium">
+                    {s.company?.name ?? `Company #${s.companyId}`}
+                  </span>{' '}
+                  ({Number(s.percentage).toFixed(0)}%)
+                </span>
+              ))}
+            </div>
+            <a
+              href="#finance"
+              className="flex-shrink-0 text-[11.5px] font-semibold text-core-blueFg hover:opacity-80"
+            >
+              Manage splits →
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Salary History */}
       <SectionCard

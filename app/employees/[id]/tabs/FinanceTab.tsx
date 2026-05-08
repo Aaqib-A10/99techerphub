@@ -1,5 +1,7 @@
 'use client';
 
+import BillingSplitsSection from '../components/BillingSplitsSection';
+
 /**
  * Finance tab — banking details (edit-aware), salary history, commissions,
  * deductions, billing splits.
@@ -7,7 +9,10 @@
  * The banking edit form shares the parent's editFormData / isEditMode state
  * (so the Save Changes button at the top of the tab works through the same
  * handleSaveProfile that other edit-mode tabs use). The read-only sections
- * (salary, commissions, deductions, billing) just render `employee.*` data.
+ * (salary, commissions, deductions) just render `employee.*` data.
+ *
+ * Billing Splits has been moved to its own self-contained component
+ * with full CRUD — that section is the editable one.
  */
 
 interface SalaryHistoryRow {
@@ -15,6 +20,7 @@ interface SalaryHistoryRow {
   baseSalary: any;
   currency: string;
   effectiveFrom: Date | string;
+  effectiveTo: Date | string | null;
   incrementPct: any;
   reason: string | null;
 }
@@ -285,56 +291,29 @@ export default function FinanceTab(props: Props) {
         </div>
       </div>
 
-      {/* Billing Splits — read-only display. The dedicated Cost
-          Splits page was removed; this section stays as a snapshot
-          of any historical splits stored on the employee. */}
-      <div className="card mt-6">
-        <div className="card-header">
-          <h3 className="section-heading">Billing Splits</h3>
-        </div>
-        <div className="card-body">
-          {(!employee.billingSplits || employee.billingSplits.length === 0) ? (
-            <p className="text-core-text3 text-center py-4">No billing splits configured</p>
-          ) : (
-            <div className="space-y-3">
-              {employee.billingSplits.map((b) => {
-                const active = !b.effectiveTo || new Date(b.effectiveTo) > new Date();
-                return (
-                  <div
-                    key={b.id}
-                    className="flex justify-between items-center p-3 bg-core-surface2 rounded"
-                  >
-                    <div>
-                      <div className="font-semibold">
-                        {b.company?.name || `Company #${b.companyId}`}
-                      </div>
-                      <div className="text-xs text-core-text3">
-                        From {new Date(b.effectiveFrom).toLocaleDateString()}
-                        {b.effectiveTo &&
-                          ` — ${new Date(b.effectiveTo).toLocaleDateString()}`}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-lg">
-                        {Number(b.percentage).toFixed(2)}%
-                      </span>
-                      <span
-                        className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                          active
-                            ? 'bg-core-greenSoft text-core-greenFg'
-                            : 'bg-core-surface2 text-core-text2'
-                        }`}
-                      >
-                        {active ? 'ACTIVE' : 'ENDED'}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Billing Splits — fully editable, in its own component. The
+          base salary preview pulls from the latest active SalaryHistory
+          row so each "%" shows the absolute amount HR is allocating. */}
+      <BillingSplitsSection
+        employeeId={employee.id}
+        initialSplits={employee.billingSplits.map((b) => ({
+          id: b.id,
+          companyId: b.companyId,
+          company: b.company ?? null,
+          percentage: Number(b.percentage),
+          effectiveFrom: b.effectiveFrom,
+          effectiveTo: b.effectiveTo,
+        }))}
+        baseSalary={(() => {
+          const active = employee.salaryHistory.find(
+            (s: any) => !s.effectiveTo || new Date(s.effectiveTo) > new Date(),
+          );
+          return active
+            ? { amount: Number(active.baseSalary), currency: active.currency }
+            : null;
+        })()}
+        canEdit={true}
+      />
     </>
   );
 }
