@@ -303,6 +303,7 @@ model Employee {
   exitRecord           EmployeeExit?
   salaryHistory        SalaryHistory[]
   bonuses              Bonus[]
+  adjustments          Adjustment[]
   expenses             Expense[]             @relation("SubmittedBy")
   payrollItems         PayrollItem[]
   commissions          Commission[]
@@ -819,6 +820,31 @@ model Commission {
   employee Employee @relation(fields: [employeeId], references: [id])
 
   @@map("commissions")
+}
+
+// Positive correction to an employee's pay for a specific period —
+// retro pay, missed overtime backpay, owed allowance, etc. Mirrors
+// Bonus structurally but is semantically distinct: a Bonus is a
+// discretionary award, an Adjustment is "we underpaid you, here's
+// the fix." Keeping them apart preserves audit clarity.
+model Adjustment {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("PKR")
+  reason      String // e.g., "Retro pay May", "Missed overtime Apr"
+  period      String?  // e.g., "2026-05" — optional but encouraged
+  awardedDate DateTime @default(now())
+  isPaid      Boolean  @default(false)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@index([employeeId])
+  @@index([awardedDate])
+  @@map("adjustments")
 }
 
 // One-time bonus awarded to an employee. Distinct from Commission

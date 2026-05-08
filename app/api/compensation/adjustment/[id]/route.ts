@@ -2,15 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser, COMPENSATION_EDIT_ROLES } from '@/lib/auth';
 
-const ALLOWED_TYPES = new Set([
-  'TAX',
-  'LOAN',
-  'ADVANCE',
-  'INSURANCE',
-  'HEALTH_INSURANCE',
-  'OTHER',
-]);
-
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
@@ -21,8 +12,9 @@ export async function PATCH(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   const id = parseInt(params.id);
-  if (!Number.isFinite(id))
+  if (!Number.isFinite(id)) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+  }
   const body = await request.json();
   const data: any = {};
   if (body.amount != null) {
@@ -32,20 +24,20 @@ export async function PATCH(
     data.amount = n;
   }
   if (body.currency != null) data.currency = body.currency === 'USD' ? 'USD' : 'PKR';
-  if (body.deductionType != null) {
-    const t = String(body.deductionType).toUpperCase();
-    if (!ALLOWED_TYPES.has(t))
-      return NextResponse.json(
-        { error: `deductionType must be one of ${Array.from(ALLOWED_TYPES).join(', ')}` },
-        { status: 400 },
-      );
-    data.deductionType = t;
+  if (body.reason != null) data.reason = String(body.reason).trim();
+  if (body.period !== undefined)
+    data.period = body.period ? String(body.period).trim() : null;
+  if (body.awardedDate != null) {
+    const d = new Date(body.awardedDate);
+    if (Number.isNaN(d.getTime()))
+      return NextResponse.json({ error: 'invalid awardedDate' }, { status: 400 });
+    data.awardedDate = d;
   }
-  if (body.description !== undefined)
-    data.description = body.description ? String(body.description).trim() : null;
-  if (body.period != null) data.period = String(body.period).trim();
+  if (body.isPaid != null) data.isPaid = !!body.isPaid;
+  if (body.notes !== undefined)
+    data.notes = body.notes ? String(body.notes).trim() : null;
 
-  const updated = await prisma.deduction.update({ where: { id }, data });
+  const updated = await prisma.adjustment.update({ where: { id }, data });
   return NextResponse.json(updated);
 }
 
@@ -61,6 +53,6 @@ export async function DELETE(
   const id = parseInt(params.id);
   if (!Number.isFinite(id))
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
-  await prisma.deduction.delete({ where: { id } });
+  await prisma.adjustment.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }

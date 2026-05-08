@@ -3,26 +3,15 @@ import { prisma } from '@/lib/prisma';
 import { getSessionUser, COMPENSATION_EDIT_ROLES } from '@/lib/auth';
 
 /**
- * POST /api/compensation/deduction
+ * POST /api/compensation/adjustment
  *
- * Records a one-time deduction for a specific period — typically a
- * loan installment, an advance recovery, or an absence-related
- * deduction. Deductions are entered manually each cycle (no
- * auto-recurring) per the product spec.
+ * Records a positive pay correction (retro pay, owed overtime, etc).
+ * Mirrors the Bonus shape; kept separate so audit-trail can tell a
+ * "discretionary award" from a "we underpaid you" event.
  *
- * Body: employeeId, amount, currency?, deductionType, description?,
- *       period
+ * Body: employeeId, amount, currency?, reason, period?, awardedDate?,
+ *       isPaid?, notes?
  */
-
-const ALLOWED_TYPES = new Set([
-  'TAX',
-  'LOAN',
-  'ADVANCE',
-  'INSURANCE',
-  'HEALTH_INSURANCE',
-  'OTHER',
-]);
-
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -34,16 +23,20 @@ export async function POST(request: NextRequest) {
   const employeeId = parseInt(body?.employeeId);
   const amount = Number(body?.amount);
   const currency = body?.currency === 'USD' ? 'USD' : 'PKR';
-  const deductionType: string =
-    typeof body?.deductionType === 'string'
-      ? body.deductionType.toUpperCase()
-      : '';
-  const description: string | null =
-    typeof body?.description === 'string' && body.description.trim()
-      ? body.description.trim()
+  const reason: string =
+    typeof body?.reason === 'string' ? body.reason.trim() : '';
+  const period: string | null =
+    typeof body?.period === 'string' && body.period.trim()
+      ? body.period.trim()
       : null;
-  const period: string =
-    typeof body?.period === 'string' ? body.period.trim() : '';
+  const awardedDate = body?.awardedDate
+    ? new Date(body.awardedDate)
+    : new Date();
+  const isPaid = body?.isPaid === true;
+  const notes: string | null =
+    typeof body?.notes === 'string' && body.notes.trim()
+      ? body.notes.trim()
+      : null;
 
   if (!Number.isFinite(employeeId)) {
     return NextResponse.json({ error: 'employeeId is required' }, { status: 400 });
@@ -54,17 +47,15 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
-  if (!ALLOWED_TYPES.has(deductionType)) {
+  if (!reason) {
     return NextResponse.json(
-      {
-        error: `deductionType must be one of ${Array.from(ALLOWED_TYPES).join(', ')}`,
-      },
+      { error: 'reason is required (e.g. "Retro pay May 2026")' },
       { status: 400 },
     );
   }
-  if (!period) {
+  if (Number.isNaN(awardedDate.getTime())) {
     return NextResponse.json(
-      { error: 'period is required (e.g. "2026-05")' },
+      { error: 'awardedDate is not a valid date' },
       { status: 400 },
     );
   }
@@ -77,8 +68,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
   }
 
-  const created = await prisma.deduction.create({
-    data: { employeeId, amount, currency, deductionType, description, period },
+  const created = await prisma.adjustment.create({
+    data: {
+      employeeId,
+      amount,
+      currency,
+      reason,
+      period,
+      awardedDate,
+      isPaid,
+      notes,
+    },
   });
 
   return NextResponse.json(created, { status: 201 });

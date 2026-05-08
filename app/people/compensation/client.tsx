@@ -25,6 +25,8 @@ interface RegisterRow {
   name: string;
   designation: string | null;
   isActive: boolean;
+  monthlyPayablePkr: number;
+  monthlyPayableUsd: number;
   department: { id: number; name: string } | null;
   currentBase: number | null;
   currentCurrency: string | null;
@@ -56,15 +58,21 @@ export default function CompensationRegisterClient({
   // Click a Monthly Base KPI tile to scope the table to that
   // currency. 'all' = no scope. Same tile clicked twice clears.
   const [currencyFilter, setCurrencyFilter] = useState<'all' | 'PKR' | 'USD'>('all');
+  // Period for the "Monthly payable" column. Defaults to current
+  // month so HR sees this month's totals without picking.
+  const [payablePeriod, setPayablePeriod] = useState(() =>
+    new Date().toISOString().slice(0, 7),
+  );
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     (async () => {
       try {
-        const url = includeInactive
-          ? '/api/compensation/register?includeInactive=1'
-          : '/api/compensation/register';
+        const params = new URLSearchParams();
+        if (includeInactive) params.set('includeInactive', '1');
+        if (payablePeriod) params.set('period', payablePeriod);
+        const url = `/api/compensation/register?${params.toString()}`;
         const res = await fetch(url);
         // Read as text first so a 500 with an empty body doesn't
         // surface as "Unexpected end of JSON input" — we'd rather
@@ -84,7 +92,14 @@ export default function CompensationRegisterClient({
               `Failed to load (HTTP ${res.status}). The server didn't return a message.`,
           );
         }
-        if (!cancelled) setRows(Array.isArray(data) ? data : []);
+        // API now returns { period, rows } — older shape was a bare
+        // array. Handle both for forward compatibility.
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.rows)
+            ? data.rows
+            : [];
+        if (!cancelled) setRows(list);
       } catch (err) {
         if (!cancelled)
           setError(err instanceof Error ? err.message : 'Failed to load');
@@ -95,7 +110,7 @@ export default function CompensationRegisterClient({
     return () => {
       cancelled = true;
     };
-  }, [includeInactive]);
+  }, [includeInactive, payablePeriod]);
 
   const departments = useMemo(() => {
     const set = new Map<number, string>();
@@ -202,6 +217,16 @@ export default function CompensationRegisterClient({
     {
       header: 'YTD Commission USD',
       value: (r) => r.ytdCommissionUsd || '',
+      align: 'right',
+    },
+    {
+      header: `${payablePeriod} Payable PKR`,
+      value: (r) => Math.round(r.monthlyPayablePkr) || '',
+      align: 'right',
+    },
+    {
+      header: `${payablePeriod} Payable USD`,
+      value: (r) => Math.round(r.monthlyPayableUsd) || '',
       align: 'right',
     },
   ];
@@ -370,6 +395,15 @@ export default function CompensationRegisterClient({
           />
           Include inactive
         </label>
+        <div className="flex items-center gap-1.5 text-[12.5px] text-core-text2">
+          <span className="text-core-text3">Payable period</span>
+          <input
+            type="month"
+            value={payablePeriod}
+            onChange={(e) => setPayablePeriod(e.target.value)}
+            className="h-9 rounded-lg border border-core-border bg-core-surface px-2"
+          />
+        </div>
         <div className="ml-auto flex items-center gap-1.5">
           <button
             onClick={handleCsv}
@@ -420,6 +454,7 @@ export default function CompensationRegisterClient({
                   'Last Raise',
                   'YTD Bonus',
                   'YTD Commission',
+                  `${payablePeriod} Payable`,
                 ].map((h) => (
                   <th
                     key={h}
@@ -434,13 +469,13 @@ export default function CompensationRegisterClient({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-core-text3">
+                  <td colSpan={7} className="py-8 text-center text-core-text3">
                     Loading…
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-core-text3">
+                  <td colSpan={7} className="py-12 text-center text-core-text3">
                     No employees match these filters.
                   </td>
                 </tr>
@@ -518,6 +553,24 @@ export default function CompensationRegisterClient({
                             ) : null}
                             {r.ytdCommissionUsd ? (
                               <div>USD {r.ytdCommissionUsd.toLocaleString()}</div>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <span className="text-core-text3">—</span>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-[12px] py-[8px] text-right font-mono text-[12px] font-semibold">
+                        {r.monthlyPayablePkr || r.monthlyPayableUsd ? (
+                          <div>
+                            {r.monthlyPayablePkr ? (
+                              <div className="text-core-text">
+                                PKR {Math.round(r.monthlyPayablePkr).toLocaleString()}
+                              </div>
+                            ) : null}
+                            {r.monthlyPayableUsd ? (
+                              <div className="text-core-text">
+                                USD {Math.round(r.monthlyPayableUsd).toLocaleString()}
+                              </div>
                             ) : null}
                           </div>
                         ) : (

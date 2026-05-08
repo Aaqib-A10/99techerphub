@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, Badge } from '@/app/components/design';
 import AddCompensationModal, {
   CompType,
@@ -33,6 +33,16 @@ interface SalaryRow {
 }
 
 interface BonusRow {
+  id: number;
+  amount: string;
+  currency: string;
+  reason: string;
+  period: string | null;
+  awardedDate: string;
+  isPaid: boolean;
+}
+
+interface AdjustmentRow {
   id: number;
   amount: string;
   currency: string;
@@ -96,6 +106,7 @@ interface Bundle {
   };
   salaryHistory: SalaryRow[];
   bonuses: BonusRow[];
+  adjustments: AdjustmentRow[];
   commissions: CommissionRow[];
   deductions: DeductionRow[];
   billingSplits: BillingSplitMini[];
@@ -174,6 +185,99 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
   const fmt = (n: number, ccy: string) =>
     `${ccy} ${Number(n || 0).toLocaleString()}`;
 
+  // ---- Monthly Payable computation ----------------------------
+  // Pure calc, no FX conversion. PKR + USD totals stay separate.
+  // Inputs (per period):
+  //   + Base salary (active SalaryHistory in this period)
+  //   + Bonuses awarded in this month
+  //   + Commissions for this period (period column matches YYYY-MM)
+  //   + Adjustments for this period
+  //   - Deductions for this period
+  // ------------------------------------------------------------
+  const [payablePeriod, setPayablePeriod] = useState(() =>
+    new Date().toISOString().slice(0, 7),
+  );
+
+  const payable = useMemo(() => {
+    const [py, pm] = payablePeriod.split('-').map((s) => parseInt(s));
+    const monthStart = new Date(py, pm - 1, 1);
+    const monthEnd = new Date(py, pm, 0, 23, 59, 59, 999);
+
+    // Pick the salary row that was active at any point during the
+    // requested month — covers raises mid-period by taking the row
+    // that overlaps the period at month-end.
+    const activeBase = data.salaryHistory.find((s) => {
+      const from = new Date(s.effectiveFrom);
+      const to = s.effectiveTo ? new Date(s.effectiveTo) : null;
+      return from <= monthEnd && (to == null || to >= monthStart);
+    });
+
+    let basePkr = 0;
+    let baseUsd = 0;
+    if (activeBase) {
+      const v = Number(activeBase.baseSalary) || 0;
+      if (activeBase.currency === 'USD') baseUsd = v;
+      else basePkr = v;
+    }
+
+    const sumByCurrency = (
+      arr: { amount: string; currency: string }[],
+    ): { pkr: number; usd: number } => {
+      let pkr = 0;
+      let usd = 0;
+      for (const r of arr) {
+        const n = Number(r.amount) || 0;
+        if (r.currency === 'USD') usd += n;
+        else pkr += n;
+      }
+      return { pkr, usd };
+    };
+
+    const inMonth = (iso: string) => {
+      const d = new Date(iso);
+      return d >= monthStart && d <= monthEnd;
+    };
+
+    const bonuses = sumByCurrency(
+      data.bonuses.filter((b) => inMonth(b.awardedDate)),
+    );
+    const adjustments = sumByCurrency(
+      data.adjustments.filter((a) => inMonth(a.awardedDate)),
+    );
+    const commissions = sumByCurrency(
+      data.commissions.filter((c) => c.period === payablePeriod),
+    );
+    const deductions = sumByCurrency(
+      data.deductions.filter((d) => d.period === payablePeriod),
+    );
+
+    const netPkr = basePkr + bonuses.pkr + adjustments.pkr + commissions.pkr - deductions.pkr;
+    const netUsd = baseUsd + bonuses.usd + adjustments.usd + commissions.usd - deductions.usd;
+
+    return {
+      basePkr,
+      baseUsd,
+      bonuses,
+      adjustments,
+      commissions,
+      deductions,
+      netPkr,
+      netUsd,
+      hasAnyValue: !!(
+        basePkr ||
+        baseUsd ||
+        bonuses.pkr ||
+        bonuses.usd ||
+        adjustments.pkr ||
+        adjustments.usd ||
+        commissions.pkr ||
+        commissions.usd ||
+        deductions.pkr ||
+        deductions.usd
+      ),
+    };
+  }, [payablePeriod, data]);
+
   return (
     <div className="space-y-4">
       {/* Current Compensation Card */}
@@ -240,6 +344,34 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
             sub="This calendar year"
           />
         </div>
+      </Card>
+
+      {/* Monthly Payable — what HR cuts to this person for the
+          chosen period. PKR and USD totals stay separate (no FX);
+          the breakdown below is auditable line-by-line. */}
+      <Card
+        title="Monthly Payable"
+        subtitle="Base + bonus + commission + adjustment − deduction, per currency"
+        action={
+          <input
+            type="month"
+            value={payablePeriod}
+            onChange={(e) => setPayablePeriod(e.target.value)}
+            className="h-9 rounded-md border border-core-border bg-core-surface px-2 text-[12.5px]"
+          />
+        }
+        padded
+      >
+        {!payable.hasAnyValue ? (
+          <p className="py-3 text-center text-[12.5px] text-core-text3">
+            No payable items recorded for {payablePeriod}.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <PayableColumn currency="PKR" payable={payable} pickPkr />
+            <PayableColumn currency="USD" payable={payable} pickPkr={false} />
+          </div>
+        )}
       </Card>
 
       {/* Billing splits banner — informational, points HR at the
@@ -467,9 +599,74 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
         )}
       </SectionCard>
 
+      {/* Adjustments — positive corrections (retro pay, owed
+          overtime). Mirrors the Bonus section structurally; lives
+          in its own block so audit-trail can tell discretionary
+          awards from underpayment fixes. */}
+      <SectionCard
+        title="Adjustments"
+        subtitle={
+          data.adjustments.length === 0
+            ? 'No adjustments recorded'
+            : `${data.adjustments.length} ${data.adjustments.length === 1 ? 'entry' : 'entries'}`
+        }
+        canEdit={canEdit}
+        onAdd={() => setAddType('adjustment')}
+        addLabel="+ Add Adjustment"
+      >
+        {data.adjustments.length === 0 ? (
+          <Empty>No adjustments recorded.</Empty>
+        ) : (
+          <div className="divide-y divide-core-border">
+            {data.adjustments.map((a) => (
+              <div
+                key={a.id}
+                className="flex items-center justify-between gap-4 py-[10px]"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[13px] font-semibold text-core-text">
+                      {a.currency} {Number(a.amount).toLocaleString()}
+                    </span>
+                    {a.isPaid ? (
+                      <Badge tone="green">Paid</Badge>
+                    ) : (
+                      <Badge tone="amber">Unpaid</Badge>
+                    )}
+                  </div>
+                  <div className="mt-[2px] text-[11.5px] text-core-text3">
+                    {new Date(a.awardedDate).toLocaleDateString()} ·{' '}
+                    {a.reason}
+                    {a.period ? ` (${a.period})` : ''}
+                  </div>
+                </div>
+                {canEdit && (
+                  <div className="flex items-center gap-3 text-[11.5px]">
+                    <button
+                      onClick={() =>
+                        setEditing({ type: 'adjustment', id: a.id, data: a })
+                      }
+                      className="text-core-text2 hover:text-core-text"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete('adjustment', a.id)}
+                      className="text-core-text3 hover:text-core-roseFg"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
       {/* Deductions */}
       <SectionCard
-        title="Deductions / Adjustments"
+        title="Deductions"
         subtitle={
           data.deductions.length === 0
             ? 'No deductions recorded'
@@ -612,6 +809,114 @@ function Empty({ children }: { children: React.ReactNode }) {
   return (
     <div className="py-4 text-center text-[12px] text-core-text3">
       {children}
+    </div>
+  );
+}
+
+/**
+ * One currency column inside the Monthly Payable card. Pure
+ * presentation — the math happened in the parent useMemo.
+ */
+function PayableColumn({
+  currency,
+  payable,
+  pickPkr,
+}: {
+  currency: 'PKR' | 'USD';
+  payable: any;
+  pickPkr: boolean;
+}) {
+  const pick = (obj: { pkr: number; usd: number }) =>
+    pickPkr ? obj.pkr : obj.usd;
+  const base = pickPkr ? payable.basePkr : payable.baseUsd;
+  const bonuses = pick(payable.bonuses);
+  const adjustments = pick(payable.adjustments);
+  const commissions = pick(payable.commissions);
+  const deductions = pick(payable.deductions);
+  const net = pickPkr ? payable.netPkr : payable.netUsd;
+
+  // Skip the whole column when there's nothing in this currency for
+  // the period — keeps the card tight when an employee is single-
+  // currency.
+  if (
+    !base &&
+    !bonuses &&
+    !adjustments &&
+    !commissions &&
+    !deductions
+  ) {
+    return null;
+  }
+
+  const fmt = (n: number) =>
+    `${currency} ${Math.round(n).toLocaleString()}`;
+
+  return (
+    <div className="rounded-xl border border-core-border bg-core-surface2 p-4">
+      <div
+        className="mb-3 text-[10px] font-bold uppercase tracking-wider text-core-text3"
+        style={{ letterSpacing: '0.08em' }}
+      >
+        {currency} payable
+      </div>
+      <div className="space-y-1.5 text-[12.5px]">
+        <PayableLine label="Base" value={fmt(base)} />
+        {bonuses > 0 && (
+          <PayableLine label="+ Bonuses" value={fmt(bonuses)} tone="green" />
+        )}
+        {commissions > 0 && (
+          <PayableLine
+            label="+ Commissions"
+            value={fmt(commissions)}
+            tone="green"
+          />
+        )}
+        {adjustments > 0 && (
+          <PayableLine
+            label="+ Adjustments"
+            value={fmt(adjustments)}
+            tone="green"
+          />
+        )}
+        {deductions > 0 && (
+          <PayableLine
+            label="− Deductions"
+            value={fmt(deductions)}
+            tone="rose"
+          />
+        )}
+      </div>
+      <div className="mt-3 flex items-baseline justify-between border-t border-core-border pt-2">
+        <span className="text-[11.5px] font-semibold uppercase tracking-wider text-core-text2">
+          Net payable
+        </span>
+        <span className="font-mono text-[18px] font-semibold tabular-nums text-core-text">
+          {fmt(net)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function PayableLine({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: 'green' | 'rose';
+}) {
+  const cls =
+    tone === 'green'
+      ? 'text-core-greenFg'
+      : tone === 'rose'
+        ? 'text-core-roseFg'
+        : 'text-core-text';
+  return (
+    <div className="flex items-baseline justify-between">
+      <span className="text-core-text3">{label}</span>
+      <span className={`font-mono tabular-nums ${cls}`}>{value}</span>
     </div>
   );
 }

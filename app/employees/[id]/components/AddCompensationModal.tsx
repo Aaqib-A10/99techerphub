@@ -20,7 +20,12 @@ import { useState } from 'react';
  * POST. Otherwise it's the original create flow.
  */
 
-export type CompType = 'salary' | 'bonus' | 'commission' | 'deduction';
+export type CompType =
+  | 'salary'
+  | 'bonus'
+  | 'commission'
+  | 'deduction'
+  | 'adjustment';
 
 interface Props {
   employeeId: number;
@@ -40,6 +45,7 @@ const CREATE_TITLES: Record<CompType, string> = {
   bonus: 'Add Bonus',
   commission: 'Add Commission',
   deduction: 'Add Deduction',
+  adjustment: 'Add Adjustment',
 };
 
 const EDIT_TITLES: Record<CompType, string> = {
@@ -47,9 +53,17 @@ const EDIT_TITLES: Record<CompType, string> = {
   bonus: 'Edit Bonus',
   commission: 'Edit Commission',
   deduction: 'Edit Deduction',
+  adjustment: 'Edit Adjustment',
 };
 
-const DEDUCTION_TYPES = ['TAX', 'LOAN', 'ADVANCE', 'INSURANCE', 'OTHER'];
+const DEDUCTION_TYPES = [
+  'TAX',
+  'LOAN',
+  'ADVANCE',
+  'INSURANCE',
+  'HEALTH_INSURANCE',
+  'OTHER',
+];
 
 // Pull a YYYY-MM-DD slice safely off either an ISO string or Date.
 function toDateInput(v: any): string {
@@ -104,7 +118,9 @@ export default function AddCompensationModal({
         notes: '',
       };
     }
-    if (type === 'bonus') {
+    if (type === 'bonus' || type === 'adjustment') {
+      // Adjustment and Bonus share the form shape exactly — only the
+      // semantic and the API endpoint differ.
       return {
         amount: String(d.amount ?? ''),
         currency: (d.currency === 'USD' ? 'USD' : 'PKR') as 'PKR' | 'USD',
@@ -112,7 +128,7 @@ export default function AddCompensationModal({
         awardedDate: toDateInput(d.awardedDate) || today,
         reason: d.reason ?? '',
         description: '',
-        period: d.period ?? '',
+        period: d.period ?? (type === 'adjustment' ? currentPeriod : ''),
         isPaid: !!d.isPaid,
         deductionType: 'OTHER',
         notes: d.notes ?? '',
@@ -172,7 +188,7 @@ export default function AddCompensationModal({
       body.baseSalary = amount;
       body.reason = form.reason || null;
       delete body.amount;
-    } else if (type === 'bonus') {
+    } else if (type === 'bonus' || type === 'adjustment') {
       body.reason = form.reason;
       body.awardedDate = new Date(form.awardedDate).toISOString();
       body.period = form.period || null;
@@ -304,7 +320,7 @@ export default function AddCompensationModal({
               </>
             )}
 
-            {type === 'bonus' && (
+            {(type === 'bonus' || type === 'adjustment') && (
               <>
                 <div>
                   <label className="form-label">Reason *</label>
@@ -312,7 +328,11 @@ export default function AddCompensationModal({
                     type="text"
                     value={form.reason}
                     onChange={(e) => upd({ reason: e.target.value })}
-                    placeholder='e.g. "Eid bonus 2026", "Q1 performance"'
+                    placeholder={
+                      type === 'adjustment'
+                        ? 'e.g. "Retro pay May 2026", "Owed overtime Apr"'
+                        : 'e.g. "Eid bonus 2026", "Q1 performance"'
+                    }
                     className="form-input"
                     required
                   />

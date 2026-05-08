@@ -28,6 +28,19 @@ export async function GET(request: NextRequest) {
 
   const yearStart = new Date(new Date().getFullYear(), 0, 1);
 
+  // ?period=YYYY-MM scopes the "Monthly payable" column to that month.
+  // Defaults to current month so the register's headline number is
+  // "this month's payable" without any clicks.
+  const periodRaw = request.nextUrl.searchParams.get('period');
+  const now = new Date();
+  const period =
+    periodRaw && /^\d{4}-\d{2}$/.test(periodRaw)
+      ? periodRaw
+      : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const [py, pm] = period.split('-').map((s) => parseInt(s));
+  const monthStart = new Date(py, pm - 1, 1);
+  const monthEnd = new Date(py, pm, 0, 23, 59, 59, 999);
+
   // ?includeInactive=1 expands the list to exited employees so HR can
   // pull comp history for off-boarded staff. Default off — the
   // typical view is "people we currently pay".
@@ -60,11 +73,19 @@ export async function GET(request: NextRequest) {
       },
       bonuses: {
         where: { awardedDate: { gte: yearStart } },
-        select: { amount: true, currency: true },
+        select: { amount: true, currency: true, awardedDate: true },
+      },
+      adjustments: {
+        where: { awardedDate: { gte: yearStart } },
+        select: { amount: true, currency: true, awardedDate: true, period: true },
       },
       commissions: {
         where: { createdAt: { gte: yearStart } },
-        select: { amount: true, currency: true },
+        select: { amount: true, currency: true, period: true },
+      },
+      deductions: {
+        where: { createdAt: { gte: yearStart } },
+        select: { amount: true, currency: true, period: true },
       },
     },
     orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
@@ -90,6 +111,43 @@ export async function GET(request: NextRequest) {
     const ytdBonus = sumByCurrency(e.bonuses);
     const ytdCommission = sumByCurrency(e.commissions);
 
+    // ----- Monthly payable for the chosen period --------------
+    // Same formula the per-employee Compensation tab uses.
+    // Currency-aware, no FX conversion.
+    const monthBase = active
+      ? {
+          pkr: active.currency === 'PKR' ? Number(active.baseSalary) : 0,
+          usd: active.currency === 'USD' ? Number(active.baseSalary) : 0,
+        }
+      : { pkr: 0, usd: 0 };
+    const inMonth = (d: Date | null | undefined) =>
+      d ? new Date(d) >= monthStart && new Date(d) <= monthEnd : false;
+
+    const monthBonus = sumByCurrency(
+      e.bonuses.filter((b) => inMonth(b.awardedDate as any)),
+    );
+    const monthAdj = sumByCurrency(
+      e.adjustments.filter((a) => inMonth(a.awardedDate as any)),
+    );
+    const monthComm = sumByCurrency(
+      e.commissions.filter((c) => c.period === period),
+    );
+    const monthDed = sumByCurrency(
+      e.deductions.filter((d) => d.period === period),
+    );
+    const monthlyPayablePkr =
+      monthBase.pkr +
+      monthBonus.pkr +
+      monthAdj.pkr +
+      monthComm.pkr -
+      monthDed.pkr;
+    const monthlyPayableUsd =
+      monthBase.usd +
+      monthBonus.usd +
+      monthAdj.usd +
+      monthComm.usd -
+      monthDed.usd;
+
     return {
       employeeId: e.id,
       empCode: e.empCode,
@@ -112,10 +170,12 @@ export async function GET(request: NextRequest) {
       ytdBonusUsd: ytdBonus.usd,
       ytdCommissionPkr: ytdCommission.pkr,
       ytdCommissionUsd: ytdCommission.usd,
+      monthlyPayablePkr,
+      monthlyPayableUsd,
     };
   });
 
-  return NextResponse.json(rows);
+  return NextResponse.json({ period, rows });
   } catch (err: any) {
     // Without this catch a Prisma / runtime error becomes an empty
     // 500 and the client surfaces "Unexpected end of JSON input"

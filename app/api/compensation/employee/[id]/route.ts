@@ -49,6 +49,7 @@ export async function GET(
     employee,
     salaryHistory,
     bonuses,
+    adjustments,
     commissions,
     deductions,
     billingSplits,
@@ -69,6 +70,10 @@ export async function GET(
       orderBy: { effectiveFrom: 'desc' },
     }),
     prisma.bonus.findMany({
+      where: { employeeId },
+      orderBy: { awardedDate: 'desc' },
+    }),
+    prisma.adjustment.findMany({
       where: { employeeId },
       orderBy: { awardedDate: 'desc' },
     }),
@@ -143,6 +148,7 @@ export async function GET(
     },
     salaryHistory,
     bonuses,
+    adjustments,
     commissions,
     deductions,
     billingSplits,
