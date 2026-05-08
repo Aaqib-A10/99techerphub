@@ -18,7 +18,7 @@ import { getSessionUser, COMPENSATION_VIEW_ROLES } from '@/lib/auth';
  *
  * HR + Admin + Accountant only. Other roles get 403.
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -28,17 +28,24 @@ export async function GET(_request: NextRequest) {
 
   const yearStart = new Date(new Date().getFullYear(), 0, 1);
 
-  // Fetch all active employees with their compensation slices in one
-  // batched query — Prisma's nested include keeps this to a single
+  // ?includeInactive=1 expands the list to exited employees so HR can
+  // pull comp history for off-boarded staff. Default off — the
+  // typical view is "people we currently pay".
+  const includeInactive =
+    request.nextUrl.searchParams.get('includeInactive') === '1';
+
+  // Fetch employees with their compensation slices in one batched
+  // query — Prisma's nested include keeps this to a single
   // round-trip instead of N+1.
   const employees = await prisma.employee.findMany({
-    where: { isActive: true },
+    where: includeInactive ? {} : { isActive: true },
     select: {
       id: true,
       empCode: true,
       firstName: true,
       lastName: true,
       designation: true,
+      isActive: true,
       department: { select: { id: true, name: true } },
       salaryHistory: {
         select: {
@@ -88,6 +95,7 @@ export async function GET(_request: NextRequest) {
       empCode: e.empCode,
       name: `${e.firstName} ${e.lastName}`,
       designation: e.designation,
+      isActive: e.isActive,
       department: e.department,
       currentBase: active ? Number(active.baseSalary) : null,
       currentCurrency: active?.currency ?? null,

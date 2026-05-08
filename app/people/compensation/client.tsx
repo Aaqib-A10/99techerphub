@@ -24,6 +24,7 @@ interface RegisterRow {
   empCode: string;
   name: string;
   designation: string | null;
+  isActive: boolean;
   department: { id: number; name: string } | null;
   currentBase: number | null;
   currentCurrency: string | null;
@@ -49,12 +50,19 @@ export default function CompensationRegisterClient({
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('');
+  // Default off — most views are "people we pay today". Toggle on to
+  // pull off-boarded employees too (HR archive use case).
+  const [includeInactive, setIncludeInactive] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     (async () => {
       try {
-        const res = await fetch('/api/compensation/register');
+        const url = includeInactive
+          ? '/api/compensation/register?includeInactive=1'
+          : '/api/compensation/register';
+        const res = await fetch(url);
         // Read as text first so a 500 with an empty body doesn't
         // surface as "Unexpected end of JSON input" — we'd rather
         // show the HTTP status to the user.
@@ -84,7 +92,7 @@ export default function CompensationRegisterClient({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [includeInactive]);
 
   const departments = useMemo(() => {
     const set = new Map<number, string>();
@@ -106,23 +114,30 @@ export default function CompensationRegisterClient({
   }, [rows, search, department]);
 
   // KPI strip: a quick read on the org-wide compensation footprint.
-  // PKR and USD totals are kept separate (no FX conversion).
+  // PKR and USD totals are kept separate (no FX conversion). Counts
+  // are per-currency too — "121 employees on PKR payroll" used to
+  // misreport the total across both currencies.
   const kpis = useMemo(() => {
     let basePkr = 0;
     let baseUsd = 0;
-    let withSalary = 0;
+    let pkrCount = 0;
+    let usdCount = 0;
     let bonusPkr = 0;
     let bonusUsd = 0;
     for (const r of filtered) {
       if (r.currentBase != null) {
-        withSalary++;
-        if (r.currentCurrency === 'USD') baseUsd += r.currentBase;
-        else basePkr += r.currentBase;
+        if (r.currentCurrency === 'USD') {
+          baseUsd += r.currentBase;
+          usdCount++;
+        } else {
+          basePkr += r.currentBase;
+          pkrCount++;
+        }
       }
       bonusPkr += r.ytdBonusPkr;
       bonusUsd += r.ytdBonusUsd;
     }
-    return { basePkr, baseUsd, withSalary, bonusPkr, bonusUsd };
+    return { basePkr, baseUsd, pkrCount, usdCount, bonusPkr, bonusUsd };
   }, [filtered]);
 
   const exportColumns: ColumnDef<RegisterRow>[] = [
@@ -232,19 +247,30 @@ export default function CompensationRegisterClient({
         </p>
       </div>
 
-      {/* KPI strip — PKR and USD separately, never converted */}
+      {/* KPI strip — PKR and USD separately, never converted. Counts
+          are per-currency so the meta line on the PKR tile actually
+          tells you how many people are paid in PKR (not the
+          combined total across both currencies). */}
       <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiTile
           tone="green"
           label="Monthly base · PKR"
           value={`PKR ${kpis.basePkr.toLocaleString()}`}
-          meta={`${kpis.withSalary} employees on payroll`}
+          meta={
+            kpis.pkrCount === 0
+              ? 'No PKR-paid employees'
+              : `${kpis.pkrCount} ${kpis.pkrCount === 1 ? 'employee' : 'employees'} on PKR payroll`
+          }
         />
         <KpiTile
           tone="blue"
           label="Monthly base · USD"
           value={`USD ${kpis.baseUsd.toLocaleString()}`}
-          meta="Aggregate"
+          meta={
+            kpis.usdCount === 0
+              ? 'No USD-paid employees'
+              : `${kpis.usdCount} ${kpis.usdCount === 1 ? 'employee' : 'employees'} on USD payroll`
+          }
         />
         <KpiTile
           tone="amber"
@@ -281,6 +307,16 @@ export default function CompensationRegisterClient({
             </option>
           ))}
         </select>
+        <label className="flex items-center gap-1.5 text-[12.5px] text-core-text2">
+          <input
+            type="checkbox"
+            checked={includeInactive}
+            onChange={(e) => setIncludeInactive(e.target.checked)}
+            className="h-3.5 w-3.5"
+            style={{ accentColor: '#1F2320' }}
+          />
+          Include inactive
+        </label>
         <div className="ml-auto flex items-center gap-1.5">
           <button
             onClick={handleCsv}
@@ -356,8 +392,11 @@ export default function CompensationRegisterClient({
                       className="cursor-pointer transition-colors hover:bg-core-surface2"
                     >
                       <td className="px-[12px] py-[8px]">
-                        <div className="font-medium text-core-text">
-                          {r.name}
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-core-text">
+                            {r.name}
+                          </span>
+                          {!r.isActive && <Badge tone="gray">Inactive</Badge>}
                         </div>
                         <div className="mt-[1px] font-mono text-[10.5px] text-core-text3">
                           {r.empCode}
