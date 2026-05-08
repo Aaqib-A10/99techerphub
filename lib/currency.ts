@@ -89,3 +89,42 @@ export function validatePercentageSum(percentages: unknown[]): boolean {
   const totalMinor = percentages.reduce<number>((acc, v) => acc + toMinor(v), 0);
   return totalMinor === 100 * SCALE; // 10 000
 }
+
+// ---------------------------------------------------------------------------
+// USD ↔ PKR conversion for dashboard summaries
+// ---------------------------------------------------------------------------
+//
+// We do NOT convert when storing or in registers (Compensation,
+// per-employee tabs, etc) — that would lie about what people earn or
+// were billed. We DO convert on the dashboard burn / KPI tiles where
+// the user wants a single at-a-glance number across both currencies.
+//
+// Rate source priority:
+//   1. process.env.USD_TO_PKR_RATE  (set this on prod when the rate
+//      drifts; PM2 restart picks it up).
+//   2. Hardcoded fallback (the rate as of this writing, ~mid-2026).
+//
+// Refresh policy: manual. We don't pull from a live FX feed because
+// (a) the dashboard doesn't need 4-decimal precision, (b) live feeds
+// add a dependency, (c) accountants typically want a stable monthly
+// rate for reporting consistency anyway.
+
+const USD_TO_PKR_FALLBACK = 280;
+
+export function getUsdToPkrRate(): number {
+  const fromEnv = parseFloat(process.env.USD_TO_PKR_RATE || '');
+  if (Number.isFinite(fromEnv) && fromEnv > 0) return fromEnv;
+  return USD_TO_PKR_FALLBACK;
+}
+
+/**
+ * Convert a value in `currency` into PKR using the current rate. PKR
+ * passes through unchanged. Anything else than 'USD' / 'PKR' returns
+ * 0 — we don't silently misconvert unknown currencies.
+ */
+export function toPkr(amount: unknown, currency: string | null | undefined): number {
+  const major = parseCurrency(amount);
+  if (!currency || currency === 'PKR') return major;
+  if (currency === 'USD') return parseCurrency(major * getUsdToPkrRate());
+  return 0;
+}

@@ -7,6 +7,7 @@ import {
   Glyph,
 } from './design';
 import ExpenseTrendCard from './ExpenseTrendCard';
+import { getUsdToPkrRate, toPkr } from '@/lib/currency';
 
 // ============================================================================
 // 99 Hub ERP — Dashboard (Phase 2 design system)
@@ -150,8 +151,12 @@ export default async function LedgerDashboard({
         employee: { select: { firstName: true, lastName: true } },
       },
     }),
+    // Group by [category, currency] so we can show PKR and USD
+    // separately on the donut and compute a unified PKR-equivalent
+    // total via the FX rate. Cap at 10 rows pre-merge so we still
+    // have ~5 categories after currency dedup.
     prisma.expense.groupBy({
-      by: ['categoryId'],
+      by: ['categoryId', 'currency'],
       _sum: { amount: true },
       where: {
         ...expenseBase,
@@ -159,7 +164,7 @@ export default async function LedgerDashboard({
         expenseDate: { gte: monthStart },
       },
       orderBy: { _sum: { amount: 'desc' } },
-      take: 5,
+      take: 10,
     }),
   ]);
 
@@ -193,8 +198,30 @@ export default async function LedgerDashboard({
   ];
   const expenseTotal = expenseStatusData.reduce((a, e) => a + e.amount, 0);
 
-  // Burn by category totals
-  const burnTotal = burnByCategory.reduce((a, b) => a + (Number(b._sum.amount) || 0), 0);
+  // Split the (category, currency) pairs into PKR and USD slice
+  // arrays for separate donuts. Each retains the top 5 categories per
+  // currency so the chart stays legible.
+  const pkrSlices = burnByCategory
+    .filter((b) => b.currency === 'PKR')
+    .slice(0, 5)
+    .map((b) => ({
+      categoryId: b.categoryId,
+      amount: Number(b._sum.amount) || 0,
+    }));
+  const usdSlices = burnByCategory
+    .filter((b) => b.currency === 'USD')
+    .slice(0, 5)
+    .map((b) => ({
+      categoryId: b.categoryId,
+      amount: Number(b._sum.amount) || 0,
+    }));
+  const pkrTotal = pkrSlices.reduce((a, s) => a + s.amount, 0);
+  const usdTotal = usdSlices.reduce((a, s) => a + s.amount, 0);
+
+  // PKR-equivalent unified total — what the dashboard burn number
+  // should read as, using the configured USD→PKR rate.
+  const fxRate = getUsdToPkrRate();
+  const burnTotalPkrEquivalent = pkrTotal + toPkr(usdTotal, 'USD');
 
   // Merge recent expenses + assignments into a unified activity feed
   type Activity = {
@@ -448,7 +475,11 @@ export default async function LedgerDashboard({
             </div>
           </Card>
 
-          {/* Burn this month */}
+          {/* Burn this month — PKR + USD shown as two separate donuts
+              with a PKR-equivalent unified total at the top. We don't
+              merge currencies into the donuts (visually misleading)
+              but DO compute a single equivalent figure for at-a-
+              glance burn tracking, using the configured FX rate. */}
           <Card
             title="Burn this month"
             action={
@@ -461,46 +492,51 @@ export default async function LedgerDashboard({
             }
             padded
           >
-            <div className="flex items-center gap-[18px]">
-              <BurnDonut total={burnTotal} slices={burnByCategory} />
-              <div className="flex-1 space-y-2">
-                {burnByCategory.length === 0 ? (
-                  <p className="text-[12.5px] text-core-text2">
-                    No approved expenses this month yet.
-                  </p>
-                ) : (
-                  burnByCategory.map((b, i) => {
-                    const amount = Number(b._sum.amount) || 0;
-                    const pct =
-                      burnTotal > 0
-                        ? Math.round((amount / burnTotal) * 100)
-                        : 0;
-                    return (
-                      <div
-                        key={b.categoryId || i}
-                        className="flex items-center justify-between text-[12px]"
-                      >
-                        <div className="flex items-center gap-[10px]">
-                          <span
-                            className="h-2 w-2 rounded-full"
-                            style={{
-                              backgroundColor:
-                                DONUT_COLORS[i % DONUT_COLORS.length],
-                            }}
-                          />
-                          <span className="text-core-text2">
-                            {catName(b.categoryId)}
-                          </span>
-                        </div>
-                        <span className="font-medium tabular-nums text-core-text">
-                          {pct}%
-                        </span>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
+            {pkrSlices.length === 0 && usdSlices.length === 0 ? (
+              <p className="text-[12.5px] text-core-text2">
+                No approved expenses this month yet.
+              </p>
+            ) : (
+              <>
+                {/* Unified-equivalent header */}
+                <div className="mb-3 flex items-baseline justify-between border-b border-core-border pb-3">
+                  <div>
+                    <div
+                      className="text-[10px] font-bold uppercase text-core-text3"
+                      style={{ letterSpacing: '0.08em' }}
+                    >
+                      PKR equivalent
+                    </div>
+                    <div className="mt-[2px] font-mono text-[20px] font-semibold text-core-text">
+                      PKR {Math.round(burnTotalPkrEquivalent).toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="text-right text-[10.5px] text-core-text3">
+                    <div>USD = PKR {fxRate.toLocaleString()}</div>
+                    <div className="mt-[2px]">
+                      Set <span className="font-mono">USD_TO_PKR_RATE</span>{' '}
+                      env var to change
+                    </div>
+                  </div>
+                </div>
+
+                {/* Per-currency rows */}
+                <div className="space-y-3">
+                  <BurnRow
+                    currency="PKR"
+                    total={pkrTotal}
+                    slices={pkrSlices}
+                    catName={catName}
+                  />
+                  <BurnRow
+                    currency="USD"
+                    total={usdTotal}
+                    slices={usdSlices}
+                    catName={catName}
+                  />
+                </div>
+              </>
+            )}
           </Card>
         </div>
       </div>
@@ -521,12 +557,96 @@ export default async function LedgerDashboard({
 
 const DONUT_COLORS = ['#8FBF3F', '#2C6FBA', '#A66600', '#6B4CBF', '#B84477'];
 
+/**
+ * One row of the Burn widget — a small donut + the per-category
+ * percentage breakdown for ONE currency. Two of these stack inside
+ * the card (PKR + USD) so the user can see each currency's pattern
+ * without the chart trying to merge them.
+ */
+function BurnRow({
+  currency,
+  total,
+  slices,
+  catName,
+}: {
+  currency: 'PKR' | 'USD';
+  total: number;
+  slices: { categoryId: number | null; amount: number }[];
+  catName: (id: number | null) => string;
+}) {
+  if (total === 0) {
+    return (
+      <div className="flex items-center justify-between rounded-md bg-core-surface2 px-3 py-2 text-[12px] text-core-text3">
+        <span className="font-bold uppercase tracking-wider">{currency}</span>
+        <span>No approved spend</span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-[18px]">
+      <div className="flex flex-col items-center">
+        <BurnDonutSimple
+          total={total}
+          currency={currency}
+          slices={slices.map((s) => ({
+            categoryId: s.categoryId,
+            _sum: { amount: s.amount },
+          }))}
+        />
+      </div>
+      <div className="flex-1 space-y-[6px]">
+        {slices.map((s, i) => {
+          const pct = total > 0 ? Math.round((s.amount / total) * 100) : 0;
+          return (
+            <div
+              key={s.categoryId || i}
+              className="flex items-center justify-between text-[12px]"
+            >
+              <div className="flex min-w-0 items-center gap-[10px]">
+                <span
+                  className="h-2 w-2 flex-shrink-0 rounded-full"
+                  style={{ backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }}
+                />
+                <span className="truncate text-core-text2">
+                  {catName(s.categoryId)}
+                </span>
+              </div>
+              <div className="flex flex-shrink-0 items-baseline gap-2 tabular-nums">
+                <span className="font-mono text-[10.5px] text-core-text3">
+                  {currency} {s.amount.toLocaleString()}
+                </span>
+                <span className="text-[12px] font-medium text-core-text">
+                  {pct}%
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Simpler signature than BurnDonut, but same SVG shape — the original
+// BurnDonut takes Prisma's `_sum.amount` shape; this matches it so we
+// don't have to refactor.
+function BurnDonutSimple(props: {
+  total: number;
+  slices: { categoryId: number | null; _sum: { amount: any } }[];
+  currency?: 'PKR' | 'USD';
+}) {
+  return <BurnDonut {...props} />;
+}
+
 function BurnDonut({
   total,
   slices,
+  currency,
 }: {
   total: number;
   slices: { categoryId: number | null; _sum: { amount: any } }[];
+  /** Optional — when set, the inner label uses the right symbol. */
+  currency?: 'PKR' | 'USD';
 }) {
   const colors = DONUT_COLORS;
   const radius = 16;
@@ -569,8 +689,10 @@ function BurnDonut({
           })}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-mono text-[12px] font-semibold tabular-nums text-core-text">
-          {fmtMoney(total)}
+        <span className="font-mono text-[10.5px] font-semibold tabular-nums text-core-text">
+          {currency
+            ? `${currency} ${fmtCompact(total)}`
+            : fmtMoney(total)}
         </span>
         <span
           className="text-[9px] font-semibold uppercase text-core-text3"
@@ -581,6 +703,15 @@ function BurnDonut({
       </div>
     </div>
   );
+}
+
+// Currency-agnostic formatter — used when the donut already knows
+// what currency to label itself with, so we don't want $ baked in.
+function fmtCompact(n: number): string {
+  if (!n) return '0';
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1)}K`;
+  return Math.round(n).toLocaleString();
 }
 
 function fmtMoney(n: number): string {
