@@ -53,6 +53,9 @@ export default function CompensationRegisterClient({
   // Default off — most views are "people we pay today". Toggle on to
   // pull off-boarded employees too (HR archive use case).
   const [includeInactive, setIncludeInactive] = useState(false);
+  // Click a Monthly Base KPI tile to scope the table to that
+  // currency. 'all' = no scope. Same tile clicked twice clears.
+  const [currencyFilter, setCurrencyFilter] = useState<'all' | 'PKR' | 'USD'>('all');
 
   useEffect(() => {
     let cancelled = false;
@@ -102,7 +105,11 @@ export default function CompensationRegisterClient({
     return Array.from(set.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [rows]);
 
-  const filtered = useMemo(() => {
+  // Two-stage filter: `scoped` honors search + department only and
+  // drives the KPI tiles (so clicking PKR doesn't zero out the USD
+  // tile). `filtered` further applies the currency scope and drives
+  // the table.
+  const scoped = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (department && String(r.department?.id ?? '') !== department)
@@ -112,6 +119,13 @@ export default function CompensationRegisterClient({
       return hay.includes(q);
     });
   }, [rows, search, department]);
+
+  const filtered = useMemo(() => {
+    if (currencyFilter === 'all') return scoped;
+    // "no salary on record" rows are excluded from any specific-
+    // currency scope.
+    return scoped.filter((r) => r.currentCurrency === currencyFilter);
+  }, [scoped, currencyFilter]);
 
   // KPI strip: a quick read on the org-wide compensation footprint.
   // PKR and USD totals are kept separate (no FX conversion). Counts
@@ -124,7 +138,10 @@ export default function CompensationRegisterClient({
     let usdCount = 0;
     let bonusPkr = 0;
     let bonusUsd = 0;
-    for (const r of filtered) {
+    // Driven by `scoped` so clicking the PKR tile to filter the table
+    // doesn't make the USD tile read 0 — the tiles always reflect
+    // the search+department slice, currency-filter is applied below.
+    for (const r of scoped) {
       if (r.currentBase != null) {
         if (r.currentCurrency === 'USD') {
           baseUsd += r.currentBase;
@@ -138,7 +155,7 @@ export default function CompensationRegisterClient({
       bonusUsd += r.ytdBonusUsd;
     }
     return { basePkr, baseUsd, pkrCount, usdCount, bonusPkr, bonusUsd };
-  }, [filtered]);
+  }, [scoped]);
 
   const exportColumns: ColumnDef<RegisterRow>[] = [
     { header: 'Code', value: (r) => r.empCode },
@@ -248,30 +265,66 @@ export default function CompensationRegisterClient({
       </div>
 
       {/* KPI strip — PKR and USD separately, never converted. Counts
-          are per-currency so the meta line on the PKR tile actually
-          tells you how many people are paid in PKR (not the
-          combined total across both currencies). */}
+          are per-currency. The Monthly Base tiles are clickable
+          filters: clicking PKR scopes the table to PKR-paid
+          employees; clicking USD switches; clicking the active tile
+          again clears. The Bonus tiles are display-only (filtering
+          by bonus presence isn't a meaningful slice). */}
       <div className="mb-[18px] grid grid-cols-2 gap-3 md:grid-cols-4">
-        <KpiTile
-          tone="green"
-          label="Monthly base · PKR"
-          value={`PKR ${kpis.basePkr.toLocaleString()}`}
-          meta={
-            kpis.pkrCount === 0
-              ? 'No PKR-paid employees'
-              : `${kpis.pkrCount} ${kpis.pkrCount === 1 ? 'employee' : 'employees'} on PKR payroll`
+        <button
+          type="button"
+          onClick={() =>
+            setCurrencyFilter(currencyFilter === 'PKR' ? 'all' : 'PKR')
           }
-        />
-        <KpiTile
-          tone="blue"
-          label="Monthly base · USD"
-          value={`USD ${kpis.baseUsd.toLocaleString()}`}
-          meta={
-            kpis.usdCount === 0
-              ? 'No USD-paid employees'
-              : `${kpis.usdCount} ${kpis.usdCount === 1 ? 'employee' : 'employees'} on USD payroll`
+          className={`rounded-2xl text-left transition focus:outline-none ${
+            currencyFilter === 'PKR'
+              ? 'ring-2 ring-core-greenFg/60'
+              : 'hover:opacity-90'
+          }`}
+          title={
+            currencyFilter === 'PKR'
+              ? 'Click to clear PKR filter'
+              : 'Click to filter table to PKR-paid employees'
           }
-        />
+        >
+          <KpiTile
+            tone="green"
+            label="Monthly base · PKR"
+            value={`PKR ${kpis.basePkr.toLocaleString()}`}
+            meta={
+              kpis.pkrCount === 0
+                ? 'No PKR-paid employees'
+                : `${kpis.pkrCount} ${kpis.pkrCount === 1 ? 'employee' : 'employees'} on PKR payroll`
+            }
+          />
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            setCurrencyFilter(currencyFilter === 'USD' ? 'all' : 'USD')
+          }
+          className={`rounded-2xl text-left transition focus:outline-none ${
+            currencyFilter === 'USD'
+              ? 'ring-2 ring-core-blueFg/60'
+              : 'hover:opacity-90'
+          }`}
+          title={
+            currencyFilter === 'USD'
+              ? 'Click to clear USD filter'
+              : 'Click to filter table to USD-paid employees'
+          }
+        >
+          <KpiTile
+            tone="blue"
+            label="Monthly base · USD"
+            value={`USD ${kpis.baseUsd.toLocaleString()}`}
+            meta={
+              kpis.usdCount === 0
+                ? 'No USD-paid employees'
+                : `${kpis.usdCount} ${kpis.usdCount === 1 ? 'employee' : 'employees'} on USD payroll`
+            }
+          />
+        </button>
         <KpiTile
           tone="amber"
           label="YTD bonus · PKR"
@@ -342,8 +395,18 @@ export default function CompensationRegisterClient({
       )}
 
       <Card
-        title="All employees"
-        subtitle={`${filtered.length} of ${rows.length} ${rows.length === 1 ? 'record' : 'records'}`}
+        title={
+          currencyFilter === 'PKR'
+            ? 'PKR-paid employees'
+            : currencyFilter === 'USD'
+              ? 'USD-paid employees'
+              : 'All employees'
+        }
+        subtitle={
+          currencyFilter === 'all'
+            ? `${filtered.length} of ${rows.length} ${rows.length === 1 ? 'record' : 'records'}`
+            : `${filtered.length} ${filtered.length === 1 ? 'employee' : 'employees'} · click the highlighted tile to clear`
+        }
         padded={false}
       >
         <div className="overflow-x-auto">
