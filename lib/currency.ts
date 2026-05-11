@@ -102,14 +102,17 @@ export function validatePercentageSum(percentages: unknown[]): boolean {
 // Rate source priority:
 //   1. process.env.USD_TO_PKR_RATE  (set this on prod when the rate
 //      drifts; PM2 restart picks it up).
-//   2. Hardcoded fallback (the rate as of this writing, ~mid-2026).
+//   2. Hardcoded fallback (279 PKR/USD — the locked contract rate
+//      Deel uses for 99tech payouts. Update this constant if Deel
+//      renegotiates; bumping the env var on prod also works for a
+//      mid-cycle override).
 //
 // Refresh policy: manual. We don't pull from a live FX feed because
 // (a) the dashboard doesn't need 4-decimal precision, (b) live feeds
-// add a dependency, (c) accountants typically want a stable monthly
-// rate for reporting consistency anyway.
+// add a dependency, (c) accountants want a stable rate that matches
+// the contractual one used by the payment provider.
 
-const USD_TO_PKR_FALLBACK = 280;
+const USD_TO_PKR_FALLBACK = 279;
 
 export function getUsdToPkrRate(): number {
   const fromEnv = parseFloat(process.env.USD_TO_PKR_RATE || '');
