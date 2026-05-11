@@ -12,6 +12,7 @@ export default async function MasterDataPage() {
     assetCategoriesCount,
     expenseCategoriesCount,
     marketplacesCount,
+    digitalServicesCount,
   ] = await Promise.all([
     prisma.company.count(),
     prisma.department.count(),
@@ -19,6 +20,7 @@ export default async function MasterDataPage() {
     prisma.assetCategory.count(),
     prisma.expenseCategory.count(),
     prisma.marketplace.count(),
+    prisma.digitalService.count(),
   ]);
 
   const cards = [
@@ -51,6 +53,13 @@ export default async function MasterDataPage() {
       description: 'E-commerce channels assigned to employees: Amazon, Walmart, eBay, Back Market…',
       count: marketplacesCount,
       href: '/master-data/marketplaces',
+    },
+    {
+      title: 'Digital Services',
+      description:
+        'Software tools employees can request access to (Slack, Figma, AWS, etc). Set an Owner per service to auto-route approvals.',
+      count: digitalServicesCount,
+      href: '/master-data/digital-services',
     },
   ];
 
