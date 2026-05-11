@@ -134,7 +134,29 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
       const res = await fetch(`/api/compensation/employee/${employeeId}`);
       const j = await res.json();
       if (!res.ok) throw new Error(j?.error || 'Failed to load');
-      setData(j);
+      // Defensive: if the API hasn't redeployed yet, optional arrays
+      // may be missing. Default everything to empty so the tab
+      // doesn't throw on .filter / .map / .find. The page crashed
+      // mid-deploy without this guard.
+      setData({
+        ...j,
+        salaryHistory: j?.salaryHistory ?? [],
+        bonuses: j?.bonuses ?? [],
+        adjustments: j?.adjustments ?? [],
+        commissions: j?.commissions ?? [],
+        deductions: j?.deductions ?? [],
+        billingSplits: j?.billingSplits ?? [],
+        summary: j?.summary ?? {
+          currentBase: null,
+          currentCurrency: null,
+          currentSince: null,
+          lastRaise: null,
+          ytdBonusPkr: 0,
+          ytdBonusUsd: 0,
+          ytdCommissionPkr: 0,
+          ytdCommissionUsd: 0,
+        },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load');
     } finally {
@@ -169,36 +191,32 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
     }
   };
 
-  if (loading && !data) {
-    return <div className="py-12 text-center text-core-text3">Loading…</div>;
-  }
-  if (error) {
-    return (
-      <div className="rounded-lg bg-core-roseSoft p-4 text-[13px] text-core-roseFg">
-        {error}
-      </div>
-    );
-  }
-  if (!data) return null;
-
-  const { summary, canEdit } = data;
-  const fmt = (n: number, ccy: string) =>
-    `${ccy} ${Number(n || 0).toLocaleString()}`;
-
-  // ---- Monthly Payable computation ----------------------------
-  // Pure calc, no FX conversion. PKR + USD totals stay separate.
-  // Inputs (per period):
-  //   + Base salary (active SalaryHistory in this period)
-  //   + Bonuses awarded in this month
-  //   + Commissions for this period (period column matches YYYY-MM)
-  //   + Adjustments for this period
-  //   - Deductions for this period
-  // ------------------------------------------------------------
+  // Hooks must run unconditionally on every render — placing this
+  // useMemo (and the useState below) after the early-return for
+  // `if (!data) return null` was crashing the whole page on the
+  // SECOND render with "Rendered more hooks than the previous render."
+  // Order now: ALL hooks first, conditional rendering after.
   const [payablePeriod, setPayablePeriod] = useState(() =>
     new Date().toISOString().slice(0, 7),
   );
 
   const payable = useMemo(() => {
+    // Empty result when the bundle hasn't loaded yet; the JSX below
+    // only renders this card once `data` is truthy anyway.
+    if (!data) {
+      return {
+        basePkr: 0,
+        baseUsd: 0,
+        bonuses: { pkr: 0, usd: 0 },
+        adjustments: { pkr: 0, usd: 0 },
+        commissions: { pkr: 0, usd: 0 },
+        deductions: { pkr: 0, usd: 0 },
+        netPkr: 0,
+        netUsd: 0,
+        hasAnyValue: false,
+      };
+    }
+
     const [py, pm] = payablePeriod.split('-').map((s) => parseInt(s));
     const monthStart = new Date(py, pm - 1, 1);
     const monthEnd = new Date(py, pm, 0, 23, 59, 59, 999);
@@ -206,7 +224,7 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
     // Pick the salary row that was active at any point during the
     // requested month — covers raises mid-period by taking the row
     // that overlaps the period at month-end.
-    const activeBase = data.salaryHistory.find((s) => {
+    const activeBase = (data.salaryHistory ?? []).find((s) => {
       const from = new Date(s.effectiveFrom);
       const to = s.effectiveTo ? new Date(s.effectiveTo) : null;
       return from <= monthEnd && (to == null || to >= monthStart);
@@ -239,16 +257,16 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
     };
 
     const bonuses = sumByCurrency(
-      data.bonuses.filter((b) => inMonth(b.awardedDate)),
+      (data.bonuses ?? []).filter((b) => inMonth(b.awardedDate)),
     );
     const adjustments = sumByCurrency(
-      data.adjustments.filter((a) => inMonth(a.awardedDate)),
+      (data.adjustments ?? []).filter((a) => inMonth(a.awardedDate)),
     );
     const commissions = sumByCurrency(
-      data.commissions.filter((c) => c.period === payablePeriod),
+      (data.commissions ?? []).filter((c) => c.period === payablePeriod),
     );
     const deductions = sumByCurrency(
-      data.deductions.filter((d) => d.period === payablePeriod),
+      (data.deductions ?? []).filter((d) => d.period === payablePeriod),
     );
 
     const netPkr = basePkr + bonuses.pkr + adjustments.pkr + commissions.pkr - deductions.pkr;
@@ -277,6 +295,23 @@ export default function CompensationTab({ employeeId }: { employeeId: number }) 
       ),
     };
   }, [payablePeriod, data]);
+
+  // Early returns AFTER all hooks — same hook order on every render.
+  if (loading && !data) {
+    return <div className="py-12 text-center text-core-text3">Loading…</div>;
+  }
+  if (error) {
+    return (
+      <div className="rounded-lg bg-core-roseSoft p-4 text-[13px] text-core-roseFg">
+        {error}
+      </div>
+    );
+  }
+  if (!data) return null;
+
+  const { summary, canEdit } = data;
+  const fmt = (n: number, ccy: string) =>
+    `${ccy} ${Number(n || 0).toLocaleString()}`;
 
   return (
     <div className="space-y-4">
