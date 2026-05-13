@@ -449,7 +449,7 @@ function SplitFormModal({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="form-label">Percentage *</label>
                 <input
@@ -765,7 +765,7 @@ function AddSplitsBatchModal({
             )}
 
             {/* Effective date — applies to every row in this batch */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="form-label">Effective From *</label>
                 <input
@@ -813,9 +813,9 @@ function AddSplitsBatchModal({
                   return (
                     <div
                       key={r.key}
-                      className="grid grid-cols-12 gap-2 items-start"
+                      className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-start"
                     >
-                      <div className="col-span-6">
+                      <div className="sm:col-span-6">
                         <select
                           value={r.companyId}
                           onChange={(e) =>
@@ -836,7 +836,7 @@ function AddSplitsBatchModal({
                           ))}
                         </select>
                       </div>
-                      <div className="col-span-4">
+                      <div className="sm:col-span-4">
                         <div className="flex items-center gap-1">
                           <input
                             type="number"
@@ -858,7 +858,7 @@ function AddSplitsBatchModal({
                           </p>
                         )}
                       </div>
-                      <div className="col-span-2 flex justify-end">
+                      <div className="sm:col-span-2 flex sm:justify-end">
                         <button
                           type="button"
                           onClick={() => removeRow(r.key)}

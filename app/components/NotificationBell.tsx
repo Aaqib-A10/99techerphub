@@ -139,7 +139,7 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-1.5 w-[380px] overflow-hidden rounded-lg border border-core-border/85 bg-core-surface shadow-[0_16px_40px_-8px_rgba(0,0,0,0.16)]">
+        <div className="absolute right-0 top-full z-50 mt-1.5 w-[min(380px,calc(100vw-1rem))] overflow-hidden rounded-lg border border-core-border/85 bg-core-surface shadow-[0_16px_40px_-8px_rgba(0,0,0,0.16)]">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-core-border px-3.5 py-2.5">
             <div className="flex items-center gap-2">

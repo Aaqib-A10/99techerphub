@@ -43,7 +43,7 @@ async function AuditStats() {
     const mostActiveModule = moduleStats[0]?.module || 'None';
 
     return (
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="stat-card">
           <div className="stat-label">Total Entries</div>
           <div className="stat-value">{totalEntries.toLocaleString()}</div>

@@ -117,7 +117,7 @@ export default function AssetFilters({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {/* Search */}
-      <div className="group relative flex h-8 min-w-[260px] flex-1 items-center rounded-md border border-core-border/95 bg-core-surface pl-2.5 pr-2 transition-all duration-150 hover:border-core-border focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)] sm:max-w-[340px]">
+      <div className="group relative flex h-8 w-full sm:min-w-[260px] sm:w-auto flex-1 items-center rounded-md border border-core-border/95 bg-core-surface pl-2.5 pr-2 transition-all duration-150 hover:border-core-border focus-within:border-zinc-400 focus-within:shadow-[0_0_0_3px_rgba(0,0,0,0.04)] sm:max-w-[340px]">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="flex-shrink-0 text-core-text3" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 21l-4.35-4.35 M11 19a8 8 0 100-16 8 8 0 000 16z" />
         </svg>

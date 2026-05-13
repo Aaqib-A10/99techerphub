@@ -337,7 +337,7 @@ export default function AddCompensationModal({
                     required
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="form-label">Awarded On *</label>
                     <input
