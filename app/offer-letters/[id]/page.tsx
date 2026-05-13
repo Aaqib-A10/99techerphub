@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import OfferLetterDetailClient from './client';
 import PageHero from '@/app/components/PageHero';
+import AuditTrailCard from '@/app/components/AuditTrailCard';
 
 export default async function OfferLetterDetailPage({
   params,
@@ -24,7 +25,12 @@ export default async function OfferLetterDetailPage({
       recordId: offerLetter.id,
     },
     include: {
-      changedBy: true,
+      changedBy: {
+        select: {
+          email: true,
+          employee: { select: { firstName: true, lastName: true } },
+        },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -202,27 +208,7 @@ export default async function OfferLetterDetailPage({
             </div>
           </div>
 
-          {auditLogs.length > 0 && (
-            <div className="card">
-              <div className="card-header">
-                <h2 className="section-heading">Audit Trail</h2>
-              </div>
-              <div className="card-body">
-                <div className="space-y-3">
-                  {auditLogs.map((log) => (
-                    <div key={log.id} className="p-3 bg-core-surface2 rounded text-sm">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{log.action}</span>
-                        <span className="text-core-text3">
-                          {new Date(log.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          <AuditTrailCard logs={auditLogs as any} />
         </div>
 
         <div>

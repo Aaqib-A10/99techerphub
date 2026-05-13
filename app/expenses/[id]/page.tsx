@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import ExpenseDetailClient from './client';
 import PageHero from '@/app/components/PageHero';
+import AuditTrailCard from '@/app/components/AuditTrailCard';
 import { getSessionUser } from '@/lib/auth';
 
 export default async function ExpenseDetailPage({
@@ -42,7 +43,12 @@ export default async function ExpenseDetailPage({
       recordId: expense.id,
     },
     include: {
-      changedBy: true,
+      changedBy: {
+        select: {
+          email: true,
+          employee: { select: { firstName: true, lastName: true } },
+        },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -280,40 +286,8 @@ export default async function ExpenseDetailPage({
             </div>
           </div>
 
-          {/* Audit Trail */}
-          {auditLogs.length > 0 && (
-            <div className="card">
-              <div className="card-header">
-                <h2 className="section-heading">Audit Trail</h2>
-              </div>
-              <div className="card-body">
-                <div className="space-y-3">
-                  {auditLogs.map((log: any) => (
-                    <div key={log.id} className="p-3 bg-core-surface2 rounded text-sm">
-                      <div className="flex justify-between">
-                        <span className="font-medium">
-                          {log.action}
-                        </span>
-                        <span className="text-core-text3">
-                          {new Date(log.createdAt).toLocaleString()}
-                        </span>
-                      </div>
-                      {log.changedBy && (
-                        <div className="text-core-text2 text-xs mt-1">
-                          By {log.changedBy.email}
-                        </div>
-                      )}
-                      {log.newValues && (
-                        <div className="text-core-text2 text-xs mt-1 font-mono">
-                          {JSON.stringify(log.newValues).substring(0, 100)}...
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Audit Trail — proper table with parsed diff per row */}
+          <AuditTrailCard logs={auditLogs as any} />
         </div>
 
         {/* Sidebar: Approval Actions */}
