@@ -179,20 +179,9 @@ export default function EmployeePicker({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <div className="relative">
-        {/* Search icon */}
-        <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-core-text3 pointer-events-none"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
-          />
-        </svg>
+        {/* Search icon removed — it was overlapping the selected name
+            text on narrow widths. The chevron / clear button on the
+            right side is enough affordance. */}
         <input
           ref={inputRef}
           type="text"
@@ -216,7 +205,7 @@ export default function EmployeePicker({
           aria-autocomplete="list"
           aria-expanded={open}
           aria-controls="employee-picker-list"
-          className={`form-input pl-9 pr-9 w-full ${
+          className={`form-input pr-9 w-full ${
             selected ? 'font-medium text-core-text' : ''
           }`}
           autoComplete="off"
