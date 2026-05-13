@@ -65,6 +65,7 @@ export default function EmployeePicker({
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Resolve current selection
   const selectedId = value === null || value === undefined || value === '' ? null : Number(value);
@@ -145,6 +146,10 @@ export default function EmployeePicker({
     onChange(emp.id);
     setQuery(`${fullName(emp)} (${emp.empCode})`);
     setOpen(false);
+    // Blur after selection — otherwise the input keeps focus and a
+    // text cursor blinks mid-name ("E|bad Khattak"), making it look
+    // like a typo-able label rather than a finalized chip.
+    inputRef.current?.blur();
   };
 
   const clear = () => {
@@ -189,6 +194,7 @@ export default function EmployeePicker({
           />
         </svg>
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => {
@@ -196,7 +202,13 @@ export default function EmployeePicker({
             setOpen(true);
             setHighlight(0);
           }}
-          onFocus={() => setOpen(true)}
+          onFocus={(e) => {
+            setOpen(true);
+            // When the input is focused with a selection already in
+            // place, select-all so the user can immediately type to
+            // replace — better than landing the cursor mid-name.
+            if (selected) e.target.select();
+          }}
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           disabled={disabled}
@@ -204,7 +216,9 @@ export default function EmployeePicker({
           aria-autocomplete="list"
           aria-expanded={open}
           aria-controls="employee-picker-list"
-          className="form-input pl-9 pr-9 w-full"
+          className={`form-input pl-9 pr-9 w-full ${
+            selected ? 'font-medium text-core-text' : ''
+          }`}
           autoComplete="off"
         />
         {/* Clear button */}
